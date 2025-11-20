@@ -1,0 +1,20 @@
+{
+  "announcement.premise.noellesroles.jester": "Go psycho when shot by a gun.",
+  "announcement.goal.noellesroles.jester": "Find and co-operate with the Killers.",
+  "announcement.title.noellesroles.jester": "Jester",
+
+  "announcement.premise.noellesroles.morphling": "Disguise into other passengers.",
+  "announcement.goal.noellesroles.morphling": "Fool everyone.",
+  "announcement.title.noellesroles.morphling": "Morphling",
+
+  "announcement.premise.noellesroles.awesome_binglus": "Awesome Binglu",
+  "announcement.goal.noellesroles.awesome_binglus": "Awesome Binglus",
+  "announcement.title.noellesroles.awesome_binglus": "Awesome Binglus",
+
+  "announcement.premise.noellesroles.host": "Use the master key to get around.",
+  "announcement.goal.noellesroles.host": "Open up every door on the train!",
+  "announcement.title.noellesroles.host": "Host",
+
+  "item.noellesroles.fake_revolver": "Fake Revolver",
+  "item.noellesroles.fake_knife": "Fake Knife"
+}

@@ -1,0 +1,22 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "org.agmas.noellesroles.client.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "AnnounceWelcomeMixin",
+    "RoleTextMixin",
+    "morphling.MorphlingRendererMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  },
+  "mixins": [
+    "InstinctMixin",
+    "morphling.MorphlingRoleNameRendererMixin",
+    "morphling.MorphlingScreenMixin"
+  ]
+}
