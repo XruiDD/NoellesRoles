@@ -14,7 +14,8 @@
     "jester.JesterItemEntityMixin",
     "jester.JesterJestMixin",
     "morphling.MorphlingReseterMixin",
-    "noisemaker.NoisemakerKillMixin"
+    "noisemaker.NoisemakerKillMixin",
+    "voodoo.VoodooVooMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -13,6 +13,7 @@ import net.minecraft.client.network.PlayerListEntry;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.text.Text;
+import org.agmas.noellesroles.ConfigWorldComponent;
 import org.agmas.noellesroles.Noellesroles;
 import org.agmas.noellesroles.client.SwapperPlayerWidget;
 import org.agmas.noellesroles.client.VoodooPlayerWidget;
@@ -36,7 +37,19 @@ public abstract class VoodoScreenMixin extends LimitedHandledScreen<PlayerScreen
     public VoodoScreenMixin(PlayerScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
     }
-
+    @Inject(method = "render", at = @At("HEAD"))
+    void a(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
+        GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(player.getWorld());
+        ConfigWorldComponent configWorldComponent = (ConfigWorldComponent) ConfigWorldComponent.KEY.get(player.getWorld());
+        if (gameWorldComponent.isRole(player,Noellesroles.VOODOO)) {
+            int y = (((LimitedInventoryScreen)(Object)this).height - 32) / 2;
+            int x = ((LimitedInventoryScreen)(Object)this).width / 2;
+            if (!configWorldComponent.naturalVoodoosAllowed) {
+                Text text = Text.literal("Voodoo deaths must be triggered by another player!");
+                context.drawTextWithShadow(MinecraftClient.getInstance().textRenderer, text, x - (MinecraftClient.getInstance().textRenderer.getWidth(text)/2), y + 40, Color.RED.getRGB());
+            }
+        }
+    }
 
     @Inject(method = "init", at = @At("HEAD"))
     void b(CallbackInfo ci) {

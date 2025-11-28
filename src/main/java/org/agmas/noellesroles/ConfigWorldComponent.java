@@ -20,7 +20,8 @@ import java.util.UUID;
 
 public class ConfigWorldComponent implements AutoSyncedComponent, ServerTickingComponent {
     public static final ComponentKey<ConfigWorldComponent> KEY = ComponentRegistry.getOrCreate(Identifier.of(Noellesroles.MOD_ID, "config"), ConfigWorldComponent.class);
-    public boolean insaneSeesMorphs = false;
+    public boolean insaneSeesMorphs = true;
+    public boolean naturalVoodoosAllowed = false;
     private final World world;
 
     public void reset() {
@@ -37,11 +38,14 @@ public class ConfigWorldComponent implements AutoSyncedComponent, ServerTickingC
 
     public void writeToNbt(@NotNull NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
         insaneSeesMorphs = NoellesRolesConfig.HANDLER.instance().insanePlayersSeeMorphs;
+        naturalVoodoosAllowed = NoellesRolesConfig.HANDLER.instance().voodooNonKillerDeaths;
         tag.putBoolean("insaneSeesMorphs", this.insaneSeesMorphs);
+        tag.putBoolean("naturalVoodoosAllowed", this.naturalVoodoosAllowed);
     }
 
     public void readFromNbt(@NotNull NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
-        this.insaneSeesMorphs = !tag.contains("insaneSeesMorphs") || tag.getBoolean("insaneSeesMorphs");
+        if (tag.contains("insaneSeesMorphs"))   this.insaneSeesMorphs = tag.getBoolean("insaneSeesMorphs");
+        if (tag.contains("naturalVoodoosAllowed"))   this.naturalVoodoosAllowed = tag.getBoolean("naturalVoodoosAllowed");
     }
 
     @Override

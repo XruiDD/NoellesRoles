@@ -3,6 +3,7 @@ package org.agmas.noellesroles;
 import dev.doctor4t.trainmurdermystery.api.Role;
 import dev.doctor4t.trainmurdermystery.api.TMMRoles;
 import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
+import dev.doctor4t.trainmurdermystery.cca.PlayerMoodComponent;
 import dev.doctor4t.trainmurdermystery.client.gui.RoleAnnouncementTexts;
 import dev.doctor4t.trainmurdermystery.entity.PlayerBodyEntity;
 import dev.doctor4t.trainmurdermystery.event.AllowPlayerDeath;
@@ -106,7 +107,10 @@ public class Noellesroles implements ModInitializer {
     public void registerEvents() {
         ModdedRoleAssigned.EVENT.register((player,role)->{
             AbilityPlayerComponent abilityPlayerComponent = (AbilityPlayerComponent) AbilityPlayerComponent.KEY.get(player);
-            abilityPlayerComponent.cooldown = GameConstants.getInTicks(0,45);
+            abilityPlayerComponent.cooldown = NoellesRolesConfig.HANDLER.instance().generalCooldownTicks;
+            if (role.equals(SEER)) {
+                abilityPlayerComponent.cooldown = NoellesRolesConfig.HANDLER.instance().seerCooldownTicks;
+            }
             if (role.equals(JESTER)) {
                 player.giveItemStack(ModItems.FAKE_KNIFE.getDefaultStack());
                 player.giveItemStack(ModItems.FAKE_REVOLVER.getDefaultStack());
@@ -144,31 +148,23 @@ public class Noellesroles implements ModInitializer {
             HarpyModLoaderConfig.HANDLER.save();
         }
 
-        AllowPlayerDeath.EVENT.register((player,id)->{
-            GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(player.getWorld());
-            if (gameWorldComponent.isRole(player, VOODOO)) {
-                VoodooPlayerComponent voodooPlayerComponent = (VoodooPlayerComponent) VoodooPlayerComponent.KEY.get(player);
-                if (voodooPlayerComponent.target != null) {
-                    PlayerEntity voodooed = player.getWorld().getPlayerByUuid(voodooPlayerComponent.target);
-                    if (voodooed != null) {
-                        if (GameFunctions.isPlayerAliveAndSurvival(voodooed) && voodooed != player) {
-                            GameFunctions.killPlayer(voodooed, true, null, Identifier.of(MOD_ID, "voodoo"));
-                        }
-                    }
-                }
-            }
-            return true;
-        });
     }
 
 
     public void registerPackets() {
         ServerPlayNetworking.registerGlobalReceiver(Noellesroles.MORPH_PACKET, (payload, context) -> {
             GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(context.player().getWorld());
+            AbilityPlayerComponent abilityPlayerComponent = (AbilityPlayerComponent) AbilityPlayerComponent.KEY.get(context.player());
 
+            if (gameWorldComponent.isRole(context.player(), SEER) && abilityPlayerComponent.cooldown <= 0) {
+                abilityPlayerComponent.cooldown = GameConstants.getInTicks(1,0);
+                if (payload.player() == null) return;
+                if (gameWorldComponent.getRole(payload.player()) == null) return;
+                PlayerMoodComponent playerMoodComponent = (PlayerMoodComponent) PlayerMoodComponent.KEY.get(context.player());
+                if (gameWorldComponent.getRole(payload.player()).isInnocent()) playerMoodComponent.setMood(0.3f);
+            }
             if (gameWorldComponent.isRole(context.player(), VOODOO)) {
                 if (payload.player() == null) return;
-                AbilityPlayerComponent abilityPlayerComponent = (AbilityPlayerComponent) AbilityPlayerComponent.KEY.get(context.player());
                 if (abilityPlayerComponent.cooldown > 0) return;
                 abilityPlayerComponent.cooldown = GameConstants.getInTicks(0, 30);
                 abilityPlayerComponent.sync();
@@ -206,9 +202,6 @@ public class Noellesroles implements ModInitializer {
         ServerPlayNetworking.registerGlobalReceiver(Noellesroles.ABILITY_PACKET, (payload, context) -> {
             AbilityPlayerComponent abilityPlayerComponent = (AbilityPlayerComponent) AbilityPlayerComponent.KEY.get(context.player());
             GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(context.player().getWorld());
-            if (gameWorldComponent.isRole(context.player(), SEER) && abilityPlayerComponent.cooldown <= 0) {
-                abilityPlayerComponent.cooldown = GameConstants.getInTicks(1,0);
-            }
             if (gameWorldComponent.isRole(context.player(), PHANTOM) && abilityPlayerComponent.cooldown <= 0) {
                 context.player().addStatusEffect(new StatusEffectInstance(StatusEffects.INVISIBILITY, 30 * 20,0,true,false,true));
                 abilityPlayerComponent.cooldown = GameConstants.getInTicks(1, 30);

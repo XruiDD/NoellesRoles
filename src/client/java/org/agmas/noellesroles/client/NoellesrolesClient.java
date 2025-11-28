@@ -69,7 +69,7 @@ public class NoellesrolesClient implements ClientModInitializer {
                         PlayerMoodComponent moodComponent = (PlayerMoodComponent) PlayerMoodComponent.KEY.get(MinecraftClient.getInstance().player);
                         if (moodComponent.isLowerThanMid()) return;
                         if (abilityPlayerComponent.cooldown <= 0) {
-                            ClientPlayNetworking.send(new AbilityC2SPacket());
+                            ClientPlayNetworking.send(new MorphC2SPacket(target.getUuid()));
                             seer_revealedPlayers.add(target);
                         }
                         return;

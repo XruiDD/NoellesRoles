@@ -42,11 +42,6 @@ public abstract class SeerHudMixin {
         }
         if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.SEER)) {
             PlayerMoodComponent moodComponent = (PlayerMoodComponent) PlayerMoodComponent.KEY.get(MinecraftClient.getInstance().player);
-            if (moodComponent.isLowerThanMid()) {
-                Text name = Text.literal("50% sanity required to use ability");
-                context.drawTextWithShadow(renderer, name, -renderer.getWidth(name) / 2, 0, Colors.YELLOW);
-                return;
-            }
             if (NoellesrolesClient.seer_revealedPlayers.contains(NoellesrolesClient.target)) {
                 if (HarpymodloaderClient.hudRole.isInnocent()) {
                     Text name = Text.literal("Innocent");
@@ -55,6 +50,12 @@ public abstract class SeerHudMixin {
                     Text name = Text.literal("Evil").formatted(Formatting.RED);
                     context.drawTextWithShadow(renderer, name, -renderer.getWidth(name) / 2, 0, Colors.RED | (int) (nametagAlpha * 255.0F) << 24);
                 }
+                return;
+            }
+
+            if (moodComponent.isLowerThanMid()) {
+                Text name = Text.literal("50% sanity required to use ability");
+                context.drawTextWithShadow(renderer, name, -renderer.getWidth(name) / 2, 0, Colors.YELLOW);
                 return;
             }
 
@@ -72,5 +73,6 @@ public abstract class SeerHudMixin {
     private static void b(TextRenderer renderer, ClientPlayerEntity player, DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci, @Local PlayerEntity target) {
         GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(player.getWorld());
         NoellesrolesClient.target = target;
+
     }
 }

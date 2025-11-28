@@ -27,7 +27,7 @@ public abstract class PhantomHudMixin {
         AbilityPlayerComponent abilityPlayerComponent = (AbilityPlayerComponent) AbilityPlayerComponent.KEY.get(MinecraftClient.getInstance().player);
         if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.PHANTOM)) {
             int drawY = context.getScaledWindowHeight();
-            Text line = Text.literal("Use ").append(Text.translatable(NoellesrolesClient.abilityBind.getBoundKeyTranslationKey()).append(Text.literal(" to go invisible!")));
+            Text line = Text.literal("Use ").append(NoellesrolesClient.abilityBind.getBoundKeyLocalizedText()).append(Text.literal(" to go invisible!"));
 
             if (abilityPlayerComponent.cooldown > 0) {
                 line = Text.literal("Ability usable in " + abilityPlayerComponent.cooldown/20 + "s");
