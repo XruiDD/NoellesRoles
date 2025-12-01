@@ -44,7 +44,7 @@
   "announcement.role.coroner": "Coroner",
   "announcement.win.coroner": "Passengers Win!",
   "hud.coroner.sanity_requirements": "50% sanity required to use ability",
-  "hud.coroner.death_info": "Died %s s ago to",
+  "hud.coroner.death_info": "Died %ss ago to ",
 
   "announcement.goals.executioner": "Become a killer once your target dies (to a non-killer).",
   "announcement.role.executioner": "Executioner",

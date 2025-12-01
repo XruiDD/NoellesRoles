@@ -44,16 +44,11 @@
   "announcement.role.coroner": "Детектив",
   "announcement.win.coroner": "Пассажиры победили!",
   "hud.coroner.sanity_requirements": "Необходимо 50% рассудка, чтобы использовать эту способность",
-  "hud.coroner.death_info": "Умер %s с назад от",
+  "hud.coroner.death_info": "Умер %s с назад от ",
 
   "announcement.goals.executioner": "Станьте убийцей, как только ваша цель умрет (от рук не-убийцы).",
   "announcement.role.executioner": "Жнец",
   "announcement.win.executioner": "Пассажиры победили!",
-
-  "announcement.goals.seer": "Узнайте роли других игроков.",
-  "announcement.role.seer": "Провидец",
-  "announcement.win.seer": "Пассажиры победили!",
-
 
   "item.noellesroles.fake_revolver": "Поддельный револьвер",
   "item.noellesroles.master_key": "Мастер-ключ",

@@ -202,8 +202,12 @@ public class Noellesroles implements ModInitializer {
                     if (context.player().getWorld().getPlayerByUuid(payload.player()) != null) {
                         if (payload.player2() != null) {
                             if (context.player().getWorld().getPlayerByUuid(payload.player2()) != null) {
+                                PlayerEntity player1 = context.player().getWorld().getPlayerByUuid(payload.player2());
+                                PlayerEntity player2 = context.player().getWorld().getPlayerByUuid(payload.player());
                                 Vec3d swapperPos = context.player().getWorld().getPlayerByUuid(payload.player2()).getPos();
                                 Vec3d swappedPos = context.player().getWorld().getPlayerByUuid(payload.player()).getPos();
+                                if (!context.player().getWorld().isSpaceEmpty(player1)) return;
+                                if (!context.player().getWorld().isSpaceEmpty(player2)) return;
                                 context.player().getWorld().getPlayerByUuid(payload.player2()).refreshPositionAfterTeleport(swappedPos.x, swappedPos.y, swappedPos.z);
                                 context.player().getWorld().getPlayerByUuid(payload.player()).refreshPositionAfterTeleport(swapperPos.x, swapperPos.y, swapperPos.z);
                             }

@@ -20,6 +20,8 @@
     "requireAnnotations": true
   },
   "mixins": [
-    "executioner.ExecutionerHudMixin"
+    "executioner.ExecutionerHudMixin",
+    "executioner.ExecutionerMoodRenderer",
+    "jester.JesterMoodRenderer"
   ]
 }

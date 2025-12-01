@@ -60,7 +60,9 @@ public class ExecutionerConfirmMixin {
             if (executionerPlayerComponent.target.equals(victim.getUuid()) && invalidKill) {
                 List<UUID> innocentPlayers = new ArrayList<>();
                 gameWorldComponent.getRoles().forEach((uuid2,role1)->{
-                    if (role1.isInnocent()) {
+                    PlayerEntity player = victim.getWorld().getPlayerByUuid(uuid2);
+                    if (uuid2 == null) return;
+                    if (role1.isInnocent() && GameFunctions.isPlayerAliveAndSurvival(player)) {
                         innocentPlayers.add(uuid2);
                     }
                 });
