@@ -178,7 +178,7 @@ public class Noellesroles implements ModInitializer {
             if (role.equals(VULTURE)) {
                 VulturePlayerComponent vulturePlayerComponent = VulturePlayerComponent.KEY.get(player);
                 vulturePlayerComponent.reset();
-                vulturePlayerComponent.bodiesRequired = (int)((player.getWorld().getPlayers().size()/2f) - Math.floor(player.getWorld().getPlayers().size()/6f));
+                vulturePlayerComponent.bodiesRequired = (int)((player.getWorld().getPlayers().size()/3f) - Math.floor(player.getWorld().getPlayers().size()/6f));
                 vulturePlayerComponent.sync();
             }
             if (role.equals(JESTER)) {
@@ -255,7 +255,6 @@ public class Noellesroles implements ModInitializer {
 
             if (gameWorldComponent.isRole(context.player(), VULTURE) && GameFunctions.isPlayerAliveAndSurvival(context.player())) {
                 if (abilityPlayerComponent.cooldown > 0) return;
-                abilityPlayerComponent.cooldown = GameConstants.getInTicks(0, 45);
                 abilityPlayerComponent.sync();
                 List<PlayerBodyEntity> playerBodyEntities = context.player().getWorld().getEntitiesByType(TypeFilter.equals(PlayerBodyEntity.class), context.player().getBoundingBox().expand(10), (playerBodyEntity -> {
                     return playerBodyEntity.getUuid().equals(payload.playerBody());
@@ -263,6 +262,7 @@ public class Noellesroles implements ModInitializer {
                 if (!playerBodyEntities.isEmpty()) {
                     BodyDeathReasonComponent bodyDeathReasonComponent = BodyDeathReasonComponent.KEY.get(playerBodyEntities.getFirst());
                     if (!bodyDeathReasonComponent.vultured) {
+                        abilityPlayerComponent.cooldown = GameConstants.getInTicks(0, 20);
                         VulturePlayerComponent vulturePlayerComponent = VulturePlayerComponent.KEY.get(context.player());
                         vulturePlayerComponent.bodiesEaten++;
                         vulturePlayerComponent.sync();
