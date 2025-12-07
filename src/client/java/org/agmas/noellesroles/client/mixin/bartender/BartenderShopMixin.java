@@ -13,6 +13,7 @@ import net.minecraft.text.Text;
 import org.agmas.noellesroles.ConfigWorldComponent;
 import org.agmas.noellesroles.ModItems;
 import org.agmas.noellesroles.Noellesroles;
+import org.agmas.noellesroles.bartender.BartenderPlayerComponent;
 import org.agmas.noellesroles.client.VoodooPlayerWidget;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -40,8 +41,10 @@ public abstract class BartenderShopMixin extends LimitedHandledScreen<PlayerScre
     void b(CallbackInfo ci) {
         GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(player.getWorld());
         if (gameWorldComponent.isRole(player,Noellesroles.BARTENDER)) {
+            BartenderPlayerComponent bartenderComponent = BartenderPlayerComponent.KEY.get(player);
+            int price = bartenderComponent.getCurrentPrice();
             List<ShopEntry> entries = new ArrayList<>();
-            entries.add(new ShopEntry(ModItems.DEFENSE_VIAL.getDefaultStack(), 100, ShopEntry.Type.POISON));
+            entries.add(new ShopEntry(ModItems.DEFENSE_VIAL.getDefaultStack(), price, ShopEntry.Type.POISON));
             int apart = 36;
             int x = width / 2 - (entries.size()) * apart / 2 + 9;
             int shouldBeY = (((LimitedInventoryScreen)(Object)this).height - 32) / 2;

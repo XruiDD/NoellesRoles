@@ -17,6 +17,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.agmas.noellesroles.ModItems;
 import org.agmas.noellesroles.Noellesroles;
+import org.agmas.noellesroles.bartender.BartenderPlayerComponent;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -40,14 +41,18 @@ public abstract class BartenderPlayerShopComponentMixin {
         GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(player.getWorld());
         if (gameWorldComponent.isRole(player,Noellesroles.BARTENDER)) {
             if (index == 0) {
-                if (balance >= 100) {
-                    this.balance -= 100;
+                BartenderPlayerComponent bartenderComponent = BartenderPlayerComponent.KEY.get(player);
+                int price = bartenderComponent.getCurrentPrice();
+                if (balance >= price) {
+                    this.balance -= price;
                     sync();
                     player.giveItemStack(ModItems.DEFENSE_VIAL.getDefaultStack());
+                    bartenderComponent.increasePrice();
                     PlayerEntity var6 = this.player;
                     if (var6 instanceof ServerPlayerEntity) {
                         ServerPlayerEntity player = (ServerPlayerEntity) var6;
                         player.networkHandler.sendPacket(new PlaySoundS2CPacket(Registries.SOUND_EVENT.getEntry(TMMSounds.UI_SHOP_BUY), SoundCategory.PLAYERS, player.getX(), player.getY(), player.getZ(), 1.0F, 0.9F + this.player.getRandom().nextFloat() * 0.2F, player.getRandom().nextLong()));
+                        player.closeHandledScreen();
                     }
                 } else {
                     this.player.sendMessage(Text.literal("Purchase Failed").formatted(Formatting.DARK_RED), true);

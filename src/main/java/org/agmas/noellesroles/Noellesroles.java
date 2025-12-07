@@ -76,8 +76,8 @@ public class Noellesroles implements ModInitializer {
 
     public static HashMap<Role, RoleAnnouncementTexts.RoleAnnouncementText> roleRoleAnnouncementTextHashMap = new HashMap<>();
 
-    public static Role TIMEKEEPER = TMMRoles.registerRole(new Role(id("time_keeper"), 0x0026FF, true, false, Role.MoodType.REAL, GameConstants.getInTicks(0, 10), true));
-    public static Role APATHETIC = TMMRoles.registerRole(new Role(id("apathetic"), 0xC0C0C0, true, false, Role.MoodType.NONE, GameConstants.getInTicks(0, 10), false));
+    public static Role TIMEKEEPER = TMMRoles.registerRole(new Role(Identifier.of(MOD_ID, "time_keeper"), 0x0026FF, true, false, Role.MoodType.REAL, GameConstants.getInTicks(0, 10), true));
+    public static Role APATHETIC = TMMRoles.registerRole(new Role(Identifier.of(MOD_ID, "apathetic"), 0xC0C0C0, true, false, Role.MoodType.NONE, GameConstants.getInTicks(0, 10), false));
     public static Role JESTER = TMMRoles.registerRole(new Role(JESTER_ID,new Color(255,86,243).getRGB() ,false,false, Role.MoodType.FAKE,Integer.MAX_VALUE,true));
     public static Role MORPHLING =TMMRoles.registerRole(new Role(MORPHLING_ID, new Color(170, 2, 61).getRGB(),false,true, Role.MoodType.FAKE,Integer.MAX_VALUE,true));
     public static Role CONDUCTOR =TMMRoles.registerRole(new Role(CONDUCTOR_ID, new Color(255, 205, 84).getRGB(),true,false, Role.MoodType.REAL,TMMRoles.CIVILIAN.getMaxSprintTime(),false));
