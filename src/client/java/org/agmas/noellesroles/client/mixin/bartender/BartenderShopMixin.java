@@ -18,6 +18,7 @@ import org.agmas.noellesroles.client.VoodooPlayerWidget;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -33,6 +34,12 @@ public abstract class BartenderShopMixin extends LimitedHandledScreen<PlayerScre
     @Final
     public ClientPlayerEntity player;
 
+    @Unique
+    private int lastKnownPrice = -1;
+
+    @Unique
+    private LimitedInventoryScreen.StoreItemWidget bartenderWidget = null;
+
     public BartenderShopMixin(PlayerScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
     }
@@ -43,6 +50,8 @@ public abstract class BartenderShopMixin extends LimitedHandledScreen<PlayerScre
         if (gameWorldComponent.isRole(player,Noellesroles.BARTENDER)) {
             BartenderPlayerComponent bartenderComponent = BartenderPlayerComponent.KEY.get(player);
             int price = bartenderComponent.getCurrentPrice();
+            lastKnownPrice = price;
+
             List<ShopEntry> entries = new ArrayList<>();
             entries.add(new ShopEntry(ModItems.DEFENSE_VIAL.getDefaultStack(), price, ShopEntry.Type.POISON));
             int apart = 36;
@@ -50,8 +59,32 @@ public abstract class BartenderShopMixin extends LimitedHandledScreen<PlayerScre
             int shouldBeY = (((LimitedInventoryScreen)(Object)this).height - 32) / 2;
             int y = shouldBeY + 80;
 
-            for(int i = 0; i < entries.size(); ++i) {
-                addDrawableChild(new LimitedInventoryScreen.StoreItemWidget((LimitedInventoryScreen) (Object)this, x + apart * i, y, (ShopEntry)entries.get(i), i));
+            bartenderWidget = new LimitedInventoryScreen.StoreItemWidget((LimitedInventoryScreen) (Object)this, x, y, entries.get(0), 0);
+            addDrawableChild(bartenderWidget);
+        }
+    }
+
+    @Inject(method = "render", at = @At("HEAD"))
+    void checkPriceUpdate(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
+        GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(player.getWorld());
+        if (gameWorldComponent.isRole(player, Noellesroles.BARTENDER)) {
+            BartenderPlayerComponent bartenderComponent = BartenderPlayerComponent.KEY.get(player);
+            int currentPrice = bartenderComponent.getCurrentPrice();
+
+            if (currentPrice != lastKnownPrice && bartenderWidget != null) {
+                remove(bartenderWidget);
+
+                List<ShopEntry> entries = new ArrayList<>();
+                entries.add(new ShopEntry(ModItems.DEFENSE_VIAL.getDefaultStack(), currentPrice, ShopEntry.Type.POISON));
+
+                int apart = 36;
+                int x = width / 2 - apart / 2 + 9;
+                int shouldBeY = (height - 32) / 2;
+                int y = shouldBeY + 80;
+
+                bartenderWidget = new LimitedInventoryScreen.StoreItemWidget((LimitedInventoryScreen) (Object)this, x, y, entries.get(0), 0);
+                addDrawableChild(bartenderWidget);
+                lastKnownPrice = currentPrice;
             }
         }
     }

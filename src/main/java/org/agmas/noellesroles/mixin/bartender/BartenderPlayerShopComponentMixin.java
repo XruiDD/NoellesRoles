@@ -52,7 +52,6 @@ public abstract class BartenderPlayerShopComponentMixin {
                     if (var6 instanceof ServerPlayerEntity) {
                         ServerPlayerEntity player = (ServerPlayerEntity) var6;
                         player.networkHandler.sendPacket(new PlaySoundS2CPacket(Registries.SOUND_EVENT.getEntry(TMMSounds.UI_SHOP_BUY), SoundCategory.PLAYERS, player.getX(), player.getY(), player.getZ(), 1.0F, 0.9F + this.player.getRandom().nextFloat() * 0.2F, player.getRandom().nextLong()));
-                        player.closeHandledScreen();
                     }
                 } else {
                     this.player.sendMessage(Text.literal("Purchase Failed").formatted(Formatting.DARK_RED), true);
