@@ -8,12 +8,20 @@
   "announcement.goals.awesome_binglus": "Awesome Binglu",
   "announcement.role.awesome_binglus": "Awesome Binglus",
 
+  "announcement.goals.apathetic": "You don't have a Mood.",
+  "announcement.role.apathetic": "Apathetic",
+  "announcement.win.apathetic": "Passagers Win!",
+
   "announcement.goals.conductor": "Use the master key to open up every door on the train!",
   "announcement.role.conductor": "Conductor",
 
   "announcement.goals.the_insane_damned_paranoid_killer": "I hear dead people.",
   "announcement.role.the_insane_damned_paranoid_killer": "The Insane Damned Paranoid Killer Of Doom Death Destruction And Waffles",
   "announcement.win.the_insane_damned_paranoid_killer": "Killers Win!",
+
+  "announcement.goals.time_keeper": "You can see how much time is left of the round.",
+  "announcement.role.time_keeper": "Time Keeper",
+  "announcement.win.time_keeper": "Passagers Win!",
 
 
   "announcement.goals.bartender": "See players that drink through walls!",

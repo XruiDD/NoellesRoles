@@ -1,7 +1,7 @@
 {
   "announcement.goals.jester": "找到并与杀手合作。",
-  "announcement.role.jester": "狂信者",
-  "announcement.win.jester": "狂信者胜利！",
+  "announcement.role.jester": "小丑",
+  "announcement.win.jester": "小丑胜利！",
 
   "announcement.goals.morphling": "愚弄所有人。",
   "announcement.role.morphling": "变形者",
@@ -25,7 +25,7 @@
   "announcement.win.bartender": "乘客胜利！",
 
   "announcement.goals.phantom": "化为隐形，但要小心你还有碰撞体积。",
-  "announcement.role.phantom": "幻灵",
+  "announcement.role.phantom": "幽灵",
   "announcement.win.phantom": "杀手胜利！",
 
   "announcement.goals.noisemaker": "在死亡时向所有人暴露你的位置。",
@@ -36,7 +36,7 @@
   "announcement.role.voodoo": "巫毒师",
   "announcement.win.voodoo": "乘客胜利！",
 
-  "announcement.goals.swapper": "与其他玩家交换位置。",
+  "announcement.goals.swapper": "指定任意两名玩家交换位置。",
   "announcement.role.swapper": "交换者",
   "announcement.win.swapper": "杀手胜利！",
 
@@ -54,19 +54,49 @@
   "announcement.role.trapper": "检查官",
   "announcement.win.trapper": "乘客胜利！",
 
+  "announcement.goals.vulture": "吃掉一定数量尸体后，你可以转变为杀手！",
+  "announcement.role.vulture": "秃鹫",
+  "announcement.win.vulture": "杀手胜利！",
+  "hud.vulture.eat": "按 %s 吃掉尸体!",
+  "hud.vulture.already_consumed": "这具躯体已无法食用！",
+
+  "announcement.goals.recaller": "保存一个位置，可以传送回去！",
+  "announcement.role.recaller": "回溯者",
+  "announcement.win.recaller": "杀手胜利！",
+
+  "announcement.goals.time_keeper": "你可以看到回合剩余时间。",
+  "announcement.role.time_keeper": "计时员",
+  "announcement.win.time_keeper": "乘客胜利！",
+
+  "announcement.goals.apathetic": "你没有情绪值。",
+  "announcement.role.apathetic": "木头人",
+  "announcement.win.apathetic": "乘客胜利！",
 
   "item.noellesroles.fake_revolver": "假左轮手枪",
   "item.noellesroles.master_key": "万能钥匙",
   "item.noellesroles.fake_knife": "假匕首",
-  "item.noellesroles.defense_vial": "去毒试剂",
-  "item.noellesroles.defense_vial.tooltip": "在饮料托盘上右键使用\n清除托盘上所有已施加的毒药\n让饮用该饮品的玩家额外承受一次伤害。",
+  "item.noellesroles.defense_vial": "防御药剂",
+  "item.noellesroles.defense_vial.tooltip": "右键点击饮品托盘使用\n清除托盘上的所有毒药\n饮用被防御饮品的人可额外承受一击。",
 
-  "death_reason.trainmurdermystery.gun_shot": "被子弹击中。",
-  "death_reason.trainmurdermystery.knife_stab": "被刀刺死！",
-  "death_reason.trainmurdermystery.generic": "未知。",
-  "death_reason.trainmurdermystery.bat_hit": "遭受钝器重击！",
+  "death_reason.trainmurdermystery.gun_shot": "一颗子弹。",
+  "death_reason.trainmurdermystery.knife_stab": "一把刀！",
+  "death_reason.trainmurdermystery.generic": "死因不明。",
+  "death_reason.trainmurdermystery.bat_hit": "钝器伤！",
   "death_reason.trainmurdermystery.grenade": "爆炸！",
   "death_reason.trainmurdermystery.poison": "中毒！",
-  "death_reason.trainmurdermystery.fell_out_of_train": "被列车碾死。",
-  "death_reason.noellesroles.voodoo": "巫毒魔法。"
+  "death_reason.trainmurdermystery.fell_out_of_train": "被火车碾压。",
+  "death_reason.noellesroles.voodoo": "巫毒魔法。",
+
+
+  "hud.swapper.first_player_selection": "选择第一个要交换的玩家",
+  "hud.swapper.second_player_selection": "选择第二个要交换的玩家",
+
+  "hud.coroner.role_info": "他的身份是 ",
+
+  "tip.phantom": "使用 %s 隐身！",
+  "tip.recaller.place": "使用 %s 保存你的位置！",
+  "tip.recaller.teleport": "使用 %s 传送！",
+  "tip.vulture": "已吃掉 %s/%s 具尸体。",
+  "tip.recaller.not_enough_money": "传送需要 100\uE781。",
+  "tip.noellesroles.cooldown": "技能将在 %s秒后可用"
 }
