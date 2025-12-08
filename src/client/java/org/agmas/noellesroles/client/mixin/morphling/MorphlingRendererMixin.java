@@ -11,14 +11,12 @@ import net.minecraft.client.render.entity.PlayerEntityRenderer;
 import net.minecraft.client.util.SkinTextures;
 import net.minecraft.util.Identifier;
 import org.agmas.noellesroles.ConfigWorldComponent;
-import org.agmas.noellesroles.Noellesroles;
 import org.agmas.noellesroles.client.NoellesrolesClient;
 import org.agmas.noellesroles.morphling.MorphlingPlayerComponent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 
@@ -51,16 +49,16 @@ public abstract class MorphlingRendererMixin {
     }
     @WrapOperation(method = "renderArm", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/AbstractClientPlayerEntity;getSkinTextures()Lnet/minecraft/client/util/SkinTextures;"))
     SkinTextures b(AbstractClientPlayerEntity instance, Operation<SkinTextures> original) {
-        if ((MorphlingPlayerComponent.KEY.get(instance)).getMorphTicks() > 0) {
-            if (instance.getEntityWorld().getPlayerByUuid((MorphlingPlayerComponent.KEY.get(instance)).disguise) != null) {
-                 return ((AbstractClientPlayerEntity) instance.getEntityWorld().getPlayerByUuid((MorphlingPlayerComponent.KEY.get(instance)).disguise)).getSkinTextures();
-            } else {
-                Log.info(LogCategory.GENERAL, "Morphling disguise is null!!!");
-            }
-        }
         if (TMMClient.moodComponent != null) {
             if ((ConfigWorldComponent.KEY.get(instance.getWorld())).insaneSeesMorphs && TMMClient.moodComponent.isLowerThanDepressed() && NoellesrolesClient.SHUFFLED_PLAYER_ENTRIES_CACHE.containsKey(instance.getUuid())) {
                 return TMMClient.PLAYER_ENTRIES_CACHE.get(NoellesrolesClient.SHUFFLED_PLAYER_ENTRIES_CACHE.get(instance.getUuid())).getSkinTextures();
+            }
+        }
+        if ((MorphlingPlayerComponent.KEY.get(instance)).getMorphTicks() > 0) {
+            if (instance.getEntityWorld().getPlayerByUuid((MorphlingPlayerComponent.KEY.get(instance)).disguise) != null) {
+                return ((AbstractClientPlayerEntity) instance.getEntityWorld().getPlayerByUuid((MorphlingPlayerComponent.KEY.get(instance)).disguise)).getSkinTextures();
+            } else {
+                Log.info(LogCategory.GENERAL, "Morphling disguise is null!!!");
             }
         }
         return original.call(instance);

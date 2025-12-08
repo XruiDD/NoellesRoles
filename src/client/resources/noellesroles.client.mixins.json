@@ -8,6 +8,8 @@
     "bartender.BartenderShopMixin",
     "bartender.DefenseVialHandMixin",
     "coroner.CoronerHudMixin",
+    "morphling.MorphlingCapeRendererMixin",
+    "morphling.MorphlingElytraRendererMixin",
     "morphling.MorphlingRendererMixin",
     "morphling.MorphlingRoleNameRendererMixin",
     "morphling.MorphlingScreenMixin",
