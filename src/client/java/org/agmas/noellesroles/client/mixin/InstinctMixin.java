@@ -16,6 +16,9 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.hit.HitResult;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.RaycastContext;
 import org.agmas.noellesroles.Noellesroles;
 import org.agmas.noellesroles.bartender.BartenderPlayerComponent;
 import org.agmas.noellesroles.client.NoellesrolesClient;
@@ -35,6 +38,23 @@ public abstract class InstinctMixin {
 
     @Shadow public static KeyBinding instinctKeybind;
 
+    // Helper method to check if there's a clear line of sight between player and target
+    private static boolean hasLineOfSight(PlayerEntity viewer, PlayerEntity target) {
+        Vec3d viewerEyes = viewer.getEyePos();
+        Vec3d targetEyes = target.getEyePos();
+
+        RaycastContext context = new RaycastContext(
+            viewerEyes,
+            targetEyes,
+            RaycastContext.ShapeType.COLLIDER,
+            RaycastContext.FluidHandling.NONE,
+            viewer
+        );
+
+        HitResult result = viewer.getWorld().raycast(context);
+        return result.getType() == HitResult.Type.MISS;
+    }
+
     @Inject(method = "isInstinctEnabled", at = @At("HEAD"), cancellable = true)
     private static void b(CallbackInfoReturnable<Boolean> cir) {
         GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(MinecraftClient.getInstance().player.getWorld());
@@ -51,17 +71,32 @@ public abstract class InstinctMixin {
         GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(MinecraftClient.getInstance().player.getWorld());
         if (target instanceof PlayerEntity) {
             if (!((PlayerEntity)target).isSpectator()) {
-                BartenderPlayerComponent bartenderPlayerComponent = BartenderPlayerComponent.KEY.get((PlayerEntity) target);
-                PlayerPoisonComponent playerPoisonComponent =  PlayerPoisonComponent.KEY.get((PlayerEntity) target);
-                if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.BARTENDER) && bartenderPlayerComponent.glowTicks > 0) {
-                    cir.setReturnValue(Color.GREEN.getRGB());
+                // Check line of sight for BARTENDER
+                if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.BARTENDER)) {
+                    if (hasLineOfSight(MinecraftClient.getInstance().player, (PlayerEntity) target)) {
+                        BartenderPlayerComponent bartenderPlayerComponent = BartenderPlayerComponent.KEY.get((PlayerEntity) target);
+                        if (bartenderPlayerComponent.glowTicks > 0) {
+                            cir.setReturnValue(Color.GREEN.getRGB());
+                            return;
+                        }
+                        if (bartenderPlayerComponent.armor > 0) {
+                            cir.setReturnValue(Color.BLUE.getRGB());
+                            cir.cancel();
+                            return;
+                        }
+                    }
                 }
-                if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.BARTENDER) && bartenderPlayerComponent.armor > 0) {
-                    cir.setReturnValue(Color.BLUE.getRGB());
-                    cir.cancel();
-                }
-                if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.BARTENDER) && playerPoisonComponent.poisonTicks > 0) {
-                    cir.setReturnValue(Color.RED.getRGB());
+
+                // Check line of sight for TOXICOLOGIST
+                if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.TOXICOLOGIST)) {
+                    if (hasLineOfSight(MinecraftClient.getInstance().player, (PlayerEntity) target)) {
+                        PlayerPoisonComponent playerPoisonComponent = PlayerPoisonComponent.KEY.get((PlayerEntity) target);
+                        if (playerPoisonComponent.poisonTicks > 0) {
+                            cir.setReturnValue(Color.RED.getRGB());
+                            cir.cancel();
+                            return;
+                        }
+                    }
                 }
             }
         }

@@ -19,8 +19,8 @@ import java.util.UUID;
 
 public class BartenderPlayerComponent implements AutoSyncedComponent, ServerTickingComponent, ClientTickingComponent {
     public static final ComponentKey<BartenderPlayerComponent> KEY = ComponentRegistry.getOrCreate(Identifier.of(Noellesroles.MOD_ID, "bartender"), BartenderPlayerComponent.class);
-    public static final int INITIAL_PRICE = 100;
-    public static final int MAX_PRICE = 500;
+    public static final int INITIAL_PRICE = 50;
+    public static final int MAX_PRICE = 300;
     public static final int PRICE_INCREMENT = 100;
 
     private final PlayerEntity player;

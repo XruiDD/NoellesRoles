@@ -73,11 +73,13 @@ public class Noellesroles implements ModInitializer {
     public static Identifier EXECUTIONER_ID = Identifier.of(MOD_ID, "executioner");
     public static Identifier VULTURE_ID = Identifier.of(MOD_ID, "vulture");
     public static Identifier THE_INSANE_DAMNED_PARANOID_KILLER_OF_DOOM_DEATH_DESTRUCTION_AND_WAFFLES_ID = Identifier.of(MOD_ID, "the_insane_damned_paranoid_killer");
+    public static Identifier TIMEKEEPER_ID = Identifier.of(MOD_ID, "time_keeper");
+    public static Identifier APATHETIC_ID = Identifier.of(MOD_ID, "apathetic");
+    public static Identifier TOXICOLOGIST_ID = Identifier.of(MOD_ID, "toxicologist");
 
     public static HashMap<Role, RoleAnnouncementTexts.RoleAnnouncementText> roleRoleAnnouncementTextHashMap = new HashMap<>();
-
-    public static Role TIMEKEEPER = TMMRoles.registerRole(new Role(Identifier.of(MOD_ID, "time_keeper"), 0x0026FF, true, false, Role.MoodType.REAL, GameConstants.getInTicks(0, 10), true));
-    public static Role APATHETIC = TMMRoles.registerRole(new Role(Identifier.of(MOD_ID, "apathetic"), 0xC0C0C0, true, false, Role.MoodType.NONE, GameConstants.getInTicks(0, 10), false));
+    public static Role TIMEKEEPER = TMMRoles.registerRole(new Role(TIMEKEEPER_ID, new Color(0, 38, 255).getRGB(), true, false, Role.MoodType.REAL, GameConstants.getInTicks(0, 10), true));
+    public static Role APATHETIC = TMMRoles.registerRole(new Role(APATHETIC_ID, new Color(192, 192, 192).getRGB(), true, false, Role.MoodType.NONE, GameConstants.getInTicks(0, 10), false));
     public static Role JESTER = TMMRoles.registerRole(new Role(JESTER_ID,new Color(255,86,243).getRGB() ,false,false, Role.MoodType.FAKE,Integer.MAX_VALUE,true));
     public static Role MORPHLING =TMMRoles.registerRole(new Role(MORPHLING_ID, new Color(170, 2, 61).getRGB(),false,true, Role.MoodType.FAKE,Integer.MAX_VALUE,true));
     public static Role CONDUCTOR =TMMRoles.registerRole(new Role(CONDUCTOR_ID, new Color(255, 205, 84).getRGB(),true,false, Role.MoodType.REAL,TMMRoles.CIVILIAN.getMaxSprintTime(),false));
@@ -97,6 +99,8 @@ public class Noellesroles implements ModInitializer {
     public static Role RECALLER = TMMRoles.registerRole(new Role(RECALLER_ID, new Color(158, 255, 255).getRGB(),true,false,Role.MoodType.REAL, TMMRoles.CIVILIAN.getMaxSprintTime(),false));
 
     public static Role VULTURE =TMMRoles.registerRole(new Role(VULTURE_ID, new Color(181, 103, 0).getRGB(),false,false,Role.MoodType.FAKE, TMMRoles.CIVILIAN.getMaxSprintTime(),true));
+
+    public static Role TOXICOLOGIST = TMMRoles.registerRole(new Role(TOXICOLOGIST_ID, new Color(184, 41, 90).getRGB(), true, false, Role.MoodType.REAL, GameConstants.getInTicks(0, 10), false));
 
     public static final CustomPayload.Id<MorphC2SPacket> MORPH_PACKET = MorphC2SPacket.ID;
     public static final CustomPayload.Id<SwapperC2SPacket> SWAP_PACKET = SwapperC2SPacket.ID;
@@ -157,6 +161,9 @@ public class Noellesroles implements ModInitializer {
         CanSeePoison.EVENT.register((player)->{
             GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(player.getWorld());
             if (gameWorldComponent.isRole((PlayerEntity) player, Noellesroles.BARTENDER)) {
+                return true;
+            }
+            if (gameWorldComponent.isRole((PlayerEntity) player, Noellesroles.TOXICOLOGIST)) {
                 return true;
             }
             return false;
