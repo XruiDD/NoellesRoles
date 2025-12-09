@@ -72,6 +72,10 @@
   "announcement.role.apathetic": "木头人",
   "announcement.win.apathetic": "乘客胜利！",
 
+  "announcement.goals.toxicologist": "你可以看到谁中毒了。",
+  "announcement.role.toxicologist": "毒理学家",
+  "announcement.win.toxicologist": "乘客胜利！",
+
   "item.noellesroles.fake_revolver": "假左轮手枪",
   "item.noellesroles.master_key": "万能钥匙",
   "item.noellesroles.fake_knife": "假匕首",
