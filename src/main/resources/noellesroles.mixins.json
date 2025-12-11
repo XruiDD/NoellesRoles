@@ -5,8 +5,6 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "GiveCoinsOnMoodCompletionMixin",
-    "bartender.BartenderPlayerShopComponentMixin",
-    "bartender.BartenderReseterMixin",
     "bartender.CocktailItemMixin",
     "bartender.DefenseVialApplyMixin",
     "bartender.PoisonToHealsMixin",
@@ -19,7 +17,6 @@
     "host.MoneyIncreaseMixin",
     "jester.JesterItemEntityMixin",
     "jester.JesterJestMixin",
-    "morphling.MorphlingReseterMixin",
     "noisemaker.NoisemakerKillMixin",
     "voodoo.VoodooVooMixin"
   ],

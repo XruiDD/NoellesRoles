@@ -22,7 +22,6 @@ import java.util.UUID;
 public class DefenseVialViewMixin {
     @Inject(method = "clientTick", at = @At("HEAD"), order = 1001, cancellable = true)
     private static void view(World world, BlockPos pos, BlockState state, BlockEntity blockEntity, CallbackInfo ci) {
-
         if (blockEntity instanceof BeveragePlateBlockEntity tray) {
             if (tray.getPoisoner() != null) {
                 if (((GameWorldComponent) GameWorldComponent.KEY.get(world)).isRole(UUID.fromString(tray.getPoisoner()), Noellesroles.BARTENDER) && CanSeePoison.EVENT.invoker().visible(MinecraftClient.getInstance().player)) {

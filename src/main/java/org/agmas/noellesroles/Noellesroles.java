@@ -10,6 +10,7 @@ import dev.doctor4t.trainmurdermystery.client.gui.RoleAnnouncementTexts;
 import dev.doctor4t.trainmurdermystery.entity.PlayerBodyEntity;
 import dev.doctor4t.trainmurdermystery.event.AllowPlayerDeath;
 import dev.doctor4t.trainmurdermystery.event.CanSeePoison;
+import dev.doctor4t.trainmurdermystery.event.ResetPlayer;
 import dev.doctor4t.trainmurdermystery.event.RoleAssigned;
 import dev.doctor4t.trainmurdermystery.game.GameConstants;
 import dev.doctor4t.trainmurdermystery.game.GameFunctions;
@@ -34,6 +35,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.TypeFilter;
 import net.minecraft.util.math.Vec3d;
 import org.agmas.noellesroles.bartender.BartenderPlayerComponent;
+import org.agmas.noellesroles.bartender.BartenderShopHandler;
 import org.agmas.noellesroles.config.NoellesRolesConfig;
 import org.agmas.noellesroles.coroner.BodyDeathReasonComponent;
 import org.agmas.noellesroles.executioner.ExecutionerPlayerComponent;
@@ -126,6 +128,8 @@ public class Noellesroles implements ModInitializer {
 
         registerEvents();
 
+        BartenderShopHandler.register();
+
         registerPackets();
         //NoellesRolesEntities.init();
 
@@ -208,6 +212,14 @@ public class Noellesroles implements ModInitializer {
                 player.giveItemStack(TMMItems.NOTE.getDefaultStack());
                 player.giveItemStack(TMMItems.NOTE.getDefaultStack());
             }
+        });
+        ResetPlayer.EVENT.register(player -> {
+            BartenderPlayerComponent.KEY.get(player).reset();
+            MorphlingPlayerComponent.KEY.get(player).reset();
+            VoodooPlayerComponent.KEY.get(player).reset();
+            RecallerPlayerComponent.KEY.get(player).reset();
+            VulturePlayerComponent.KEY.get(player).reset();
+            ExecutionerPlayerComponent.KEY.get(player).reset();
         });
 
     }

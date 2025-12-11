@@ -15,12 +15,10 @@ import org.spongepowered.asm.mixin.injection.At;
 public class DefenseVialHandMixin {
     @WrapOperation(method = "render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;ILnet/minecraft/entity/LivingEntity;FFFFFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;getMainHandStack()Lnet/minecraft/item/ItemStack;"))
     private ItemStack view(LivingEntity instance, Operation<ItemStack> original) {
-
         ItemStack ret = original.call(instance);
         if (ret.isOf(ModItems.DEFENSE_VIAL)) {
             ret = ItemStack.EMPTY;
         }
-
         return ret;
     }
 }
