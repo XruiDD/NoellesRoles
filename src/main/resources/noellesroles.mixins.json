@@ -10,7 +10,6 @@
     "executioner.NoTargetBackfireMixin",
     "host.MasterKeySmallDoorMixin",
     "host.MasterKeyTrainDoorMixin",
-    "host.MoneyIncreaseMixin",
     "noisemaker.NoisemakerKillMixin",
     "voodoo.VoodooVooMixin"
   ],

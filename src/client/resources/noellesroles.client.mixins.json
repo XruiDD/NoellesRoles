@@ -24,7 +24,6 @@
     "requireAnnotations": true
   },
   "mixins": [
-    "StoreRendererMixin",
     "bartender.DefenseVialViewMixin",
     "executioner.ExecutionerHudMixin",
     "executioner.ExecutionerMoodRenderer"
