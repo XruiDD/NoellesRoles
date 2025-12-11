@@ -7,6 +7,7 @@ import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
 import dev.doctor4t.trainmurdermystery.cca.PlayerMoodComponent;
 import dev.doctor4t.trainmurdermystery.client.TMMClient;
 import dev.doctor4t.trainmurdermystery.entity.PlayerBodyEntity;
+import dev.doctor4t.trainmurdermystery.event.CanSeeBodyRole;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
@@ -44,6 +45,18 @@ public class NoellesrolesClient implements ClientModInitializer {
     public void onInitializeClient() {
         abilityBind = KeyBindingHelper.registerKeyBinding(new KeyBinding("key." + Noellesroles.MOD_ID + ".ability", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_G, "category.trainmurdermystery.keybinds"));
 
+        // 注册 CanSeeBodyRole 监听器：验尸官可以看到尸体的角色（需要理智值检查）
+        CanSeeBodyRole.EVENT.register(player -> {
+            if (player instanceof PlayerEntity playerEntity && playerEntity.getWorld() != null) {
+                GameWorldComponent component = GameWorldComponent.KEY.get(playerEntity.getWorld());
+                if (component.isRole(playerEntity, Noellesroles.CORONER)) {
+                    // 验尸官需要 50% 以上的理智值才能查看尸体信息
+                    PlayerMoodComponent moodComponent = PlayerMoodComponent.KEY.get(playerEntity);
+                    return !moodComponent.isLowerThanMid() || !TMMClient.isPlayerAliveAndInSurvival();
+                }
+            }
+            return false;
+        });
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             insanityTime++;

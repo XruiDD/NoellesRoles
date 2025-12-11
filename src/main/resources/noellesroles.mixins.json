@@ -8,7 +8,6 @@
     "bartender.CocktailItemMixin",
     "bartender.DefenseVialApplyMixin",
     "bartender.PoisonToHealsMixin",
-    "coroner.CoronerAddDeathReasonMixin",
     "executioner.ExecutionerConfirmMixin",
     "executioner.NoTargetBackfireMixin",
     "host.MasterKeyDropMixin",

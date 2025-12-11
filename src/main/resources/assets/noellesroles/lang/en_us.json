@@ -45,8 +45,6 @@
   "announcement.role.coroner": "Coroner",
   "announcement.win.coroner": "Passengers Win!",
   "hud.coroner.sanity_requirements": "50% sanity required to use ability",
-  "hud.coroner.death_info": "Died %ss ago to ",
-  "hud.coroner.role_info": "Their role was ",
 
   "announcement.goals.executioner": "Become a killer once your target dies (to a non-killer).",
   "announcement.role.executioner": "Executioner",
@@ -69,13 +67,6 @@
   "item.noellesroles.defense_vial": "Defense Vial",
   "item.noellesroles.defense_vial.tooltip": "Right click on drink trays to use\nClears all poison applied to trays\nProtects anyone who drinks a defensed drink one extra hit of life.",
 
-  "death_reason.trainmurdermystery.gun_shot": "a bullet.",
-  "death_reason.trainmurdermystery.knife_stab": "a knife!",
-  "death_reason.trainmurdermystery.generic": "unknown causes.",
-  "death_reason.trainmurdermystery.bat_hit": "blunt force!",
-  "death_reason.trainmurdermystery.grenade": "an explosion!",
-  "death_reason.trainmurdermystery.poison": "poison!",
-  "death_reason.trainmurdermystery.fell_out_of_train": "being ran over.",
   "death_reason.noellesroles.voodoo": "voodoo magic.",
 
   "tip.phantom": "Use %s to go invisible!",

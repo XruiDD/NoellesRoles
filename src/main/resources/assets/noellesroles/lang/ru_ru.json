@@ -46,7 +46,6 @@
   "announcement.role.coroner": "Детектив",
   "announcement.win.coroner": "Пассажиры победили!",
   "hud.coroner.sanity_requirements": "Необходимо 50% рассудка, чтобы использовать эту способность",
-  "hud.coroner.death_info": "Погиб %s с назад ",
 
   "announcement.goals.executioner": "Станьте убийцей, как только ваша цель умрет (от рук не-убийцы).",
   "announcement.role.executioner": "Жнец",
@@ -56,12 +55,5 @@
   "item.noellesroles.master_key": "Мастер-ключ",
   "item.noellesroles.fake_knife": "Поддельный нож",
 
-  "death_reason.trainmurdermystery.gun_shot": "от пулевого ранения.",
-  "death_reason.trainmurdermystery.knife_stab": "от ножевого ранения!",
-  "death_reason.trainmurdermystery.generic": "по неизвестной причине.",
-  "death_reason.trainmurdermystery.bat_hit": "от удара битой!",
-  "death_reason.trainmurdermystery.grenade": "от взрыва!",
-  "death_reason.trainmurdermystery.poison": "от отравления!",
-  "death_reason.trainmurdermystery.fell_out_of_train": "от падения с поезда.",
   "death_reason.noellesroles.voodoo": "от магии вуду."
 }

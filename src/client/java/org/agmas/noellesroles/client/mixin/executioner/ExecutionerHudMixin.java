@@ -13,8 +13,6 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
 import net.minecraft.util.Formatting;
 import org.agmas.noellesroles.Noellesroles;
-import org.agmas.noellesroles.client.NoellesrolesClient;
-import org.agmas.noellesroles.coroner.BodyDeathReasonComponent;
 import org.agmas.noellesroles.executioner.ExecutionerPlayerComponent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;

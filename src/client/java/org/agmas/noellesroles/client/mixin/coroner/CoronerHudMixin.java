@@ -1,107 +1,94 @@
 package org.agmas.noellesroles.client.mixin.coroner;
 
-import com.llamalad7.mixinextras.sugar.Local;
-import dev.doctor4t.trainmurdermystery.api.Role;
-import dev.doctor4t.trainmurdermystery.api.TMMRoles;
 import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
 import dev.doctor4t.trainmurdermystery.cca.PlayerMoodComponent;
 import dev.doctor4t.trainmurdermystery.client.TMMClient;
 import dev.doctor4t.trainmurdermystery.client.gui.RoleNameRenderer;
 import dev.doctor4t.trainmurdermystery.entity.PlayerBodyEntity;
 import dev.doctor4t.trainmurdermystery.game.GameFunctions;
-import net.fabricmc.loader.impl.util.log.Log;
-import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.RenderTickCounter;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.ProjectileUtil;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
-import net.minecraft.util.Formatting;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.MathHelper;
 import org.agmas.noellesroles.AbilityPlayerComponent;
 import org.agmas.noellesroles.Noellesroles;
 import org.agmas.noellesroles.client.NoellesrolesClient;
 import org.agmas.noellesroles.coroner.BodyDeathReasonComponent;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+/**
+ * 验尸官和秃鹫的 HUD 显示 Mixin
+ * <p>
+ * 此 Mixin 为验尸官和秃鹫角色添加查看尸体时的专属提示。
+ * 显示内容包括：理智值检查提示、秃鹫吞噬提示等。
+ * <p>
+ * 注意：尸体的角色和死亡信息显示已由主模组通过 CanSeeBodyRole Event 实现，
+ * 此 Mixin 只负责显示附属模组特有的功能提示。
+ */
 @Mixin(RoleNameRenderer.class)
 public abstract class CoronerHudMixin {
 
-    @Shadow private static float nametagAlpha;
-
-    @Shadow private static Text nametag;
-
-
+    /**
+     * 在 HUD 渲染末尾注入，显示验尸官和秃鹫的专属信息
+     */
     @Inject(method = "renderHud", at = @At("TAIL"))
-    private static void b(TextRenderer renderer, ClientPlayerEntity player, DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
-        GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(player.getWorld());
+    private static void renderCoronerHud(TextRenderer renderer, ClientPlayerEntity player, DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
+        GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(player.getWorld());
         if (NoellesrolesClient.targetBody != null) {
-            if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.CORONER) || gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.VULTURE) || TMMClient.isPlayerSpectatingOrCreative()) {
-
+            boolean isVulture = gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.VULTURE);
+            boolean isCoroner = gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.CORONER);
+            if (isVulture || isCoroner) {
                 context.getMatrices().push();
-                context.getMatrices().translate((float)context.getScaledWindowWidth() / 2.0F, (float)context.getScaledWindowHeight() / 2.0F + 6.0F, 0.0F);
+                context.getMatrices().translate((float) context.getScaledWindowWidth() / 2.0F, (float) context.getScaledWindowHeight() / 2.0F + 6.0F, 0.0F);
                 context.getMatrices().scale(0.6F, 0.6F, 1.0F);
-                PlayerMoodComponent moodComponent = (PlayerMoodComponent) PlayerMoodComponent.KEY.get(MinecraftClient.getInstance().player);
-                if (moodComponent.isLowerThanMid() && TMMClient.isPlayerAliveAndInSurvival()) {
-                    // Text name = Text.literal("50% sanity required to use ability");
-                    Text name = Text.translatable("hud.coroner.sanity_requirements");
-                    context.drawTextWithShadow(renderer, name, -renderer.getWidth(name) / 2, 32, Colors.YELLOW);
-                    return;
+                if(isCoroner){
+                    PlayerMoodComponent moodComponent = PlayerMoodComponent.KEY.get(MinecraftClient.getInstance().player);
+                    if (moodComponent.isLowerThanMid() && TMMClient.isPlayerAliveAndInSurvival()) {
+                        Text name = Text.translatable("hud.coroner.sanity_requirements");
+                        context.drawTextWithShadow(renderer, name, -renderer.getWidth(name) / 2, 32, Colors.YELLOW);
+                        context.getMatrices().pop();
+                        return;
+                    }
                 }
-                BodyDeathReasonComponent bodyDeathReasonComponent = (BodyDeathReasonComponent) BodyDeathReasonComponent.KEY.get(NoellesrolesClient.targetBody);
-                // Text name = Text.literal("Died " + NoellesrolesClient.targetBody.age/20 + "s ago to ").append(Text.translatable("death_reason." + bodyDeathReasonComponent.deathReason.getNamespace()+ "." + bodyDeathReasonComponent.deathReason.getPath()));
+                // 秃鹫专属提示
+                if (isVulture) {
+                    BodyDeathReasonComponent bodyDeathReasonComponent = BodyDeathReasonComponent.KEY.get(NoellesrolesClient.targetBody);
 
-                Text name = Text.translatable("hud.coroner.death_info", NoellesrolesClient.targetBody.age/20).append(Text.translatable("death_reason." + bodyDeathReasonComponent.deathReason.getNamespace()+ "." + bodyDeathReasonComponent.deathReason.getPath()));
-                if (bodyDeathReasonComponent.vultured) {
-                    name = Text.literal("aa aaaaaa aaa aa a aaaaa aaa").formatted(Formatting.OBFUSCATED);
-                }
-                context.drawTextWithShadow(renderer, name, -renderer.getWidth(name) / 2, 32, Colors.RED);
-                Role foundRole = TMMRoles.CIVILIAN;
-                for (Role role : TMMRoles.ROLES) {
-                    if (role.identifier().equals(bodyDeathReasonComponent.playerRole)) foundRole =role;
-                }
-                if ((TMMClient.isPlayerSpectatingOrCreative() || gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.CORONER)) && !bodyDeathReasonComponent.vultured ) {
-                    Text roleInfo = Text.translatable("hud.coroner.role_info").withColor(Colors.RED).append(Text.translatable("announcement.role." + bodyDeathReasonComponent.playerRole.getPath()).withColor(foundRole.color()));
-                    context.drawTextWithShadow(renderer, roleInfo, -renderer.getWidth(roleInfo) / 2, 48, Colors.WHITE);
-                }
-                if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.VULTURE) ) {
                     if (bodyDeathReasonComponent.vultured) {
-                        Text roleInfo = Text.translatable("hud.vulture.already_consumed").withColor(Noellesroles.VULTURE.color());
-                        context.drawTextWithShadow(renderer, roleInfo, -renderer.getWidth(roleInfo) / 2, 48, Colors.WHITE);
+                        Text vultureInfo = Text.translatable("hud.vulture.already_consumed").withColor(Noellesroles.VULTURE.color());
+                        context.drawTextWithShadow(renderer, vultureInfo, -renderer.getWidth(vultureInfo) / 2, 32, Colors.WHITE);
                     } else {
                         AbilityPlayerComponent abilityPlayerComponent = AbilityPlayerComponent.KEY.get(player);
                         if (abilityPlayerComponent.cooldown <= 0 && TMMClient.isPlayerAliveAndInSurvival()) {
-                            Text roleInfo = Text.translatable("hud.vulture.eat", NoellesrolesClient.abilityBind.getBoundKeyLocalizedText()).withColor(Colors.RED);
-                            context.drawTextWithShadow(renderer, roleInfo, -renderer.getWidth(roleInfo) / 2, 48, Colors.WHITE);
+                            Text eatPrompt = Text.translatable("hud.vulture.eat", NoellesrolesClient.abilityBind.getBoundKeyLocalizedText()).withColor(Colors.RED);
+                            context.drawTextWithShadow(renderer, eatPrompt, -renderer.getWidth(eatPrompt) / 2, 32, Colors.WHITE);
                         }
                     }
                 }
-
                 context.getMatrices().pop();
-                return;
             }
         }
     }
+
+    /**
+     * 射线检测尸体实体，将结果存储到 NoellesrolesClient.targetBody
+     */
     @Inject(method = "renderHud", at = @At(value = "INVOKE", target = "Ldev/doctor4t/trainmurdermystery/game/GameFunctions;isPlayerSpectatingOrCreative(Lnet/minecraft/entity/player/PlayerEntity;)Z"))
-    private static void customRaycast(TextRenderer renderer, ClientPlayerEntity player, DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
+    private static void detectTargetBody(TextRenderer renderer, ClientPlayerEntity player, DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
         float range = GameFunctions.isPlayerSpectatingOrCreative(player) ? 8.0F : 2.0F;
-        HitResult line = ProjectileUtil.getCollision(player, (entity) -> entity instanceof PlayerBodyEntity, (double)range);
+        HitResult line = ProjectileUtil.getCollision(player, (entity) -> entity instanceof PlayerBodyEntity, range);
         NoellesrolesClient.targetBody = null;
-        if (line instanceof EntityHitResult ehr) {
-            if (ehr.getEntity() instanceof PlayerBodyEntity playerBodyEntity) {
-                NoellesrolesClient.targetBody = playerBodyEntity;
-            }
+        if (line instanceof EntityHitResult ehr && ehr.getEntity() instanceof PlayerBodyEntity playerBodyEntity) {
+            NoellesrolesClient.targetBody = playerBodyEntity;
         }
     }
 }

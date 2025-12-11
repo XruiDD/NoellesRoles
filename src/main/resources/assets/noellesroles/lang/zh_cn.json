@@ -44,7 +44,6 @@
   "announcement.role.coroner": "验尸官",
   "announcement.win.coroner": "乘客胜利！",
   "hud.coroner.sanity_requirements": "验尸需保持50%的理智值",
-  "hud.coroner.death_info": "死于 %s秒前，死因是",
 
   "announcement.goals.executioner": "当你的目标死于非杀手之手后，你将随机获得其他杀手身份。",
   "announcement.role.executioner": "刽子手",
@@ -82,20 +81,11 @@
   "item.noellesroles.defense_vial": "防御药剂",
   "item.noellesroles.defense_vial.tooltip": "右键点击饮品托盘使用\n清除托盘上的所有毒药\n饮用被防御饮品的人可额外承受一击。",
 
-  "death_reason.trainmurdermystery.gun_shot": "一颗子弹。",
-  "death_reason.trainmurdermystery.knife_stab": "一把刀！",
-  "death_reason.trainmurdermystery.generic": "死因不明。",
-  "death_reason.trainmurdermystery.bat_hit": "钝器伤！",
-  "death_reason.trainmurdermystery.grenade": "爆炸！",
-  "death_reason.trainmurdermystery.poison": "中毒！",
-  "death_reason.trainmurdermystery.fell_out_of_train": "被火车碾压。",
   "death_reason.noellesroles.voodoo": "巫毒魔法。",
 
 
   "hud.swapper.first_player_selection": "选择第一个要交换的玩家",
   "hud.swapper.second_player_selection": "选择第二个要交换的玩家",
-
-  "hud.coroner.role_info": "他的身份是 ",
 
   "tip.phantom": "使用 %s 隐身！",
   "tip.recaller.place": "使用 %s 保存你的位置！",
