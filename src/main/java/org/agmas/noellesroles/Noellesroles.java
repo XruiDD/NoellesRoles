@@ -10,6 +10,7 @@ import dev.doctor4t.trainmurdermystery.client.gui.RoleAnnouncementTexts;
 import dev.doctor4t.trainmurdermystery.entity.PlayerBodyEntity;
 import dev.doctor4t.trainmurdermystery.event.AllowPlayerDeath;
 import dev.doctor4t.trainmurdermystery.event.CanSeePoison;
+import dev.doctor4t.trainmurdermystery.event.RoleAssigned;
 import dev.doctor4t.trainmurdermystery.game.GameConstants;
 import dev.doctor4t.trainmurdermystery.game.GameFunctions;
 import dev.doctor4t.trainmurdermystery.index.TMMItems;
@@ -32,9 +33,6 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.TypeFilter;
 import net.minecraft.util.math.Vec3d;
-import org.agmas.harpymodloader.Harpymodloader;
-import org.agmas.harpymodloader.config.HarpyModLoaderConfig;
-import org.agmas.harpymodloader.events.ModdedRoleAssigned;
 import org.agmas.noellesroles.bartender.BartenderPlayerComponent;
 import org.agmas.noellesroles.config.NoellesRolesConfig;
 import org.agmas.noellesroles.coroner.BodyDeathReasonComponent;
@@ -121,12 +119,6 @@ public class Noellesroles implements ModInitializer {
         VANNILA_ROLE_IDS.add(TMMRoles.KILLER.identifier());
         NoellesRolesConfig.HANDLER.load();
         ModItems.init();
-
-        Harpymodloader.setRoleMaximum(CONDUCTOR_ID,1);
-        Harpymodloader.setRoleMaximum(EXECUTIONER_ID,1);
-        Harpymodloader.setRoleMaximum(VULTURE_ID,1);
-        Harpymodloader.setRoleMaximum(JESTER_ID,1);
-
         PayloadTypeRegistry.playC2S().register(MorphC2SPacket.ID, MorphC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(AbilityC2SPacket.ID, AbilityC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(SwapperC2SPacket.ID, SwapperC2SPacket.CODEC);
@@ -168,7 +160,7 @@ public class Noellesroles implements ModInitializer {
             }
             return false;
         });
-        ModdedRoleAssigned.EVENT.register((player,role)->{
+        RoleAssigned.EVENT.register((player, role)->{
             AbilityPlayerComponent abilityPlayerComponent = (AbilityPlayerComponent) AbilityPlayerComponent.KEY.get(player);
             GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(player.getWorld());
             abilityPlayerComponent.cooldown = NoellesRolesConfig.HANDLER.instance().generalCooldownTicks;
@@ -217,23 +209,6 @@ public class Noellesroles implements ModInitializer {
                 player.giveItemStack(TMMItems.NOTE.getDefaultStack());
             }
         });
-        ServerTickEvents.END_SERVER_TICK.register(((server) -> {
-            if (server.getPlayerManager().getCurrentPlayerCount() >= 8) {
-                Harpymodloader.setRoleMaximum(VULTURE,1);
-            } else {
-                Harpymodloader.setRoleMaximum(VULTURE,0);
-            }
-        }));
-        if (!NoellesRolesConfig.HANDLER.instance().shitpostRoles) {
-            HarpyModLoaderConfig.HANDLER.load();
-            if (!HarpyModLoaderConfig.HANDLER.instance().disabled.contains(AWESOME_BINGLUS_ID.getPath())) {
-                HarpyModLoaderConfig.HANDLER.instance().disabled.add(AWESOME_BINGLUS_ID.getPath());
-            }
-            if (!HarpyModLoaderConfig.HANDLER.instance().disabled.contains(THE_INSANE_DAMNED_PARANOID_KILLER_OF_DOOM_DEATH_DESTRUCTION_AND_WAFFLES_ID.getPath())) {
-                HarpyModLoaderConfig.HANDLER.instance().disabled.add(THE_INSANE_DAMNED_PARANOID_KILLER_OF_DOOM_DEATH_DESTRUCTION_AND_WAFFLES_ID.getPath());
-            }
-            HarpyModLoaderConfig.HANDLER.save();
-        }
 
     }
 
@@ -280,18 +255,18 @@ public class Noellesroles implements ModInitializer {
                         context.player().addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 40, 2));
                         if (vulturePlayerComponent.bodiesEaten >= vulturePlayerComponent.bodiesRequired) {
                             ArrayList<Role> shuffledKillerRoles = new ArrayList<>(TMMRoles.ROLES);
-                            shuffledKillerRoles.removeIf(role -> Harpymodloader.VANNILA_ROLES.contains(role) || !role.canUseKiller() || HarpyModLoaderConfig.HANDLER.instance().disabled.contains(role.identifier().getPath()));
+                            shuffledKillerRoles.removeIf(role -> TMMRoles.VANILLA_ROLES.contains(role) || !role.canUseKiller() || TMMRoles.getDisabledRoles().contains(role));
                             if (shuffledKillerRoles.isEmpty()) shuffledKillerRoles.add(TMMRoles.KILLER);
                             Collections.shuffle(shuffledKillerRoles);
 
                             PlayerShopComponent playerShopComponent = (PlayerShopComponent) PlayerShopComponent.KEY.get(context.player());
                             gameWorldComponent.addRole(context.player(),shuffledKillerRoles.getFirst());
-                            ModdedRoleAssigned.EVENT.invoker().assignModdedRole(context.player(),shuffledKillerRoles.getFirst());
+                            RoleAssigned.EVENT.invoker().assignModdedRole(context.player(),shuffledKillerRoles.getFirst());
                             playerShopComponent.setBalance(100);
-                            if (Harpymodloader.VANNILA_ROLES.contains(gameWorldComponent.getRole(context.player()))) {
-                                ServerPlayNetworking.send((ServerPlayerEntity) context.player(), new AnnounceWelcomePayload(RoleAnnouncementTexts.ROLE_ANNOUNCEMENT_TEXTS.indexOf(TMMRoles.KILLER), gameWorldComponent.getAllKillerTeamPlayers().size(), 0));
+                            if (TMMRoles.VANILLA_ROLES.contains(gameWorldComponent.getRole(context.player()))) {
+                                ServerPlayNetworking.send( context.player(), new AnnounceWelcomePayload(TMMRoles.KILLER.identifier().toString(), gameWorldComponent.getAllKillerTeamPlayers().size(), 0));
                             } else {
-                                ServerPlayNetworking.send((ServerPlayerEntity) context.player(), new AnnounceWelcomePayload(RoleAnnouncementTexts.ROLE_ANNOUNCEMENT_TEXTS.indexOf(Harpymodloader.autogeneratedAnnouncements.get(gameWorldComponent.getRole(context.player()))), gameWorldComponent.getAllKillerTeamPlayers().size(), 0));
+                                ServerPlayNetworking.send(context.player(), new AnnounceWelcomePayload(gameWorldComponent.getRole(context.player()).identifier().toString(), gameWorldComponent.getAllKillerTeamPlayers().size(), 0));
                             }
                         }
 

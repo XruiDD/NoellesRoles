@@ -21,8 +21,6 @@ public class NoellesRolesConfig {
 
     @SerialEntry(comment = "Whether insane players will randomly see people as morphed.")
     public boolean insanePlayersSeeMorphs = true;
-    @SerialEntry(comment = "Allows the shitpost roles to retain their disable/enable state after a server restart")
-    public boolean shitpostRoles = false;
 
     @SerialEntry(comment = "Starting cooldown (in ticks)")
     public int generalCooldownTicks = GameConstants.getInTicks(0,30);
