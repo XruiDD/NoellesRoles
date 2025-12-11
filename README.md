@@ -6,12 +6,6 @@ Role List:
 
 ## Killers & Non-Innocents
 
-- Jester
-  - Wins with the killers, but cannot use any killer menus.
-  - Has a fake knife and a fake revolver
-  - **When shot, goes psycho mode**. Does not have a shield, so one more shot will kill the jester.
-  - Can accidentaly kill their killer teammates and end the game, make sure to co-operate!
-
 - Executioner
   - Gains a target at the start of the game
   - If the target dies to a civillian or natural causes, the Executioner becomes a random Killer role.

@@ -1,8 +1,4 @@
 {
-  "announcement.goals.jester": "找到并与杀手合作。",
-  "announcement.role.jester": "小丑",
-  "announcement.win.jester": "小丑胜利！",
-
   "announcement.goals.morphling": "愚弄所有人。",
   "announcement.role.morphling": "变形者",
   "announcement.win.morphling": "杀手胜利！",
@@ -75,9 +71,7 @@
   "announcement.role.toxicologist": "毒理学家",
   "announcement.win.toxicologist": "乘客胜利！",
 
-  "item.noellesroles.fake_revolver": "假左轮手枪",
   "item.noellesroles.master_key": "万能钥匙",
-  "item.noellesroles.fake_knife": "假匕首",
   "item.noellesroles.defense_vial": "防御药剂",
   "item.noellesroles.defense_vial.tooltip": "右键点击饮品托盘使用\n清除托盘上的所有毒药\n饮用被防御饮品的人可额外承受一击。",
 

@@ -14,8 +14,6 @@
     "host.MasterKeySmallDoorMixin",
     "host.MasterKeyTrainDoorMixin",
     "host.MoneyIncreaseMixin",
-    "jester.JesterItemEntityMixin",
-    "jester.JesterJestMixin",
     "noisemaker.NoisemakerKillMixin",
     "voodoo.VoodooVooMixin"
   ],

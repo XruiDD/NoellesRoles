@@ -28,7 +28,6 @@
     "StoreRendererMixin",
     "bartender.DefenseVialViewMixin",
     "executioner.ExecutionerHudMixin",
-    "executioner.ExecutionerMoodRenderer",
-    "jester.JesterMoodRenderer"
+    "executioner.ExecutionerMoodRenderer"
   ]
 }

@@ -58,7 +58,6 @@ public class Noellesroles implements ModInitializer {
     public static String MOD_ID = "noellesroles";
 
 
-    public static Identifier JESTER_ID = Identifier.of(MOD_ID, "jester");
     public static Identifier MORPHLING_ID = Identifier.of(MOD_ID, "morphling");
     public static Identifier CONDUCTOR_ID = Identifier.of(MOD_ID, "conductor");
     public static Identifier BARTENDER_ID = Identifier.of(MOD_ID, "bartender");
@@ -80,7 +79,6 @@ public class Noellesroles implements ModInitializer {
     public static HashMap<Role, RoleAnnouncementTexts.RoleAnnouncementText> roleRoleAnnouncementTextHashMap = new HashMap<>();
     public static Role TIMEKEEPER = TMMRoles.registerRole(new Role(TIMEKEEPER_ID, new Color(0, 38, 255).getRGB(), true, false, Role.MoodType.REAL, GameConstants.getInTicks(0, 10), true));
     public static Role APATHETIC = TMMRoles.registerRole(new Role(APATHETIC_ID, new Color(192, 192, 192).getRGB(), true, false, Role.MoodType.NONE, GameConstants.getInTicks(0, 10), false));
-    public static Role JESTER = TMMRoles.registerRole(new Role(JESTER_ID,new Color(255,86,243).getRGB() ,false,false, Role.MoodType.FAKE,Integer.MAX_VALUE,true));
     public static Role MORPHLING =TMMRoles.registerRole(new Role(MORPHLING_ID, new Color(170, 2, 61).getRGB(),false,true, Role.MoodType.FAKE,Integer.MAX_VALUE,true));
     public static Role CONDUCTOR =TMMRoles.registerRole(new Role(CONDUCTOR_ID, new Color(255, 205, 84).getRGB(),true,false, Role.MoodType.REAL,TMMRoles.CIVILIAN.getMaxSprintTime(),false));
     public static Role AWESOME_BINGLUS = TMMRoles.registerRole(new Role(AWESOME_BINGLUS_ID, new Color(155, 255, 168).getRGB(),true,false, Role.MoodType.REAL,TMMRoles.CIVILIAN.getMaxSprintTime(),false));
@@ -140,12 +138,6 @@ public class Noellesroles implements ModInitializer {
         AllowPlayerDeath.EVENT.register(((playerEntity, identifier) -> {
             if (identifier == GameConstants.DeathReasons.FELL_OUT_OF_TRAIN) return true;
             GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(playerEntity.getWorld());
-            if (gameWorldComponent.isRole(playerEntity,Noellesroles.JESTER)) {
-                PlayerPsychoComponent component =  PlayerPsychoComponent.KEY.get(playerEntity);
-                if (component.getPsychoTicks() > GameConstants.getInTicks(0,44)) {
-                    return false;
-                }
-            }
             BartenderPlayerComponent bartenderPlayerComponent = BartenderPlayerComponent.KEY.get(playerEntity);
             if (bartenderPlayerComponent.armor > 0) {
                 playerEntity.getWorld().playSound(playerEntity, playerEntity.getBlockPos(), TMMSounds.ITEM_PSYCHO_ARMOUR, SoundCategory.MASTER, 5.0F, 1.0F);
@@ -186,10 +178,6 @@ public class Noellesroles implements ModInitializer {
                 vulturePlayerComponent.reset();
                 vulturePlayerComponent.bodiesRequired = (int)((player.getWorld().getPlayers().size()/3f) - Math.floor(player.getWorld().getPlayers().size()/6f));
                 vulturePlayerComponent.sync();
-            }
-            if (role.equals(JESTER)) {
-                player.giveItemStack(ModItems.FAKE_KNIFE.getDefaultStack());
-                player.giveItemStack(ModItems.FAKE_REVOLVER.getDefaultStack());
             }
             if (role.equals(CONDUCTOR)) {
                 player.giveItemStack(ModItems.MASTER_KEY.getDefaultStack());

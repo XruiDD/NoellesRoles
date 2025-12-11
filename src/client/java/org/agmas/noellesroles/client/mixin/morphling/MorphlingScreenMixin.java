@@ -43,7 +43,6 @@ public abstract class MorphlingScreenMixin extends LimitedHandledScreen<PlayerSc
         super(handler, inventory, title);
     }
 
-
     @Inject(method = "init", at = @At("TAIL"))
     void b(CallbackInfo ci) {
         GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(player.getWorld());
@@ -61,5 +60,4 @@ public abstract class MorphlingScreenMixin extends LimitedHandledScreen<PlayerSc
             }
         }
     }
-
 }

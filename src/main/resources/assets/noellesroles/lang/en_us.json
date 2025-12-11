@@ -1,7 +1,4 @@
 {
-  "announcement.goals.jester": "Find and co-operate with the Killers.",
-  "announcement.role.jester": "Jester",
-
   "announcement.goals.morphling": "Fool everyone.",
   "announcement.role.morphling": "Morphling",
 
@@ -61,9 +58,7 @@
   "hud.vulture.already_consumed": "This body has been consumed.",
 
 
-  "item.noellesroles.fake_revolver": "Fake Revolver",
   "item.noellesroles.master_key": "Master Key",
-  "item.noellesroles.fake_knife": "Fake Knife",
   "item.noellesroles.defense_vial": "Defense Vial",
   "item.noellesroles.defense_vial.tooltip": "Right click on drink trays to use\nClears all poison applied to trays\nProtects anyone who drinks a defensed drink one extra hit of life.",
 

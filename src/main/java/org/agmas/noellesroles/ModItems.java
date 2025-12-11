@@ -7,20 +7,11 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.Identifier;
-import org.agmas.noellesroles.item.FakeKnifeItem;
 
 public class ModItems {
     public static void init() {
     }
 
-    public static final Item FAKE_KNIFE = register(
-            new FakeKnifeItem(new Item.Settings().maxCount(1)),
-            "fake_knife"
-    );
-    public static final Item FAKE_REVOLVER = register(
-            new Item(new Item.Settings().maxCount(1)),
-            "fake_revolver"
-    );
     public static final Item MASTER_KEY = register(
             new Item(new Item.Settings().maxCount(1)),
             "master_key"

@@ -58,12 +58,6 @@ public abstract class InstinctMixin {
     @Inject(method = "isInstinctEnabled", at = @At("HEAD"), cancellable = true)
     private static void b(CallbackInfoReturnable<Boolean> cir) {
         GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(MinecraftClient.getInstance().player.getWorld());
-        if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.JESTER)) {
-            if (instinctKeybind.isPressed()) {
-                cir.setReturnValue(true);
-                cir.cancel();
-            }
-        }
     }
 
     @Inject(method = "getInstinctHighlight", at = @At("HEAD"), cancellable = true)
@@ -117,18 +111,6 @@ public abstract class InstinctMixin {
             if (!((PlayerEntity)target).isSpectator() && TMMClient.isInstinctEnabled()) {
                 if (gameWorldComponent.isRole((PlayerEntity) target, Noellesroles.EXECUTIONER) && TMMClient.isKiller() && TMMClient.isPlayerAliveAndInSurvival()) {
                     cir.setReturnValue(Noellesroles.EXECUTIONER.color());
-                    cir.cancel();
-                }
-            }
-            if (!((PlayerEntity)target).isSpectator() && TMMClient.isInstinctEnabled()) {
-                if (gameWorldComponent.isRole((PlayerEntity) target, Noellesroles.JESTER) && TMMClient.isKiller() && TMMClient.isPlayerAliveAndInSurvival()) {
-                    cir.setReturnValue(Color.PINK.getRGB());
-                    cir.cancel();
-                }
-            }
-            if (!((PlayerEntity)target).isSpectator() && TMMClient.isInstinctEnabled()) {
-                if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.JESTER) && TMMClient.isPlayerAliveAndInSurvival()) {
-                    cir.setReturnValue(Color.PINK.getRGB());
                     cir.cancel();
                 }
             }

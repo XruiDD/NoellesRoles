@@ -1,8 +1,4 @@
 {
-  "announcement.goals.jester": "Найдите убийц и объединитесь с ними.",
-  "announcement.role.jester": "Шут",
-  "announcement.win.jester": "Шуты победили!",
-
   "announcement.goals.morphling": "Обмани всех.",
   "announcement.role.morphling": "Имитатор",
   "announcement.win.morphling": "Убийцы победили!",
@@ -51,9 +47,7 @@
   "announcement.role.executioner": "Жнец",
   "announcement.win.executioner": "Пассажиры победили!",
 
-  "item.noellesroles.fake_revolver": "Поддельный револьвер",
   "item.noellesroles.master_key": "Мастер-ключ",
-  "item.noellesroles.fake_knife": "Поддельный нож",
 
   "death_reason.noellesroles.voodoo": "от магии вуду."
 }
