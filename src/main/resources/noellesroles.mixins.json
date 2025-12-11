@@ -4,7 +4,6 @@
   "package": "org.agmas.noellesroles.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "GiveCoinsOnMoodCompletionMixin",
     "bartender.CocktailItemMixin",
     "bartender.DefenseVialApplyMixin",
     "executioner.ExecutionerConfirmMixin",

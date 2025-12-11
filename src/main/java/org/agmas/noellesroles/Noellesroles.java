@@ -14,6 +14,7 @@ import dev.doctor4t.trainmurdermystery.event.PlayerPoisoned;
 import dev.doctor4t.trainmurdermystery.event.ResetPlayer;
 import dev.doctor4t.trainmurdermystery.event.RoleAssigned;
 import dev.doctor4t.trainmurdermystery.event.ShouldDropOnDeath;
+import dev.doctor4t.trainmurdermystery.event.TaskComplete;
 import dev.doctor4t.trainmurdermystery.game.GameConstants;
 import dev.doctor4t.trainmurdermystery.game.GameFunctions;
 import dev.doctor4t.trainmurdermystery.index.TMMItems;
@@ -237,6 +238,16 @@ public class Noellesroles implements ModInitializer {
             RecallerPlayerComponent.KEY.get(player).reset();
             VulturePlayerComponent.KEY.get(player).reset();
             ExecutionerPlayerComponent.KEY.get(player).reset();
+        });
+
+        // Bartender and Recaller get +50 coins when completing tasks
+        TaskComplete.EVENT.register((player, taskType) -> {
+            GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(player.getWorld());
+            Role role = gameWorldComponent.getRole(player);
+            if (role != null && (role.equals(BARTENDER) || role.equals(RECALLER))) {
+                PlayerShopComponent playerShopComponent = PlayerShopComponent.KEY.get(player);
+                playerShopComponent.addToBalance(50);
+            }
         });
 
     }
