@@ -7,7 +7,6 @@
     "GiveCoinsOnMoodCompletionMixin",
     "bartender.CocktailItemMixin",
     "bartender.DefenseVialApplyMixin",
-    "bartender.PoisonToHealsMixin",
     "executioner.ExecutionerConfirmMixin",
     "executioner.NoTargetBackfireMixin",
     "host.MasterKeyDropMixin",

@@ -23,6 +23,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+//使用防御药水
 @Mixin(FoodPlatterBlock.class)
 public abstract class DefenseVialApplyMixin {
 

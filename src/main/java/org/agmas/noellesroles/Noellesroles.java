@@ -10,6 +10,7 @@ import dev.doctor4t.trainmurdermystery.client.gui.RoleAnnouncementTexts;
 import dev.doctor4t.trainmurdermystery.entity.PlayerBodyEntity;
 import dev.doctor4t.trainmurdermystery.event.AllowPlayerDeath;
 import dev.doctor4t.trainmurdermystery.event.CanSeePoison;
+import dev.doctor4t.trainmurdermystery.event.PlayerPoisoned;
 import dev.doctor4t.trainmurdermystery.event.ResetPlayer;
 import dev.doctor4t.trainmurdermystery.event.RoleAssigned;
 import dev.doctor4t.trainmurdermystery.game.GameConstants;
@@ -135,6 +136,25 @@ public class Noellesroles implements ModInitializer {
 
 
     public void registerEvents() {
+        // Bartender defense vial - convert poison to armor
+        PlayerPoisoned.BEFORE.register((player, ticks, poisoner) -> {
+            if (poisoner == null) return null;
+            GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(player.getWorld());
+
+            // If poisoner is a bartender, cancel the poison and give armor instead
+            if (gameWorldComponent.isRole(poisoner, Noellesroles.BARTENDER)) {
+                if (player.getWorld().getPlayerByUuid(poisoner) == null) return null;
+
+                BartenderPlayerComponent bartenderPlayerComponent = BartenderPlayerComponent.KEY.get(player);
+                bartenderPlayerComponent.giveArmor();
+
+                // Cancel the poisoning
+                return PlayerPoisoned.PoisonResult.cancel();
+            }
+
+            return null;
+        });
+
         AllowPlayerDeath.EVENT.register(((playerEntity, identifier) -> {
             if (identifier == GameConstants.DeathReasons.FELL_OUT_OF_TRAIN) return true;
             GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(playerEntity.getWorld());

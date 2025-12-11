@@ -4,7 +4,6 @@
   "package": "org.agmas.noellesroles.client.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "InstinctMixin",
     "bartender.DefenseVialHandMixin",
     "coroner.CoronerHudMixin",
     "morphling.MorphlingCapeRendererMixin",

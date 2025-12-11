@@ -1,34 +1,34 @@
 package org.agmas.noellesroles.client;
 
 import com.google.common.collect.Maps;
-import dev.doctor4t.trainmurdermystery.api.Role;
-import dev.doctor4t.trainmurdermystery.api.TMMRoles;
 import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
 import dev.doctor4t.trainmurdermystery.cca.PlayerMoodComponent;
+import dev.doctor4t.trainmurdermystery.cca.PlayerPoisonComponent;
 import dev.doctor4t.trainmurdermystery.client.TMMClient;
 import dev.doctor4t.trainmurdermystery.entity.PlayerBodyEntity;
 import dev.doctor4t.trainmurdermystery.event.CanSeeBodyRole;
+import dev.doctor4t.trainmurdermystery.event.GetInstinctHighlight;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.fabricmc.loader.impl.util.log.Log;
-import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.PlayerListEntry;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.network.PacketByteBuf;
-import org.agmas.noellesroles.AbilityPlayerComponent;
+import net.minecraft.util.hit.HitResult;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.RaycastContext;
 import org.agmas.noellesroles.Noellesroles;
+import org.agmas.noellesroles.bartender.BartenderPlayerComponent;
+import org.agmas.noellesroles.executioner.ExecutionerPlayerComponent;
 import org.agmas.noellesroles.packet.AbilityC2SPacket;
-import org.agmas.noellesroles.packet.MorphC2SPacket;
 import org.agmas.noellesroles.packet.VultureEatC2SPacket;
 import org.lwjgl.glfw.GLFW;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 public class NoellesrolesClient implements ClientModInitializer {
 
@@ -39,6 +39,20 @@ public class NoellesrolesClient implements ClientModInitializer {
     public static PlayerBodyEntity targetBody;
 
     public static Map<UUID, UUID> SHUFFLED_PLAYER_ENTRIES_CACHE = Maps.newHashMap();
+
+    // 检查两个玩家之间是否有视线
+    private static boolean hasLineOfSight(PlayerEntity viewer, PlayerEntity target) {
+        Vec3d viewerEyes = viewer.getEyePos();
+        Vec3d targetEyes = target.getEyePos();
+        RaycastContext context = new RaycastContext(
+            viewerEyes, targetEyes,
+            RaycastContext.ShapeType.COLLIDER,
+            RaycastContext.FluidHandling.NONE,
+            viewer
+        );
+        HitResult result = viewer.getWorld().raycast(context);
+        return result.getType() == HitResult.Type.MISS;
+    }
 
 
     @Override
@@ -58,6 +72,56 @@ public class NoellesrolesClient implements ClientModInitializer {
             return false;
         });
 
+        // 注册 GetInstinctHighlight 监听器：各角色的本能高亮逻辑
+        GetInstinctHighlight.EVENT.register(entity -> {
+            if (!(entity instanceof PlayerEntity player) || player.isSpectator()) return -1;
+            if (MinecraftClient.getInstance().player == null) return -1;
+
+            GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(
+                MinecraftClient.getInstance().player.getWorld()
+            );
+            PlayerEntity localPlayer = MinecraftClient.getInstance().player;
+
+            // BARTENDER: 看到喝酒者发绿光，有护甲者发蓝光（需要视线）
+            if (gameWorldComponent.isRole(localPlayer, Noellesroles.BARTENDER)) {
+                if (hasLineOfSight(localPlayer, player)) {
+                    BartenderPlayerComponent comp = BartenderPlayerComponent.KEY.get(player);
+                    if (comp.glowTicks > 0) return Color.GREEN.getRGB();
+                    if (comp.armor > 0) return Color.BLUE.getRGB();
+                }
+            }
+
+            // TOXICOLOGIST: 看到中毒者发红光（需要视线）
+            if (gameWorldComponent.isRole(localPlayer, Noellesroles.TOXICOLOGIST)) {
+                if (hasLineOfSight(localPlayer, player)) {
+                    PlayerPoisonComponent comp = PlayerPoisonComponent.KEY.get(player);
+                    if (comp.poisonTicks > 0) return Color.RED.getRGB();
+                }
+            }
+
+            // EXECUTIONER: 看到目标发黄光
+            if (gameWorldComponent.isRole(localPlayer, Noellesroles.EXECUTIONER)) {
+                ExecutionerPlayerComponent comp = ExecutionerPlayerComponent.KEY.get(localPlayer);
+                if (comp.target.equals(entity.getUuid())) return Color.YELLOW.getRGB();
+            }
+
+            // 杀手本能: 可见 VULTURE、EXECUTIONER
+            if (TMMClient.isInstinctEnabled() && TMMClient.isKiller() && TMMClient.isPlayerAliveAndInSurvival()) {
+                if (gameWorldComponent.isRole(player, Noellesroles.VULTURE))
+                    return Noellesroles.VULTURE.color();
+                if (gameWorldComponent.isRole(player, Noellesroles.EXECUTIONER))
+                    return Noellesroles.EXECUTIONER.color();
+            }
+
+            // EXECUTIONER 本能: 看到所有人用角色颜色
+            if (TMMClient.isInstinctEnabled() && gameWorldComponent.isRole(localPlayer, Noellesroles.EXECUTIONER)
+                && TMMClient.isPlayerAliveAndInSurvival()) {
+                return Noellesroles.EXECUTIONER.color();
+            }
+
+            return -1;
+        });
+
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             insanityTime++;
             if (insanityTime >= 20*6) {
@@ -72,7 +136,6 @@ public class NoellesrolesClient implements ClientModInitializer {
                 }
             }
             if (abilityBind.wasPressed()) {
-                PacketByteBuf data = PacketByteBufs.create();
                 client.execute(() -> {
                     if (MinecraftClient.getInstance().player == null) return;
                     GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(MinecraftClient.getInstance().player.getWorld());
