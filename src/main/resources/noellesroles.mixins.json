@@ -9,7 +9,6 @@
     "bartender.DefenseVialApplyMixin",
     "executioner.ExecutionerConfirmMixin",
     "executioner.NoTargetBackfireMixin",
-    "host.MasterKeyDropMixin",
     "host.MasterKeySmallDoorMixin",
     "host.MasterKeyTrainDoorMixin",
     "host.MoneyIncreaseMixin",

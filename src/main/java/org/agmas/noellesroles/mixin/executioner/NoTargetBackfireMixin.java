@@ -14,6 +14,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 import java.util.UUID;
 
+//TODO：防止反噬？
 @Mixin(GunShootPayload.Receiver.class)
 public class NoTargetBackfireMixin {
     @WrapOperation(method = "receive(Ldev/doctor4t/trainmurdermystery/util/GunShootPayload;Lnet/fabricmc/fabric/api/networking/v1/ServerPlayNetworking$Context;)V", at = @At(value = "INVOKE", target = "Ldev/doctor4t/trainmurdermystery/cca/GameWorldComponent;isInnocent(Lnet/minecraft/entity/player/PlayerEntity;)Z", ordinal = 0))

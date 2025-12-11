@@ -13,6 +13,7 @@ import dev.doctor4t.trainmurdermystery.event.CanSeePoison;
 import dev.doctor4t.trainmurdermystery.event.PlayerPoisoned;
 import dev.doctor4t.trainmurdermystery.event.ResetPlayer;
 import dev.doctor4t.trainmurdermystery.event.RoleAssigned;
+import dev.doctor4t.trainmurdermystery.event.ShouldDropOnDeath;
 import dev.doctor4t.trainmurdermystery.game.GameConstants;
 import dev.doctor4t.trainmurdermystery.game.GameFunctions;
 import dev.doctor4t.trainmurdermystery.index.TMMItems;
@@ -136,6 +137,14 @@ public class Noellesroles implements ModInitializer {
 
 
     public void registerEvents() {
+        // Master key should drop on death
+        ShouldDropOnDeath.EVENT.register(stack -> {
+            if (stack.isOf(ModItems.MASTER_KEY)) {
+                return true;
+            }
+            return false;
+        });
+
         // Bartender defense vial - convert poison to armor
         PlayerPoisoned.BEFORE.register((player, ticks, poisoner) -> {
             if (poisoner == null) return null;
