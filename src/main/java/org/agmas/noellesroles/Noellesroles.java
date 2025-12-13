@@ -8,7 +8,6 @@ import dev.doctor4t.trainmurdermystery.cca.PlayerPsychoComponent;
 import dev.doctor4t.trainmurdermystery.cca.PlayerShopComponent;
 import dev.doctor4t.trainmurdermystery.client.gui.RoleAnnouncementTexts;
 import dev.doctor4t.trainmurdermystery.entity.PlayerBodyEntity;
-import dev.doctor4t.trainmurdermystery.event.AllowPlayerDeath;
 import dev.doctor4t.trainmurdermystery.event.CanSeePoison;
 import dev.doctor4t.trainmurdermystery.event.CheckWinCondition;
 import dev.doctor4t.trainmurdermystery.event.KillPlayer;
@@ -172,16 +171,16 @@ public class Noellesroles implements ModInitializer {
             return null;
         });
 
-        AllowPlayerDeath.EVENT.register(((playerEntity, identifier) -> {
-            if (identifier == GameConstants.DeathReasons.FELL_OUT_OF_TRAIN) return true;
-            GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(playerEntity.getWorld());
-            BartenderPlayerComponent bartenderPlayerComponent = BartenderPlayerComponent.KEY.get(playerEntity);
+        KillPlayer.BEFORE.register(((victim, killer, deathReason) -> {
+            if (deathReason == GameConstants.DeathReasons.FELL_OUT_OF_TRAIN) return null;
+            GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(victim.getWorld());
+            BartenderPlayerComponent bartenderPlayerComponent = BartenderPlayerComponent.KEY.get(victim);
             if (bartenderPlayerComponent.armor > 0) {
-                playerEntity.getWorld().playSound(playerEntity, playerEntity.getBlockPos(), TMMSounds.ITEM_PSYCHO_ARMOUR, SoundCategory.MASTER, 5.0F, 1.0F);
+                victim.getWorld().playSound(victim, victim.getBlockPos(), TMMSounds.ITEM_PSYCHO_ARMOUR, SoundCategory.MASTER, 5.0F, 1.0F);
                 bartenderPlayerComponent.armor--;
-                return false;
+                return KillPlayer.KillResult.cancel();
             }
-            return true;
+            return null;
         }));
         CanSeePoison.EVENT.register((player)->{
             GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(player.getWorld());
