@@ -10,6 +10,8 @@ import dev.doctor4t.trainmurdermystery.client.gui.RoleAnnouncementTexts;
 import dev.doctor4t.trainmurdermystery.entity.PlayerBodyEntity;
 import dev.doctor4t.trainmurdermystery.event.AllowPlayerDeath;
 import dev.doctor4t.trainmurdermystery.event.CanSeePoison;
+import dev.doctor4t.trainmurdermystery.event.CheckWinCondition;
+import dev.doctor4t.trainmurdermystery.event.KillPlayer;
 import dev.doctor4t.trainmurdermystery.event.PlayerPoisoned;
 import dev.doctor4t.trainmurdermystery.event.ResetPlayer;
 import dev.doctor4t.trainmurdermystery.event.RoleAssigned;
@@ -50,6 +52,7 @@ import org.agmas.noellesroles.packet.VultureEatC2SPacket;
 import org.agmas.noellesroles.recaller.RecallerPlayerComponent;
 import org.agmas.noellesroles.voodoo.VoodooPlayerComponent;
 import org.agmas.noellesroles.vulture.VulturePlayerComponent;
+import org.agmas.noellesroles.jester.JesterPlayerComponent;
 
 import java.awt.*;
 import java.lang.reflect.Constructor;
@@ -78,6 +81,7 @@ public class Noellesroles implements ModInitializer {
     public static Identifier TIMEKEEPER_ID = Identifier.of(MOD_ID, "time_keeper");
     public static Identifier APATHETIC_ID = Identifier.of(MOD_ID, "apathetic");
     public static Identifier TOXICOLOGIST_ID = Identifier.of(MOD_ID, "toxicologist");
+    public static Identifier JESTER_ID = Identifier.of(MOD_ID, "jester");
 
     public static HashMap<Role, RoleAnnouncementTexts.RoleAnnouncementText> roleRoleAnnouncementTextHashMap = new HashMap<>();
     public static Role TIMEKEEPER = TMMRoles.registerRole(new Role(TIMEKEEPER_ID, new Color(0, 38, 255).getRGB(), true, false, Role.MoodType.REAL, GameConstants.getInTicks(0, 10), true));
@@ -102,6 +106,9 @@ public class Noellesroles implements ModInitializer {
     public static Role VULTURE =TMMRoles.registerRole(new Role(VULTURE_ID, new Color(181, 103, 0).getRGB(),false,false,Role.MoodType.FAKE, TMMRoles.CIVILIAN.getMaxSprintTime(),true));
 
     public static Role TOXICOLOGIST = TMMRoles.registerRole(new Role(TOXICOLOGIST_ID, new Color(184, 41, 90).getRGB(), true, false, Role.MoodType.REAL, GameConstants.getInTicks(0, 10), false));
+
+    // 小丑角色 - 中立阵营，被无辜者杀死时获胜
+    public static Role JESTER = TMMRoles.registerRole(new Role(JESTER_ID, 0xF8C8DC, false, false, Role.MoodType.FAKE, TMMRoles.CIVILIAN.getMaxSprintTime(), false));
 
     public static final CustomPayload.Id<MorphC2SPacket> MORPH_PACKET = MorphC2SPacket.ID;
     public static final CustomPayload.Id<SwapperC2SPacket> SWAP_PACKET = SwapperC2SPacket.ID;
@@ -230,6 +237,11 @@ public class Noellesroles implements ModInitializer {
                 player.giveItemStack(TMMItems.NOTE.getDefaultStack());
                 player.giveItemStack(TMMItems.NOTE.getDefaultStack());
             }
+            if (role.equals(JESTER)) {
+                JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(player);
+                jesterComponent.reset();
+                player.giveItemStack(TMMItems.LOCKPICK.getDefaultStack());
+            }
         });
         ResetPlayer.EVENT.register(player -> {
             BartenderPlayerComponent.KEY.get(player).reset();
@@ -238,6 +250,7 @@ public class Noellesroles implements ModInitializer {
             RecallerPlayerComponent.KEY.get(player).reset();
             VulturePlayerComponent.KEY.get(player).reset();
             ExecutionerPlayerComponent.KEY.get(player).reset();
+            JesterPlayerComponent.KEY.get(player).reset();
         });
 
         // Bartender and Recaller get +50 coins when completing tasks
@@ -247,6 +260,39 @@ public class Noellesroles implements ModInitializer {
             if (role != null && (role.equals(BARTENDER) || role.equals(RECALLER))) {
                 PlayerShopComponent playerShopComponent = PlayerShopComponent.KEY.get(player);
                 playerShopComponent.addToBalance(50);
+            }
+        });
+
+        // Jester win condition - when killed by innocent, jester wins
+        CheckWinCondition.EVENT.register((world, gameComponent, currentStatus) -> {
+            for (UUID uuid : gameComponent.getAllWithRole(JESTER)) {
+                PlayerEntity jester = world.getPlayerByUuid(uuid);
+                if (jester != null) {
+                    JesterPlayerComponent component = JesterPlayerComponent.KEY.get(jester);
+                    if (component.won) {
+                        return CheckWinCondition.WinResult.neutralWin((ServerPlayerEntity) jester);
+                    }
+                }
+            }
+            return null;
+        });
+
+        // Jester kill detection - when jester is killed by an innocent, mark as won
+        KillPlayer.AFTER.register((victim, killer, deathReason) -> {
+            GameWorldComponent gameComponent = GameWorldComponent.KEY.get(victim.getWorld());
+
+            // Check if victim is a jester
+            if (!gameComponent.isRole(victim, JESTER)) return;
+
+            // Check if killer is an innocent
+            if (killer != null) {
+                Role killerRole = gameComponent.getRole(killer);
+                if (killerRole != null && killerRole.isInnocent()) {
+                    // Jester wins!
+                    JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(victim);
+                    jesterComponent.won = true;
+                    jesterComponent.sync();
+                }
             }
         });
 
@@ -301,7 +347,7 @@ public class Noellesroles implements ModInitializer {
 
                             PlayerShopComponent playerShopComponent = (PlayerShopComponent) PlayerShopComponent.KEY.get(context.player());
                             gameWorldComponent.addRole(context.player(),shuffledKillerRoles.getFirst());
-                            RoleAssigned.EVENT.invoker().assignModdedRole(context.player(),shuffledKillerRoles.getFirst());
+                            RoleAssigned.EVENT.invoker().assignRole(context.player(),shuffledKillerRoles.getFirst());
                             playerShopComponent.setBalance(100);
                             if (TMMRoles.VANILLA_ROLES.contains(gameWorldComponent.getRole(context.player()))) {
                                 ServerPlayNetworking.send( context.player(), new AnnounceWelcomePayload(TMMRoles.KILLER.identifier().toString(), gameWorldComponent.getAllKillerTeamPlayers().size(), 0));

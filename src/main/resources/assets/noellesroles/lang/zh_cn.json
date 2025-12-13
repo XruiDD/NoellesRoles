@@ -86,5 +86,9 @@
   "tip.recaller.teleport": "使用 %s 传送！",
   "tip.vulture": "已吃掉 %s/%s 具尸体。",
   "tip.recaller.not_enough_money": "传送需要 100\uE781。",
-  "tip.noellesroles.cooldown": "技能将在 %s秒后可用"
+  "tip.noellesroles.cooldown": "技能将在 %s秒后可用",
+
+  "announcement.goals.jester": "被无辜者杀死即可获胜！",
+  "announcement.role.jester": "小丑",
+  "announcement.win.jester": "小丑胜利！"
 }

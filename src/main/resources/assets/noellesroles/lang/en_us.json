@@ -69,5 +69,9 @@
   "tip.recaller.teleport": "Use %s to teleport!",
   "tip.vulture": "%s/%s bodies eaten.",
   "tip.recaller.not_enough_money": "100\uE781 required to teleport.",
-  "tip.noellesroles.cooldown": "Ability usable in %ss"
+  "tip.noellesroles.cooldown": "Ability usable in %ss",
+
+  "announcement.goals.jester": "Get killed by an innocent to win!",
+  "announcement.role.jester": "Jester",
+  "announcement.win.jester": "Jester Wins!"
 }

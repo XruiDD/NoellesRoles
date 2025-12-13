@@ -44,7 +44,7 @@ public class ExecutionerConfirmMixin {
                 Collections.shuffle(shuffledKillerRoles);
 
                 gameWorldComponent.addRole(executioner,shuffledKillerRoles.getFirst());
-                RoleAssigned.EVENT.invoker().assignModdedRole(executioner,shuffledKillerRoles.getFirst());
+                RoleAssigned.EVENT.invoker().assignRole(executioner,shuffledKillerRoles.getFirst());
                 playerShopComponent.setBalance(200);
                 if (TMMRoles.VANILLA_ROLES.contains(gameWorldComponent.getRole(executioner))) {
                     ServerPlayNetworking.send((ServerPlayerEntity) executioner, new AnnounceWelcomePayload(TMMRoles.KILLER.identifier().toString(), gameWorldComponent.getAllKillerTeamPlayers().size(), 0));
