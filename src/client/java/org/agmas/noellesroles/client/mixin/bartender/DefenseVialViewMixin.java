@@ -42,7 +42,7 @@ public class DefenseVialViewMixin {
     private static void view(World world, BlockPos pos, BlockState state, BlockEntity blockEntity, CallbackInfo ci) {
         if (blockEntity instanceof BeveragePlateBlockEntity tray) {
             if (tray.getPoisoner() != null) {
-                if (MinecraftClient.getInstance().player != null && ( GameWorldComponent.KEY.get(world)).isRole(UUID.fromString(tray.getPoisoner()), Noellesroles.BARTENDER) && GameWorldComponent.KEY.get(MinecraftClient.getInstance()).isRole(MinecraftClient.getInstance().player, Noellesroles.BARTENDER)) {
+                if (MinecraftClient.getInstance().player != null && GameWorldComponent.KEY.get(world).isRole(UUID.fromString(tray.getPoisoner()), Noellesroles.BARTENDER) && GameWorldComponent.KEY.get(world).isRole(MinecraftClient.getInstance().player, Noellesroles.BARTENDER)) {
                     world.addParticle(ParticleTypes.HAPPY_VILLAGER,  ((float) pos.getX() + 0.5F),  pos.getY(), ((float) pos.getZ() + 0.5F),  0.0F,  0.15F,  0.0F);
                     ci.cancel();
                 }
