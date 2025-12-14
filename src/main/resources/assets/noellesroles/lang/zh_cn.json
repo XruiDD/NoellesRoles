@@ -41,10 +41,6 @@
   "announcement.win.coroner": "乘客胜利！",
   "hud.coroner.sanity_requirements": "验尸需保持50%的理智值",
 
-  "announcement.goals.executioner": "当你的目标死于非杀手之手后，你将随机获得其他杀手身份。",
-  "announcement.role.executioner": "刽子手",
-  "announcement.win.executioner": "乘客胜利！",
-
   "announcement.goals.trapper": "检查其他玩家的身份。",
   "announcement.role.trapper": "检查官",
   "announcement.win.trapper": "乘客胜利！",

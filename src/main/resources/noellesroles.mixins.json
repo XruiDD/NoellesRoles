@@ -6,8 +6,6 @@
   "mixins": [
     "bartender.CocktailItemMixin",
     "bartender.DefenseVialApplyMixin",
-    "executioner.ExecutionerConfirmMixin",
-    "executioner.NoTargetBackfireMixin",
     "host.MasterKeySmallDoorMixin",
     "host.MasterKeyTrainDoorMixin",
     "noisemaker.NoisemakerKillMixin",

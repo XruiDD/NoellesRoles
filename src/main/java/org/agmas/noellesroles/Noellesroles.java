@@ -42,7 +42,6 @@ import org.agmas.noellesroles.bartender.BartenderPlayerComponent;
 import org.agmas.noellesroles.bartender.BartenderShopHandler;
 import org.agmas.noellesroles.config.NoellesRolesConfig;
 import org.agmas.noellesroles.coroner.BodyDeathReasonComponent;
-import org.agmas.noellesroles.executioner.ExecutionerPlayerComponent;
 import org.agmas.noellesroles.morphling.MorphlingPlayerComponent;
 import org.agmas.noellesroles.packet.AbilityC2SPacket;
 import org.agmas.noellesroles.packet.MorphC2SPacket;
@@ -74,7 +73,6 @@ public class Noellesroles implements ModInitializer {
     public static Identifier TRAPPER_ID = Identifier.of(MOD_ID, "trapper");
     public static Identifier CORONER_ID = Identifier.of(MOD_ID, "coroner");
     public static Identifier RECALLER_ID = Identifier.of(MOD_ID, "recaller");
-    public static Identifier EXECUTIONER_ID = Identifier.of(MOD_ID, "executioner");
     public static Identifier VULTURE_ID = Identifier.of(MOD_ID, "vulture");
     public static Identifier THE_INSANE_DAMNED_PARANOID_KILLER_OF_DOOM_DEATH_DESTRUCTION_AND_WAFFLES_ID = Identifier.of(MOD_ID, "the_insane_damned_paranoid_killer");
     public static Identifier TIMEKEEPER_ID = Identifier.of(MOD_ID, "time_keeper");
@@ -107,7 +105,6 @@ public class Noellesroles implements ModInitializer {
     // 小丑角色 - 中立阵营，被无辜者杀死时获胜
     public static Role JESTER = TMMRoles.registerRole(new Role(JESTER_ID, 0xF8C8DC, false, false, Role.MoodType.FAKE, TMMRoles.CIVILIAN.getMaxSprintTime(), false));
     public static Role VULTURE =TMMRoles.registerRole(new Role(VULTURE_ID, new Color(181, 103, 0).getRGB(),false,false,Role.MoodType.FAKE, TMMRoles.CIVILIAN.getMaxSprintTime(),true));
-    public static Role EXECUTIONER =TMMRoles.registerRole(new Role(EXECUTIONER_ID, new Color(74, 27, 5).getRGB(),false,false,Role.MoodType.REAL, TMMRoles.CIVILIAN.getMaxSprintTime(),true));
 
     public static final CustomPayload.Id<MorphC2SPacket> MORPH_PACKET = MorphC2SPacket.ID;
     public static final CustomPayload.Id<SwapperC2SPacket> SWAP_PACKET = SwapperC2SPacket.ID;
@@ -196,19 +193,6 @@ public class Noellesroles implements ModInitializer {
             AbilityPlayerComponent abilityPlayerComponent = (AbilityPlayerComponent) AbilityPlayerComponent.KEY.get(player);
             GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(player.getWorld());
             abilityPlayerComponent.cooldown = NoellesRolesConfig.HANDLER.instance().generalCooldownTicks;
-            if (role.equals(EXECUTIONER)) {
-                ExecutionerPlayerComponent executionerPlayerComponent = (ExecutionerPlayerComponent) ExecutionerPlayerComponent.KEY.get(player);
-                executionerPlayerComponent.won = false;
-                List<UUID> innocentPlayers = new ArrayList<>();
-                gameWorldComponent.getRoles().forEach((uuid,role1)->{
-                    if (role1.isInnocent()) {
-                        innocentPlayers.add(uuid);
-                    }
-                });
-                Collections.shuffle(innocentPlayers);
-                executionerPlayerComponent.target = innocentPlayers.getFirst();
-                executionerPlayerComponent.sync();
-            }
             if (role.equals(VULTURE)) {
                 VulturePlayerComponent vulturePlayerComponent = VulturePlayerComponent.KEY.get(player);
                 vulturePlayerComponent.reset();
@@ -248,7 +232,6 @@ public class Noellesroles implements ModInitializer {
             VoodooPlayerComponent.KEY.get(player).reset();
             RecallerPlayerComponent.KEY.get(player).reset();
             VulturePlayerComponent.KEY.get(player).reset();
-            ExecutionerPlayerComponent.KEY.get(player).reset();
             JesterPlayerComponent.KEY.get(player).reset();
         });
 

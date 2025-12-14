@@ -6,11 +6,6 @@ Role List:
 
 ## Killers & Non-Innocents
 
-- Executioner
-  - Gains a target at the start of the game
-  - If the target dies to a civillian or natural causes, the Executioner becomes a random Killer role.
-  - If the target dies to a killer, the executioner re-targets.
-
 - Morphling
   - Can morph into any **alive** player on a cooldown.
 

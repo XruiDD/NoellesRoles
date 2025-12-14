@@ -43,10 +43,6 @@
   "announcement.win.coroner": "Пассажиры победили!",
   "hud.coroner.sanity_requirements": "Необходимо 50% рассудка, чтобы использовать эту способность",
 
-  "announcement.goals.executioner": "Станьте убийцей, как только ваша цель умрет (от рук не-убийцы).",
-  "announcement.role.executioner": "Жнец",
-  "announcement.win.executioner": "Пассажиры победили!",
-
   "item.noellesroles.master_key": "Мастер-ключ",
 
   "death_reason.noellesroles.voodoo": "от магии вуду."

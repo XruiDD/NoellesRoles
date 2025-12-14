@@ -43,9 +43,6 @@
   "announcement.win.coroner": "Passengers Win!",
   "hud.coroner.sanity_requirements": "50% sanity required to use ability",
 
-  "announcement.goals.executioner": "Become a killer once your target dies (to a non-killer).",
-  "announcement.role.executioner": "Executioner",
-
   "announcement.goals.trapper": "Check other player's roles.",
   "announcement.role.trapper": "Trapper",
 

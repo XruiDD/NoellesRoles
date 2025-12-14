@@ -21,7 +21,6 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.RaycastContext;
 import org.agmas.noellesroles.Noellesroles;
 import org.agmas.noellesroles.bartender.BartenderPlayerComponent;
-import org.agmas.noellesroles.executioner.ExecutionerPlayerComponent;
 import org.agmas.noellesroles.packet.AbilityC2SPacket;
 import org.agmas.noellesroles.packet.VultureEatC2SPacket;
 import org.lwjgl.glfw.GLFW;
@@ -99,24 +98,10 @@ public class NoellesrolesClient implements ClientModInitializer {
                 }
             }
 
-            // EXECUTIONER: 看到目标发黄光
-            if (gameWorldComponent.isRole(localPlayer, Noellesroles.EXECUTIONER)) {
-                ExecutionerPlayerComponent comp = ExecutionerPlayerComponent.KEY.get(localPlayer);
-                if (comp.target.equals(entity.getUuid())) return Color.YELLOW.getRGB();
-            }
-
-            // 杀手本能: 可见 VULTURE、EXECUTIONER
+            // 杀手本能: 可见 VULTURE
             if (TMMClient.isInstinctEnabled() && TMMClient.isKiller() && TMMClient.isPlayerAliveAndInSurvival()) {
                 if (gameWorldComponent.isRole(player, Noellesroles.VULTURE))
                     return Noellesroles.VULTURE.color();
-                if (gameWorldComponent.isRole(player, Noellesroles.EXECUTIONER))
-                    return Noellesroles.EXECUTIONER.color();
-            }
-
-            // EXECUTIONER 本能: 看到所有人用角色颜色
-            if (TMMClient.isInstinctEnabled() && gameWorldComponent.isRole(localPlayer, Noellesroles.EXECUTIONER)
-                && TMMClient.isPlayerAliveAndInSurvival()) {
-                return Noellesroles.EXECUTIONER.color();
             }
 
             return -1;
