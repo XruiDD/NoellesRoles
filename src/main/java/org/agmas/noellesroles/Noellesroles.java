@@ -302,14 +302,14 @@ public class Noellesroles implements ModInitializer {
             if (abilityPlayerComponent.cooldown > 0) return;
             if (context.player().getWorld().getPlayerByUuid(payload.player()) == null) return;
 
-            if (gameWorldComponent.isRole(context.player(), VOODOO)) {
+            if (gameWorldComponent.isRole(context.player(), VOODOO) && GameFunctions.isPlayerAliveAndSurvival(context.player())) {
                 abilityPlayerComponent.cooldown = GameConstants.getInTicks(0, 30);
                 abilityPlayerComponent.sync();
                 VoodooPlayerComponent voodooPlayerComponent = (VoodooPlayerComponent) VoodooPlayerComponent.KEY.get(context.player());
                 voodooPlayerComponent.setTarget(payload.player());
 
             }
-            if (gameWorldComponent.isRole(context.player(), MORPHLING)) {
+            if (gameWorldComponent.isRole(context.player(), MORPHLING) && GameFunctions.isPlayerAliveAndSurvival(context.player())) {
                 MorphlingPlayerComponent morphlingPlayerComponent = (MorphlingPlayerComponent) MorphlingPlayerComponent.KEY.get(context.player());
                 morphlingPlayerComponent.startMorph(payload.player());
             }
@@ -344,7 +344,7 @@ public class Noellesroles implements ModInitializer {
         });
         ServerPlayNetworking.registerGlobalReceiver(Noellesroles.SWAP_PACKET, (payload, context) -> {
             GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(context.player().getWorld());
-            if (gameWorldComponent.isRole(context.player(), SWAPPER)) {
+            if (gameWorldComponent.isRole(context.player(), SWAPPER) && GameFunctions.isPlayerAliveAndSurvival(context.player())) {
                 if (payload.player() != null) {
                     if (context.player().getWorld().getPlayerByUuid(payload.player()) != null) {
                         if (payload.player2() != null) {
@@ -385,7 +385,7 @@ public class Noellesroles implements ModInitializer {
                 }
 
             }
-            if (gameWorldComponent.isRole(context.player(), PHANTOM) && abilityPlayerComponent.cooldown <= 0) {
+            if (gameWorldComponent.isRole(context.player(), PHANTOM) && abilityPlayerComponent.cooldown <= 0 && GameFunctions.isPlayerAliveAndSurvival(context.player())) {
                 context.player().addStatusEffect(new StatusEffectInstance(StatusEffects.INVISIBILITY, 30 * 20,0,true,false,true));
                 abilityPlayerComponent.cooldown = GameConstants.getInTicks(1, 30);
             }

@@ -58,9 +58,8 @@ public abstract class SwapperScreenMixin extends LimitedHandledScreen<PlayerScre
         GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(player.getWorld());
         if (gameWorldComponent.isRole(player,Noellesroles.SWAPPER)) {
             List<UUID> lives = gameWorldComponent.getAllAlivePlayers();
-            if (!lives.contains(player.getUuid())) lives.add(player.getUuid());
-            List<AbstractClientPlayerEntity> entries =MinecraftClient.getInstance().world.getPlayers();
-            entries.removeIf(p->lives.contains(p.getUuid()));
+            List<AbstractClientPlayerEntity> entries = MinecraftClient.getInstance().world.getPlayers();
+            entries.removeIf(p -> !lives.contains(p.getUuid()) || p.getUuid().equals(player.getUuid()));
             int apart = 36;
             int x = width / 2 - (entries.size()) * apart / 2 + 9;
             int shouldBeY = (height - 32) / 2;

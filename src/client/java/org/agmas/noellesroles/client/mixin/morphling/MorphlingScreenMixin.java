@@ -49,8 +49,8 @@ public abstract class MorphlingScreenMixin extends LimitedHandledScreen<PlayerSc
         GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(player.getWorld());
         if (gameWorldComponent.isRole(player,Noellesroles.MORPHLING)) {
             List<UUID> lives = gameWorldComponent.getAllAlivePlayers();
-            List<AbstractClientPlayerEntity> entries =MinecraftClient.getInstance().world.getPlayers();
-            entries.removeIf(p->lives.contains(p.getUuid()) || p.getUuid().equals(player.getUuid()));
+            List<AbstractClientPlayerEntity> entries = MinecraftClient.getInstance().world.getPlayers();
+            entries.removeIf(p -> !lives.contains(p.getUuid()) || p.getUuid().equals(player.getUuid()));
             int apart = 36;
             int x = ((LimitedInventoryScreen)(Object)this).width / 2 - (entries.size()) * apart / 2 + 9;
             int shouldBeY = (((LimitedInventoryScreen)(Object)this).height - 32) / 2;
