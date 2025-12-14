@@ -43,9 +43,6 @@
   "announcement.win.coroner": "Passengers Win!",
   "hud.coroner.sanity_requirements": "50% sanity required to use ability",
 
-  "announcement.goals.trapper": "Check other player's roles.",
-  "announcement.role.trapper": "Trapper",
-
   "announcement.goals.recaller": "Teleport to anywhere on the train!",
   "announcement.role.recaller": "Recaller",
 

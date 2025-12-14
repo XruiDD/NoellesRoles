@@ -41,10 +41,6 @@
   "announcement.win.coroner": "乘客胜利！",
   "hud.coroner.sanity_requirements": "验尸需保持50%的理智值",
 
-  "announcement.goals.trapper": "检查其他玩家的身份。",
-  "announcement.role.trapper": "检查官",
-  "announcement.win.trapper": "乘客胜利！",
-
   "announcement.goals.vulture": "吃掉一定数量尸体后，你可以转变为杀手！",
   "announcement.role.vulture": "秃鹫",
   "announcement.win.vulture": "杀手胜利！",
