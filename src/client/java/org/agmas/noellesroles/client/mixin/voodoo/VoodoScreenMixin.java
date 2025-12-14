@@ -55,7 +55,7 @@ public abstract class VoodoScreenMixin extends LimitedHandledScreen<PlayerScreen
     void b(CallbackInfo ci) {
         GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(player.getWorld());
         if (gameWorldComponent.isRole(player,Noellesroles.VOODOO)) {
-            List<UUID> entries = new ArrayList<>(MinecraftClient.getInstance().player.networkHandler.getPlayerUuids());
+            List<UUID> entries = gameWorldComponent.getAllPlayers();
             entries.removeIf((e) -> e.equals(player.getUuid()));
             int apart = 36;
             int x = width / 2 - (entries.size()) * apart / 2 + 9;

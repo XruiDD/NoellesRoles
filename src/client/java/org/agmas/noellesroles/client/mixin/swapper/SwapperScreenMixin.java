@@ -25,6 +25,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.awt.*;
 import java.util.List;
+import java.util.UUID;
 
 
 @Mixin(LimitedInventoryScreen.class)
@@ -56,8 +57,10 @@ public abstract class SwapperScreenMixin extends LimitedHandledScreen<PlayerScre
         SwapperPlayerWidget.playerChoiceOne = null;
         GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(player.getWorld());
         if (gameWorldComponent.isRole(player,Noellesroles.SWAPPER)) {
-            List<AbstractClientPlayerEntity> entries = MinecraftClient.getInstance().world.getPlayers();
-            if (!entries.contains(player)) entries.add(player);
+            List<UUID> lives = gameWorldComponent.getAllAlivePlayers();
+            if (!lives.contains(player.getUuid())) lives.add(player.getUuid());
+            List<AbstractClientPlayerEntity> entries =MinecraftClient.getInstance().world.getPlayers();
+            entries.removeIf(p->lives.contains(p.getUuid()));
             int apart = 36;
             int x = width / 2 - (entries.size()) * apart / 2 + 9;
             int shouldBeY = (height - 32) / 2;
