@@ -19,7 +19,6 @@ import net.minecraft.util.hit.HitResult;
 import org.agmas.noellesroles.AbilityPlayerComponent;
 import org.agmas.noellesroles.Noellesroles;
 import org.agmas.noellesroles.client.NoellesrolesClient;
-import org.agmas.noellesroles.coroner.BodyDeathReasonComponent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -61,17 +60,10 @@ public abstract class CoronerHudMixin {
                 }
                 // 秃鹫专属提示
                 if (isVulture) {
-                    BodyDeathReasonComponent bodyDeathReasonComponent = BodyDeathReasonComponent.KEY.get(NoellesrolesClient.targetBody);
-
-                    if (bodyDeathReasonComponent.vultured) {
-                        Text vultureInfo = Text.translatable("hud.vulture.already_consumed").withColor(Noellesroles.VULTURE.color());
-                        context.drawTextWithShadow(renderer, vultureInfo, -renderer.getWidth(vultureInfo) / 2, 32, Colors.WHITE);
-                    } else {
-                        AbilityPlayerComponent abilityPlayerComponent = AbilityPlayerComponent.KEY.get(player);
-                        if (abilityPlayerComponent.cooldown <= 0 && TMMClient.isPlayerAliveAndInSurvival()) {
-                            Text eatPrompt = Text.translatable("hud.vulture.eat", NoellesrolesClient.abilityBind.getBoundKeyLocalizedText()).withColor(Colors.RED);
-                            context.drawTextWithShadow(renderer, eatPrompt, -renderer.getWidth(eatPrompt) / 2, 32, Colors.WHITE);
-                        }
+                    AbilityPlayerComponent abilityPlayerComponent = AbilityPlayerComponent.KEY.get(player);
+                    if (abilityPlayerComponent.getCooldown() <= 0 && TMMClient.isPlayerAliveAndInSurvival()) {
+                        Text eatPrompt = Text.translatable("hud.vulture.eat", NoellesrolesClient.abilityBind.getBoundKeyLocalizedText()).withColor(Colors.RED);
+                        context.drawTextWithShadow(renderer, eatPrompt, -renderer.getWidth(eatPrompt) / 2, 32, Colors.WHITE);
                     }
                 }
                 context.getMatrices().pop();

@@ -32,7 +32,9 @@ import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
@@ -41,7 +43,6 @@ import net.minecraft.util.math.Vec3d;
 import org.agmas.noellesroles.bartender.BartenderPlayerComponent;
 import org.agmas.noellesroles.bartender.BartenderShopHandler;
 import org.agmas.noellesroles.config.NoellesRolesConfig;
-import org.agmas.noellesroles.coroner.BodyDeathReasonComponent;
 import org.agmas.noellesroles.morphling.MorphlingPlayerComponent;
 import org.agmas.noellesroles.packet.AbilityC2SPacket;
 import org.agmas.noellesroles.packet.MorphC2SPacket;
@@ -56,6 +57,7 @@ import java.awt.*;
 import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.List;
+
 
 public class Noellesroles implements ModInitializer {
 
@@ -100,7 +102,7 @@ public class Noellesroles implements ModInitializer {
 
     // 小丑角色 - 中立阵营，被无辜者杀死时获胜
     public static Role JESTER = TMMRoles.registerRole(new Role(JESTER_ID, 0xF8C8DC, false, false, Role.MoodType.FAKE, TMMRoles.CIVILIAN.getMaxSprintTime(), false));
-    public static Role VULTURE =TMMRoles.registerRole(new Role(VULTURE_ID, new Color(181, 103, 0).getRGB(),false,false,Role.MoodType.FAKE, TMMRoles.CIVILIAN.getMaxSprintTime(),true));
+    public static Role VULTURE =TMMRoles.registerRole(new Role(VULTURE_ID, new Color(181, 103, 0).getRGB(),false,false,Role.MoodType.FAKE,GameConstants.getInTicks(0, 20),true));
 
     public static final CustomPayload.Id<MorphC2SPacket> MORPH_PACKET = MorphC2SPacket.ID;
     public static final CustomPayload.Id<SwapperC2SPacket> SWAP_PACKET = SwapperC2SPacket.ID;
@@ -192,8 +194,8 @@ public class Noellesroles implements ModInitializer {
             if (role.equals(VULTURE)) {
                 VulturePlayerComponent vulturePlayerComponent = VulturePlayerComponent.KEY.get(player);
                 vulturePlayerComponent.reset();
-                vulturePlayerComponent.bodiesRequired = (int)((player.getWorld().getPlayers().size()/3f) - Math.floor(player.getWorld().getPlayers().size()/6f));
-                vulturePlayerComponent.sync();
+                vulturePlayerComponent.setBodiesRequired(gameWorldComponent.getAllPlayers().size() / 2);
+                player.giveItemStack(TMMItems.LOCKPICK.getDefaultStack());
             }
             if (role.equals(CONDUCTOR)) {
                 player.giveItemStack(ModItems.MASTER_KEY.getDefaultStack());
@@ -255,6 +257,20 @@ public class Noellesroles implements ModInitializer {
             return null;
         });
 
+        // Vulture win condition - when eaten enough bodies
+        CheckWinCondition.EVENT.register((world, gameComponent, currentStatus) -> {
+            for (UUID uuid : gameComponent.getAllWithRole(VULTURE)) {
+                PlayerEntity vulture = world.getPlayerByUuid(uuid);
+                if (vulture != null) {
+                    VulturePlayerComponent component = VulturePlayerComponent.KEY.get(vulture);
+                    if (component.hasWon()) {
+                        return CheckWinCondition.WinResult.neutralWin((ServerPlayerEntity) vulture);
+                    }
+                }
+            }
+            return null;
+        });
+
         // Jester kill detection - when jester is killed by an innocent, mark as won
         KillPlayer.AFTER.register((victim, killer, deathReason) -> {
             GameWorldComponent gameComponent = GameWorldComponent.KEY.get(victim.getWorld());
@@ -299,38 +315,29 @@ public class Noellesroles implements ModInitializer {
             }
         });
         ServerPlayNetworking.registerGlobalReceiver(Noellesroles.VULTURE_PACKET, (payload, context) -> {
-            GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(context.player().getWorld());
-            AbilityPlayerComponent abilityPlayerComponent = (AbilityPlayerComponent) AbilityPlayerComponent.KEY.get(context.player());
+            GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(context.player().getWorld());
+            AbilityPlayerComponent abilityPlayerComponent = AbilityPlayerComponent.KEY.get(context.player());
 
             if (gameWorldComponent.isRole(context.player(), VULTURE) && GameFunctions.isPlayerAliveAndSurvival(context.player())) {
-                if (abilityPlayerComponent.cooldown > 0) return;
-                abilityPlayerComponent.sync();
-                List<PlayerBodyEntity> playerBodyEntities = context.player().getWorld().getEntitiesByType(TypeFilter.equals(PlayerBodyEntity.class), context.player().getBoundingBox().expand(10), (playerBodyEntity -> {
+                if (abilityPlayerComponent.getCooldown() > 0) return;
+                List<PlayerBodyEntity> playerBodyEntities = context.player().getWorld().getEntitiesByType(TypeFilter.equals(PlayerBodyEntity.class), context.player().getBoundingBox().expand(5), (playerBodyEntity -> {
                     return playerBodyEntity.getUuid().equals(payload.playerBody());
                 }));
                 if (!playerBodyEntities.isEmpty()) {
-                    BodyDeathReasonComponent bodyDeathReasonComponent = BodyDeathReasonComponent.KEY.get(playerBodyEntities.getFirst());
-                    if (!bodyDeathReasonComponent.vultured) {
-                        abilityPlayerComponent.cooldown = GameConstants.getInTicks(0, 20);
-                        VulturePlayerComponent vulturePlayerComponent = VulturePlayerComponent.KEY.get(context.player());
-                        vulturePlayerComponent.bodiesEaten++;
-                        vulturePlayerComponent.sync();
-                        context.player().playSound(SoundEvents.ENTITY_PLAYER_BURP, 1.0F, 0.5F);
-                        context.player().addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 40, 2));
-                        if (vulturePlayerComponent.bodiesEaten >= vulturePlayerComponent.bodiesRequired) {
-                            PlayerShopComponent playerShopComponent = (PlayerShopComponent) PlayerShopComponent.KEY.get(context.player());
-                            RoleAssigned.EVENT.invoker().assignRole(context.player(),TMMRoles.KILLER);
-                            playerShopComponent.setBalance(100);
-                            if (TMMRoles.VANILLA_ROLES.contains(gameWorldComponent.getRole(context.player()))) {
-                                ServerPlayNetworking.send( context.player(), new AnnounceWelcomePayload(TMMRoles.KILLER.identifier().toString(), gameWorldComponent.getAllKillerTeamPlayers().size(), 0));
-                            } else {
-                                ServerPlayNetworking.send(context.player(), new AnnounceWelcomePayload(gameWorldComponent.getRole(context.player()).identifier().toString(), gameWorldComponent.getAllKillerTeamPlayers().size(), 0));
-                            }
-                        }
+                    PlayerBodyEntity body = playerBodyEntities.getFirst();
+                    abilityPlayerComponent.setCooldown(GameConstants.getInTicks(0, 5));
+                    VulturePlayerComponent vulturePlayerComponent = VulturePlayerComponent.KEY.get(context.player());
+                    vulturePlayerComponent.addBody(body.getUuid());
 
-                        bodyDeathReasonComponent.vultured = true;
-                        bodyDeathReasonComponent.sync();
+                    // 生成粒子效果
+                    if (context.player().getWorld() instanceof ServerWorld serverWorld) {
+                        Vec3d pos = body.getPos();
+                        serverWorld.spawnParticles(ParticleTypes.SMOKE, pos.x, pos.y + 0.5, pos.z, 30, 0.3, 0.3, 0.3, 0.02);
+                        serverWorld.spawnParticles(ParticleTypes.SOUL, pos.x, pos.y + 0.5, pos.z, 10, 0.2, 0.2, 0.2, 0.01);
                     }
+
+                    // 移除尸体
+                    body.discard();
                 }
 
             }

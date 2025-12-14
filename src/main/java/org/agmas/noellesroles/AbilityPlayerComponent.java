@@ -43,6 +43,10 @@ public class AbilityPlayerComponent implements AutoSyncedComponent, ServerTickin
         }
     }
 
+    public int getCooldown() {
+        return this.cooldown;
+    }
+
     public void setCooldown(int ticks) {
         this.cooldown = ticks;
         this.sync();

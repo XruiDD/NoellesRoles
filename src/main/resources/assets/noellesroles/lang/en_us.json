@@ -46,10 +46,11 @@
   "announcement.goals.recaller": "Teleport to anywhere on the train!",
   "announcement.role.recaller": "Recaller",
 
-  "announcement.goals.vulture": "Eat bodies to turn into a killer.",
+  "announcement.goals.vulture": "Eat half of the players' bodies to win!",
   "announcement.role.vulture": "Vulture",
+  "announcement.win.vulture": "Vulture Wins!",
+  "game.win.vulture": "Mom, I'm full!",
   "hud.vulture.eat": "Press %s to eat!",
-  "hud.vulture.already_consumed": "This body has been consumed.",
 
 
   "item.noellesroles.master_key": "Master Key",

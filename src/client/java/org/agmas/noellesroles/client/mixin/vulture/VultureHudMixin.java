@@ -23,17 +23,17 @@ public abstract class VultureHudMixin {
     @Shadow public abstract TextRenderer getTextRenderer();
 
     @Inject(method = "render", at = @At("TAIL"))
-    public void phantomHud(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
-        GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(MinecraftClient.getInstance().player.getWorld());
-        AbilityPlayerComponent abilityPlayerComponent = (AbilityPlayerComponent) AbilityPlayerComponent.KEY.get(MinecraftClient.getInstance().player);
+    public void vultureHud(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
+        GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(MinecraftClient.getInstance().player.getWorld());
+        AbilityPlayerComponent abilityPlayerComponent = AbilityPlayerComponent.KEY.get(MinecraftClient.getInstance().player);
         if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.VULTURE)) {
             VulturePlayerComponent vulturePlayerComponent = VulturePlayerComponent.KEY.get(MinecraftClient.getInstance().player);
             int drawY = context.getScaledWindowHeight();
 
-            Text line = Text.translatable("tip.vulture", vulturePlayerComponent.bodiesEaten, vulturePlayerComponent.bodiesRequired);
+            Text line = Text.translatable("tip.vulture", vulturePlayerComponent.getBodiesEaten(), vulturePlayerComponent.getBodiesRequired());
 
-            if (abilityPlayerComponent.cooldown > 0) {
-                line = Text.translatable("tip.noellesroles.cooldown", abilityPlayerComponent.cooldown/20);
+            if (abilityPlayerComponent.getCooldown() > 0) {
+                line = Text.translatable("tip.noellesroles.cooldown", abilityPlayerComponent.getCooldown() / 20);
             }
 
             drawY -= getTextRenderer().getWrappedLinesHeight(line, 999999);

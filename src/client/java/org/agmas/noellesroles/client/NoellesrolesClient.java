@@ -97,13 +97,6 @@ public class NoellesrolesClient implements ClientModInitializer {
                     if (comp.poisonTicks > 0) return Color.RED.getRGB();
                 }
             }
-
-            // 杀手本能: 可见 VULTURE
-            if (TMMClient.isInstinctEnabled() && TMMClient.isKiller() && TMMClient.isPlayerAliveAndInSurvival()) {
-                if (gameWorldComponent.isRole(player, Noellesroles.VULTURE))
-                    return Noellesroles.VULTURE.color();
-            }
-
             return -1;
         });
 

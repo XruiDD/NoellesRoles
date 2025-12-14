@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(del \"D:\\src\\TrainMurderMystery\\src\\main\\java\\dev\\doctor4t\\trainmurdermystery\\event\\PlayerKill.java\")",
-      "Bash(del \"D:\\src\\NoellesRoles\\src\\main\\java\\org\\agmas\\noellesroles\\executioner\\ExecutionerPlayerComponent.java\")"
+      "Bash(del \"D:\\src\\NoellesRoles\\src\\main\\java\\org\\agmas\\noellesroles\\executioner\\ExecutionerPlayerComponent.java\")",
+      "Bash(del \"D:\\src\\NoellesRoles\\src\\main\\java\\org\\agmas\\noellesroles\\coroner\\BodyDeathReasonComponent.java\")",
+      "Bash(rm:*)"
     ]
   }
 }

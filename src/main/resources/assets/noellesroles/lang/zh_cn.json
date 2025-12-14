@@ -41,11 +41,11 @@
   "announcement.win.coroner": "乘客胜利！",
   "hud.coroner.sanity_requirements": "验尸需保持50%的理智值",
 
-  "announcement.goals.vulture": "吃掉一定数量尸体后，你可以转变为杀手！",
+  "announcement.goals.vulture": "吃掉一半玩家的尸体即可获胜！",
   "announcement.role.vulture": "秃鹫",
-  "announcement.win.vulture": "杀手胜利！",
+  "announcement.win.vulture": "秃鹫胜利",
+  "game.win.vulture": "妈妈，我吃饱了！",
   "hud.vulture.eat": "按 %s 吃掉尸体!",
-  "hud.vulture.already_consumed": "这具躯体已无法食用！",
 
   "announcement.goals.recaller": "保存一个位置，可以传送回去！",
   "announcement.role.recaller": "回溯者",
