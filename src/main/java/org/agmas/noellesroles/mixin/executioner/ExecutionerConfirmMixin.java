@@ -38,13 +38,10 @@ public class ExecutionerConfirmMixin {
             PlayerShopComponent playerShopComponent = (PlayerShopComponent) PlayerShopComponent.KEY.get(executioner);
             if (executionerPlayerComponent.target.equals(victim.getUuid()) && !invalidKill) {
                 executionerPlayerComponent.won = true;
-                ArrayList<Role> shuffledKillerRoles = new ArrayList<>(TMMRoles.ROLES);
-                shuffledKillerRoles.removeIf(role ->TMMRoles.VANILLA_ROLES.contains(role) || !role.canUseKiller() || TMMRoles.getDisabledRoles().contains(role));
-                if (shuffledKillerRoles.isEmpty()) shuffledKillerRoles.add(TMMRoles.KILLER);
-                Collections.shuffle(shuffledKillerRoles);
 
-                gameWorldComponent.addRole(executioner,shuffledKillerRoles.getFirst());
-                RoleAssigned.EVENT.invoker().assignRole(executioner,shuffledKillerRoles.getFirst());
+
+                gameWorldComponent.addRole(executioner,TMMRoles.KILLER);
+                RoleAssigned.EVENT.invoker().assignRole(executioner,TMMRoles.KILLER);
                 playerShopComponent.setBalance(200);
                 if (TMMRoles.VANILLA_ROLES.contains(gameWorldComponent.getRole(executioner))) {
                     ServerPlayNetworking.send((ServerPlayerEntity) executioner, new AnnounceWelcomePayload(TMMRoles.KILLER.identifier().toString(), gameWorldComponent.getAllKillerTeamPlayers().size(), 0));

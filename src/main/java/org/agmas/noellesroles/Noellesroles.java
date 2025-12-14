@@ -99,15 +99,15 @@ public class Noellesroles implements ModInitializer {
     //public static Role TRAPPER =TMMRoles.registerRole(new Role(TRAPPER_ID, new Color(132, 186, 167).getRGB(),true,false,Role.MoodType.REAL, TMMRoles.CIVILIAN.getMaxSprintTime(),false));
     public static Role CORONER =TMMRoles.registerRole(new Role(CORONER_ID, new Color(122, 122, 122).getRGB(),true,false,Role.MoodType.REAL, TMMRoles.CIVILIAN.getMaxSprintTime(),false));
 
-    public static Role EXECUTIONER =TMMRoles.registerRole(new Role(EXECUTIONER_ID, new Color(74, 27, 5).getRGB(),false,false,Role.MoodType.REAL, TMMRoles.CIVILIAN.getMaxSprintTime(),true));
     public static Role RECALLER = TMMRoles.registerRole(new Role(RECALLER_ID, new Color(158, 255, 255).getRGB(),true,false,Role.MoodType.REAL, TMMRoles.CIVILIAN.getMaxSprintTime(),false));
 
-    public static Role VULTURE =TMMRoles.registerRole(new Role(VULTURE_ID, new Color(181, 103, 0).getRGB(),false,false,Role.MoodType.FAKE, TMMRoles.CIVILIAN.getMaxSprintTime(),true));
 
     public static Role TOXICOLOGIST = TMMRoles.registerRole(new Role(TOXICOLOGIST_ID, new Color(184, 41, 90).getRGB(), true, false, Role.MoodType.REAL, GameConstants.getInTicks(0, 10), false));
 
     // 小丑角色 - 中立阵营，被无辜者杀死时获胜
     public static Role JESTER = TMMRoles.registerRole(new Role(JESTER_ID, 0xF8C8DC, false, false, Role.MoodType.FAKE, TMMRoles.CIVILIAN.getMaxSprintTime(), false));
+    public static Role VULTURE =TMMRoles.registerRole(new Role(VULTURE_ID, new Color(181, 103, 0).getRGB(),false,false,Role.MoodType.FAKE, TMMRoles.CIVILIAN.getMaxSprintTime(),true));
+    public static Role EXECUTIONER =TMMRoles.registerRole(new Role(EXECUTIONER_ID, new Color(74, 27, 5).getRGB(),false,false,Role.MoodType.REAL, TMMRoles.CIVILIAN.getMaxSprintTime(),true));
 
     public static final CustomPayload.Id<MorphC2SPacket> MORPH_PACKET = MorphC2SPacket.ID;
     public static final CustomPayload.Id<SwapperC2SPacket> SWAP_PACKET = SwapperC2SPacket.ID;
@@ -339,14 +339,8 @@ public class Noellesroles implements ModInitializer {
                         context.player().playSound(SoundEvents.ENTITY_PLAYER_BURP, 1.0F, 0.5F);
                         context.player().addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 40, 2));
                         if (vulturePlayerComponent.bodiesEaten >= vulturePlayerComponent.bodiesRequired) {
-                            ArrayList<Role> shuffledKillerRoles = new ArrayList<>(TMMRoles.ROLES);
-                            shuffledKillerRoles.removeIf(role -> TMMRoles.VANILLA_ROLES.contains(role) || !role.canUseKiller() || TMMRoles.getDisabledRoles().contains(role));
-                            if (shuffledKillerRoles.isEmpty()) shuffledKillerRoles.add(TMMRoles.KILLER);
-                            Collections.shuffle(shuffledKillerRoles);
-
                             PlayerShopComponent playerShopComponent = (PlayerShopComponent) PlayerShopComponent.KEY.get(context.player());
-                            gameWorldComponent.addRole(context.player(),shuffledKillerRoles.getFirst());
-                            RoleAssigned.EVENT.invoker().assignRole(context.player(),shuffledKillerRoles.getFirst());
+                            RoleAssigned.EVENT.invoker().assignRole(context.player(),TMMRoles.KILLER);
                             playerShopComponent.setBalance(100);
                             if (TMMRoles.VANILLA_ROLES.contains(gameWorldComponent.getRole(context.player()))) {
                                 ServerPlayNetworking.send( context.player(), new AnnounceWelcomePayload(TMMRoles.KILLER.identifier().toString(), gameWorldComponent.getAllKillerTeamPlayers().size(), 0));
