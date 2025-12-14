@@ -7,6 +7,7 @@ import dev.doctor4t.trainmurdermystery.cca.PlayerPoisonComponent;
 import dev.doctor4t.trainmurdermystery.client.TMMClient;
 import dev.doctor4t.trainmurdermystery.entity.PlayerBodyEntity;
 import dev.doctor4t.trainmurdermystery.event.CanSeeBodyRole;
+import dev.doctor4t.trainmurdermystery.event.CanSeeMoney;
 import dev.doctor4t.trainmurdermystery.event.GetInstinctHighlight;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -57,6 +58,17 @@ public class NoellesrolesClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         abilityBind = KeyBindingHelper.registerKeyBinding(new KeyBinding("key." + Noellesroles.MOD_ID + ".ability", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_G, "category.trainmurdermystery.keybinds"));
+
+        CanSeeMoney.EVENT.register(player -> {
+            if (player.isSpectator()) return null;
+            GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(
+                    player.getWorld()
+            );
+            if(gameWorldComponent.isRole(player, Noellesroles.RECALLER) && !gameWorldComponent.isPlayerDead(player.getUuid())){
+                return CanSeeMoney.Result.ALLOW;
+            }
+            return null;
+        });
 
         // 注册 CanSeeBodyRole 监听器：验尸官可以看到尸体的角色（需要理智值检查）
         CanSeeBodyRole.EVENT.register(player -> {
