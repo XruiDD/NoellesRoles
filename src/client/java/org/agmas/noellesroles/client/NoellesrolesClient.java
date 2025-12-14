@@ -73,8 +73,8 @@ public class NoellesrolesClient implements ClientModInitializer {
 
         // 注册 GetInstinctHighlight 监听器：各角色的本能高亮逻辑
         GetInstinctHighlight.EVENT.register(entity -> {
-            if (!(entity instanceof PlayerEntity player) || player.isSpectator()) return -1;
-            if (MinecraftClient.getInstance().player == null) return -1;
+            if (!(entity instanceof PlayerEntity player) || player.isSpectator()) return null;
+            if (MinecraftClient.getInstance().player == null) return null;
 
             GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(
                 MinecraftClient.getInstance().player.getWorld()
@@ -85,8 +85,8 @@ public class NoellesrolesClient implements ClientModInitializer {
             if (gameWorldComponent.isRole(localPlayer, Noellesroles.BARTENDER)) {
                 if (hasLineOfSight(localPlayer, player)) {
                     BartenderPlayerComponent comp = BartenderPlayerComponent.KEY.get(player);
-                    if (comp.glowTicks > 0) return Color.GREEN.getRGB();
-                    if (comp.armor > 0) return Color.BLUE.getRGB();
+                    if (comp.glowTicks > 0) return GetInstinctHighlight.HighlightResult.always(Color.GREEN.getRGB());
+                    if (comp.armor > 0) return  GetInstinctHighlight.HighlightResult.always(Color.BLUE.getRGB());
                 }
             }
 
@@ -94,10 +94,10 @@ public class NoellesrolesClient implements ClientModInitializer {
             if (gameWorldComponent.isRole(localPlayer, Noellesroles.TOXICOLOGIST)) {
                 if (hasLineOfSight(localPlayer, player)) {
                     PlayerPoisonComponent comp = PlayerPoisonComponent.KEY.get(player);
-                    if (comp.poisonTicks > 0) return Color.RED.getRGB();
+                    if (comp.poisonTicks > 0) return  GetInstinctHighlight.HighlightResult.always(Color.RED.getRGB());
                 }
             }
-            return -1;
+            return null;
         });
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
