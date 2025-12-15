@@ -88,5 +88,11 @@
   "announcement.goals.corrupt_cop": "杀光所有人即可获胜！你存活时，杀手和乘客都无法获胜。",
   "announcement.role.corrupt_cop": "黑警",
   "announcement.win.corrupt_cop": "黑警胜利！",
-  "game.win.corrupt_cop": "正义已经得到伸张……以我的方式。"
+  "game.win.corrupt_cop": "正义已经得到伸张……以我的方式。",
+
+  "announcement.goals.pathogen": "感染所有存活玩家即可获胜！",
+  "announcement.role.pathogen": "病原体",
+  "announcement.win.pathogen": "病原体胜利！",
+  "game.win.pathogen": "感染已经扩散到了每一个角落……",
+  "tip.pathogen.infect": "按 %s 键以感染 %s"
 }

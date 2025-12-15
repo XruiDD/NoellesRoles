@@ -54,6 +54,7 @@ import org.agmas.noellesroles.recaller.RecallerPlayerComponent;
 import org.agmas.noellesroles.voodoo.VoodooPlayerComponent;
 import org.agmas.noellesroles.vulture.VulturePlayerComponent;
 import org.agmas.noellesroles.jester.JesterPlayerComponent;
+import org.agmas.noellesroles.pathogen.InfectedPlayerComponent;
 
 import java.awt.*;
 import java.lang.reflect.Constructor;
@@ -83,6 +84,7 @@ public class Noellesroles implements ModInitializer {
     public static Identifier TOXICOLOGIST_ID = Identifier.of(MOD_ID, "toxicologist");
     public static Identifier JESTER_ID = Identifier.of(MOD_ID, "jester");
     public static Identifier CORRUPT_COP_ID = Identifier.of(MOD_ID, "corrupt_cop");
+    public static Identifier PATHOGEN_ID = Identifier.of(MOD_ID, "pathogen");
 
     public static Role SWAPPER = TMMRoles.registerRole(new Role(SWAPPER_ID, new Color(57, 4, 170).getRGB(),false,true, Role.MoodType.FAKE,Integer.MAX_VALUE,true));
     public static Role PHANTOM =TMMRoles.registerRole(new Role(PHANTOM_ID, new Color(80, 5, 5, 192).getRGB(),false,true, Role.MoodType.FAKE,Integer.MAX_VALUE,true));
@@ -108,6 +110,8 @@ public class Noellesroles implements ModInitializer {
     public static Role VULTURE =TMMRoles.registerRole(new Role(VULTURE_ID, new Color(181, 103, 0).getRGB(),false,false,Role.MoodType.FAKE,GameConstants.getInTicks(0, 20),true));
     // 黑警角色 - 中立阵营，杀光所有人获胜，阻止其他阵营获胜
     public static Role CORRUPT_COP = TMMRoles.registerRole(new Role(CORRUPT_COP_ID, new Color(25, 50, 100).getRGB(), false, false, Role.MoodType.FAKE, TMMRoles.CIVILIAN.getMaxSprintTime(), true));
+    // 病原体角色 - 中立阵营，感染所有存活玩家获胜
+    public static Role PATHOGEN = TMMRoles.registerRole(new Role(PATHOGEN_ID, 0x7FFF00, false, false, Role.MoodType.FAKE, TMMRoles.CIVILIAN.getMaxSprintTime(), true));
 
     public static final CustomPayload.Id<MorphC2SPacket> MORPH_PACKET = MorphC2SPacket.ID;
     public static final CustomPayload.Id<SwapperC2SPacket> SWAP_PACKET = SwapperC2SPacket.ID;
@@ -234,6 +238,9 @@ public class Noellesroles implements ModInitializer {
                 player.giveItemStack(TMMItems.REVOLVER.getDefaultStack());
                 player.giveItemStack(TMMItems.LOCKPICK.getDefaultStack());
             }
+            if (role.equals(PATHOGEN)) {
+                player.giveItemStack(TMMItems.LOCKPICK.getDefaultStack());
+            }
         });
         ResetPlayer.EVENT.register(player -> {
             BartenderPlayerComponent.KEY.get(player).reset();
@@ -243,6 +250,7 @@ public class Noellesroles implements ModInitializer {
             VulturePlayerComponent.KEY.get(player).reset();
             JesterPlayerComponent.KEY.get(player).reset();
             CorruptCopPlayerComponent.KEY.get(player).reset();
+            InfectedPlayerComponent.KEY.get(player).reset();
         });
 
         // Bartender and Recaller get +50 coins when completing tasks
@@ -307,6 +315,36 @@ public class Noellesroles implements ModInitializer {
             GameWorldComponent gameComponent = GameWorldComponent.KEY.get(shooter.getWorld());
             if (gameComponent.isRole(shooter, CORRUPT_COP)) {
                 return ShouldPunishGunShooter.PunishResult.cancel();
+            }
+            return null;
+        });
+
+        // Pathogen win condition - when all living players (except pathogen) are infected
+        CheckWinCondition.EVENT.register((world, gameComponent, currentStatus) -> {
+            for (UUID uuid : gameComponent.getAllWithRole(PATHOGEN)) {
+                PlayerEntity pathogen = world.getPlayerByUuid(uuid);
+                if (pathogen != null && !GameFunctions.isPlayerEliminated((ServerPlayerEntity) pathogen)) {
+                    // Check if all living players (except pathogen) are infected
+                    boolean allInfected = true;
+                    for (UUID playerUuid : gameComponent.getAllPlayers()) {
+                        // 跳过病原体自己
+                        if (playerUuid.equals(uuid)) continue;
+
+                        PlayerEntity player = world.getPlayerByUuid(playerUuid);
+                        if (player == null) continue;
+                        if (GameFunctions.isPlayerEliminated((ServerPlayerEntity) player)) continue;
+
+                        InfectedPlayerComponent infected = InfectedPlayerComponent.KEY.get(player);
+                        if (!infected.isInfected()) {
+                            allInfected = false;
+                            break;
+                        }
+                    }
+
+                    if (allInfected && GameFunctions.isPlayerAliveAndSurvival(pathogen)) {
+                        return CheckWinCondition.WinResult.neutralWin((ServerPlayerEntity) pathogen);
+                    }
+                }
             }
             return null;
         });
@@ -452,6 +490,53 @@ public class Noellesroles implements ModInitializer {
             if (gameWorldComponent.isRole(context.player(), PHANTOM) && abilityPlayerComponent.cooldown <= 0 && GameFunctions.isPlayerAliveAndSurvival(context.player())) {
                 context.player().addStatusEffect(new StatusEffectInstance(StatusEffects.INVISIBILITY, 30 * 20,0,true,false,true));
                 abilityPlayerComponent.cooldown = GameConstants.getInTicks(1, 30);
+            }
+            // Pathogen infection ability
+            if (gameWorldComponent.isRole(context.player(), PATHOGEN) && abilityPlayerComponent.cooldown <= 0 && GameFunctions.isPlayerAliveAndSurvival(context.player())) {
+                // Find nearest uninfected player within 3 blocks (with line of sight)
+                PlayerEntity nearestTarget = null;
+                double nearestDistance = 9.0; // 3^2 = 9
+
+                for (UUID playerUuid : gameWorldComponent.getAllPlayers()) {
+                    PlayerEntity player = context.player().getWorld().getPlayerByUuid(playerUuid);
+                    if (player == null || player.equals(context.player())) continue;
+                    if (!GameFunctions.isPlayerAliveAndSurvival(player)) continue;
+
+                    InfectedPlayerComponent infected = InfectedPlayerComponent.KEY.get(player);
+                    if (infected.isInfected()) continue;
+
+                    double distance = context.player().squaredDistanceTo(player);
+                    if (distance < nearestDistance) {
+                        // 检查视线（不能隔墙感染）
+                        if (context.player().canSee(player)) {
+                            nearestDistance = distance;
+                            nearestTarget = player;
+                        }
+                    }
+                }
+
+                // Infect the nearest target
+                if (nearestTarget != null) {
+                    InfectedPlayerComponent targetInfected = InfectedPlayerComponent.KEY.get(nearestTarget);
+                    targetInfected.setInfected(true, context.player().getUuid());
+
+                    // Set 15 second cooldown
+                    abilityPlayerComponent.cooldown = GameConstants.getInTicks(0, 15);
+                    abilityPlayerComponent.sync();
+
+                    // Play coughing sound centered on the infected target (nearby players can hear)
+                    if (context.player().getWorld() instanceof ServerWorld serverWorld) {
+                        Vec3d pos = nearestTarget.getPos();
+                        serverWorld.playSound(
+                            null,
+                            nearestTarget.getBlockPos(),
+                            SoundEvents.ENTITY_PANDA_SNEEZE,
+                            SoundCategory.PLAYERS,
+                            2.0F,
+                            0.8F
+                        );
+                    }
+                }
             }
         });
     }

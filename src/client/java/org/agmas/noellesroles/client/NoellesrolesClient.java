@@ -17,13 +17,11 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.RaycastContext;
 import org.agmas.noellesroles.Noellesroles;
 import org.agmas.noellesroles.bartender.BartenderPlayerComponent;
 import org.agmas.noellesroles.packet.AbilityC2SPacket;
 import org.agmas.noellesroles.packet.VultureEatC2SPacket;
+import org.agmas.noellesroles.pathogen.InfectedPlayerComponent;
 import org.lwjgl.glfw.GLFW;
 
 import java.awt.*;
@@ -31,28 +29,12 @@ import java.util.*;
 import java.util.List;
 
 public class NoellesrolesClient implements ClientModInitializer {
-
-
     public static int insanityTime = 0;
     public static KeyBinding abilityBind;
-    public static PlayerEntity target;
     public static PlayerBodyEntity targetBody;
+    public static PlayerEntity pathogenNearestTarget;
 
     public static Map<UUID, UUID> SHUFFLED_PLAYER_ENTRIES_CACHE = Maps.newHashMap();
-
-    // 检查两个玩家之间是否有视线
-    private static boolean hasLineOfSight(PlayerEntity viewer, PlayerEntity target) {
-        Vec3d viewerEyes = viewer.getEyePos();
-        Vec3d targetEyes = target.getEyePos();
-        RaycastContext context = new RaycastContext(
-            viewerEyes, targetEyes,
-            RaycastContext.ShapeType.COLLIDER,
-            RaycastContext.FluidHandling.NONE,
-            viewer
-        );
-        HitResult result = viewer.getWorld().raycast(context);
-        return result.getType() == HitResult.Type.MISS;
-    }
 
 
     @Override
@@ -95,7 +77,7 @@ public class NoellesrolesClient implements ClientModInitializer {
 
             // BARTENDER: 看到喝酒者发绿光，有护甲者发蓝光（需要视线）
             if (gameWorldComponent.isRole(localPlayer, Noellesroles.BARTENDER)) {
-                if (hasLineOfSight(localPlayer, player)) {
+                if (localPlayer.canSee(player)) {
                     BartenderPlayerComponent comp = BartenderPlayerComponent.KEY.get(player);
                     if (comp.glowTicks > 0) return GetInstinctHighlight.HighlightResult.always(Color.GREEN.getRGB());
                     if (comp.armor > 0) return  GetInstinctHighlight.HighlightResult.always(Color.BLUE.getRGB());
@@ -104,7 +86,7 @@ public class NoellesrolesClient implements ClientModInitializer {
 
             // TOXICOLOGIST: 看到中毒者发红光（需要视线）
             if (gameWorldComponent.isRole(localPlayer, Noellesroles.TOXICOLOGIST)) {
-                if (hasLineOfSight(localPlayer, player)) {
+                if (localPlayer.canSee(player)) {
                     PlayerPoisonComponent comp = PlayerPoisonComponent.KEY.get(player);
                     if (comp.poisonTicks > 0) return  GetInstinctHighlight.HighlightResult.always(Color.RED.getRGB());
                 }
@@ -113,7 +95,16 @@ public class NoellesrolesClient implements ClientModInitializer {
             if(gameWorldComponent.isRole(localPlayer, Noellesroles.CORRUPT_COP)){
                 return GetInstinctHighlight.HighlightResult.withKeybind(Noellesroles.CORRUPT_COP.color());
             }
-            
+
+            // PATHOGEN: 已感染绿色，最近未感染目标显示按键提示（需要视线）
+            if (gameWorldComponent.isRole(localPlayer, Noellesroles.PATHOGEN)) {
+                InfectedPlayerComponent infected = InfectedPlayerComponent.KEY.get(player);
+                if (infected.isInfected()) {
+                    // Already infected - green
+                    return GetInstinctHighlight.HighlightResult.always(Noellesroles.PATHOGEN.color());
+                }
+                return GetInstinctHighlight.HighlightResult.withKeybind(Color.WHITE.getRGB());
+            }
             return null;
         });
         // 注册 GetInstinctHighlight 监听器：秃鹫的本能高亮逻辑
@@ -142,6 +133,38 @@ public class NoellesrolesClient implements ClientModInitializer {
                     i++;
                 }
             }
+
+            // 更新病原体最近目标
+            if (MinecraftClient.getInstance().player != null) {
+                GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(MinecraftClient.getInstance().player.getWorld());
+                if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.PATHOGEN)) {
+                    pathogenNearestTarget = null;
+                    double nearestDistance = 9.0; // 3^2 = 9
+                    PlayerEntity localPlayer = MinecraftClient.getInstance().player;
+
+                    for (PlayerEntity player : localPlayer.getWorld().getPlayers()) {
+                        if (player.equals(localPlayer)) continue;
+                        if (player.isSpectator() || player.isCreative()) continue;
+                        // 检查玩家是否有角色（在游戏中）
+                        if (!gameWorldComponent.hasAnyRole(player)) continue;
+
+                        InfectedPlayerComponent infected = InfectedPlayerComponent.KEY.get(player);
+                        if (infected.isInfected()) continue;
+
+                        double distance = localPlayer.squaredDistanceTo(player);
+                        if (distance < nearestDistance) {
+                            // 检查视线（不能隔墙感染）
+                            if (localPlayer.canSee(player)) {
+                                nearestDistance = distance;
+                                pathogenNearestTarget = player;
+                            }
+                        }
+                    }
+                } else {
+                    pathogenNearestTarget = null;
+                }
+            }
+
             if (abilityBind.wasPressed()) {
                 client.execute(() -> {
                     if (MinecraftClient.getInstance().player == null) return;

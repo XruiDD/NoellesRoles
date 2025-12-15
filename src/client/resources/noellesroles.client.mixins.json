@@ -12,6 +12,7 @@
     "morphling.MorphlingRendererMixin",
     "morphling.MorphlingRoleNameRendererMixin",
     "morphling.MorphlingScreenMixin",
+    "pathogen.PathogenHudMixin",
     "phantom.PhantomHudMixin",
     "recaller.RecallerHudMixin",
     "swapper.SwapperScreenMixin",
