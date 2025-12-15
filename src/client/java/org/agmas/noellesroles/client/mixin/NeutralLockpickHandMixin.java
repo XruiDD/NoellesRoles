@@ -13,9 +13,9 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
 /**
- * 中立角色（小丑、秃鹫）开锁器隐藏 Mixin
+ * 中立角色（小丑、秃鹫、黑警）开锁器隐藏 Mixin
  * <p>
- * 当小丑或秃鹫拿着开锁器时，其他玩家无法看到他们手中的物品。
+ * 当小丑、秃鹫或黑警拿着开锁器时，其他玩家无法看到他们手中的物品。
  */
 @Mixin(HeldItemFeatureRenderer.class)
 public class NeutralLockpickHandMixin {
@@ -24,7 +24,9 @@ public class NeutralLockpickHandMixin {
         ItemStack ret = original.call(instance);
         if (ret.isOf(TMMItems.LOCKPICK) && instance instanceof PlayerEntity player) {
             GameWorldComponent gameWorld = GameWorldComponent.KEY.get(player.getWorld());
-            if (gameWorld.isRole(player, Noellesroles.JESTER) || gameWorld.isRole(player, Noellesroles.VULTURE)) {
+            if (gameWorld.isRole(player, Noellesroles.JESTER)
+                    || gameWorld.isRole(player, Noellesroles.VULTURE)
+                    || gameWorld.isRole(player, Noellesroles.CORRUPT_COP)) {
                 return ItemStack.EMPTY;
             }
         }

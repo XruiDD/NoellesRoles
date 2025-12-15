@@ -15,6 +15,7 @@ import dev.doctor4t.trainmurdermystery.event.PlayerPoisoned;
 import dev.doctor4t.trainmurdermystery.event.ResetPlayer;
 import dev.doctor4t.trainmurdermystery.event.RoleAssigned;
 import dev.doctor4t.trainmurdermystery.event.ShouldDropOnDeath;
+import dev.doctor4t.trainmurdermystery.event.ShouldPunishGunShooter;
 import dev.doctor4t.trainmurdermystery.event.TaskComplete;
 import dev.doctor4t.trainmurdermystery.game.GameConstants;
 import dev.doctor4t.trainmurdermystery.game.GameFunctions;
@@ -43,6 +44,7 @@ import net.minecraft.util.math.Vec3d;
 import org.agmas.noellesroles.bartender.BartenderPlayerComponent;
 import org.agmas.noellesroles.bartender.BartenderShopHandler;
 import org.agmas.noellesroles.config.NoellesRolesConfig;
+import org.agmas.noellesroles.corruptcop.CorruptCopPlayerComponent;
 import org.agmas.noellesroles.morphling.MorphlingPlayerComponent;
 import org.agmas.noellesroles.packet.AbilityC2SPacket;
 import org.agmas.noellesroles.packet.MorphC2SPacket;
@@ -80,6 +82,7 @@ public class Noellesroles implements ModInitializer {
     public static Identifier APATHETIC_ID = Identifier.of(MOD_ID, "apathetic");
     public static Identifier TOXICOLOGIST_ID = Identifier.of(MOD_ID, "toxicologist");
     public static Identifier JESTER_ID = Identifier.of(MOD_ID, "jester");
+    public static Identifier CORRUPT_COP_ID = Identifier.of(MOD_ID, "corrupt_cop");
 
     public static Role SWAPPER = TMMRoles.registerRole(new Role(SWAPPER_ID, new Color(57, 4, 170).getRGB(),false,true, Role.MoodType.FAKE,Integer.MAX_VALUE,true));
     public static Role PHANTOM =TMMRoles.registerRole(new Role(PHANTOM_ID, new Color(80, 5, 5, 192).getRGB(),false,true, Role.MoodType.FAKE,Integer.MAX_VALUE,true));
@@ -103,6 +106,8 @@ public class Noellesroles implements ModInitializer {
     // 小丑角色 - 中立阵营，被无辜者杀死时获胜
     public static Role JESTER = TMMRoles.registerRole(new Role(JESTER_ID, 0xF8C8DC, false, false, Role.MoodType.FAKE, TMMRoles.CIVILIAN.getMaxSprintTime(), false));
     public static Role VULTURE =TMMRoles.registerRole(new Role(VULTURE_ID, new Color(181, 103, 0).getRGB(),false,false,Role.MoodType.FAKE,GameConstants.getInTicks(0, 20),true));
+    // 黑警角色 - 中立阵营，杀光所有人获胜，阻止其他阵营获胜
+    public static Role CORRUPT_COP = TMMRoles.registerRole(new Role(CORRUPT_COP_ID, new Color(25, 50, 100).getRGB(), false, false, Role.MoodType.FAKE, TMMRoles.CIVILIAN.getMaxSprintTime(), true));
 
     public static final CustomPayload.Id<MorphC2SPacket> MORPH_PACKET = MorphC2SPacket.ID;
     public static final CustomPayload.Id<SwapperC2SPacket> SWAP_PACKET = SwapperC2SPacket.ID;
@@ -223,6 +228,12 @@ public class Noellesroles implements ModInitializer {
                 jesterComponent.reset();
                 player.giveItemStack(TMMItems.LOCKPICK.getDefaultStack());
             }
+            if (role.equals(CORRUPT_COP)) {
+                CorruptCopPlayerComponent corruptCopComponent = CorruptCopPlayerComponent.KEY.get(player);
+                corruptCopComponent.reset();
+                player.giveItemStack(TMMItems.REVOLVER.getDefaultStack());
+                player.giveItemStack(TMMItems.LOCKPICK.getDefaultStack());
+            }
         });
         ResetPlayer.EVENT.register(player -> {
             BartenderPlayerComponent.KEY.get(player).reset();
@@ -231,6 +242,7 @@ public class Noellesroles implements ModInitializer {
             RecallerPlayerComponent.KEY.get(player).reset();
             VulturePlayerComponent.KEY.get(player).reset();
             JesterPlayerComponent.KEY.get(player).reset();
+            CorruptCopPlayerComponent.KEY.get(player).reset();
         });
 
         // Bartender and Recaller get +50 coins when completing tasks
@@ -288,6 +300,58 @@ public class Noellesroles implements ModInitializer {
                     jesterComponent.sync();
                 }
             }
+        });
+
+        // Corrupt Cop - cancel gun punishment for killing anyone
+        ShouldPunishGunShooter.EVENT.register((shooter, victim) -> {
+            GameWorldComponent gameComponent = GameWorldComponent.KEY.get(shooter.getWorld());
+            if (gameComponent.isRole(shooter, CORRUPT_COP)) {
+                return ShouldPunishGunShooter.PunishResult.cancel();
+            }
+            return null;
+        });
+
+        // Corrupt Cop win condition - block other factions and check for victory
+        CheckWinCondition.EVENT.register((world, gameComponent, currentStatus) -> {
+            // Find living corrupt cop
+            ServerPlayerEntity livingCorruptCop = null;
+            for (UUID uuid : gameComponent.getAllWithRole(CORRUPT_COP)) {
+                ServerPlayerEntity player = (ServerPlayerEntity) world.getPlayerByUuid(uuid);
+                if (player != null && !GameFunctions.isPlayerEliminated(player)) {
+                    livingCorruptCop = player;
+                    break;
+                }
+            }
+
+            // If no corrupt cop alive, don't interfere
+            if (livingCorruptCop == null) {
+                return null;
+            }
+
+            // Count all living players (excluding spectators/creative)
+            int aliveCount = 0;
+            boolean corruptCopIsAlive = false;
+            for (ServerPlayerEntity player : world.getPlayers()) {
+                if (gameComponent.hasAnyRole(player) && !GameFunctions.isPlayerEliminated(player)) {
+                    aliveCount++;
+                    if (player.getUuid().equals(livingCorruptCop.getUuid())) {
+                        corruptCopIsAlive = true;
+                    }
+                }
+            }
+
+            // If corrupt cop is the only one alive, they win
+            if (aliveCount == 1 && corruptCopIsAlive) {
+                return CheckWinCondition.WinResult.neutralWin(livingCorruptCop);
+            }
+
+            // Block killers and passengers from winning while corrupt cop is alive
+            if (currentStatus == GameFunctions.WinStatus.KILLERS
+                    || currentStatus == GameFunctions.WinStatus.PASSENGERS) {
+                return CheckWinCondition.WinResult.block();
+            }
+
+            return null;
         });
 
     }

@@ -83,5 +83,10 @@
   "announcement.goals.jester": "被无辜者杀死即可获胜！",
   "announcement.role.jester": "小丑",
   "announcement.win.jester": "小丑胜利！",
-  "game.win.jester": "你听见了吗？那是为你那愚蠢的正义响起的嘲笑声。"
+  "game.win.jester": "你听见了吗？那是为你那愚蠢的正义响起的嘲笑声。",
+
+  "announcement.goals.corrupt_cop": "杀光所有人即可获胜！你存活时，杀手和乘客都无法获胜。",
+  "announcement.role.corrupt_cop": "黑警",
+  "announcement.win.corrupt_cop": "黑警胜利！",
+  "game.win.corrupt_cop": "正义已经得到伸张……以我的方式。"
 }

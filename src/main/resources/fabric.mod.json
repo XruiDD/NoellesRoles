@@ -37,7 +37,8 @@
       "noellesroles:body_death_reason",
       "noellesroles:recaller",
       "noellesroles:vulture",
-      "noellesroles:jester"
+      "noellesroles:jester",
+      "noellesroles:corrupt_cop"
     ]
   },
   "mixins": [

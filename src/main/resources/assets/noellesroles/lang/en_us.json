@@ -68,5 +68,10 @@
 
   "announcement.goals.jester": "Get killed by an innocent to win!",
   "announcement.role.jester": "Jester",
-  "announcement.win.jester": "Jester Wins!"
+  "announcement.win.jester": "Jester Wins!",
+
+  "announcement.goals.corrupt_cop": "Kill everyone to win! While you're alive, neither killers nor passengers can win.",
+  "announcement.role.corrupt_cop": "Corrupt Cop",
+  "announcement.win.corrupt_cop": "Corrupt Cop Wins!",
+  "game.win.corrupt_cop": "Justice has been served... my way."
 }

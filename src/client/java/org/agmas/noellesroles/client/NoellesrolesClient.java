@@ -109,10 +109,14 @@ public class NoellesrolesClient implements ClientModInitializer {
                     if (comp.poisonTicks > 0) return  GetInstinctHighlight.HighlightResult.always(Color.RED.getRGB());
                 }
             }
+
+            if(gameWorldComponent.isRole(localPlayer, Noellesroles.CORRUPT_COP)){
+                return GetInstinctHighlight.HighlightResult.withKeybind(Noellesroles.CORRUPT_COP.color());
+            }
             
             return null;
         });
-        // 注册 GetInstinctHighlight 监听器：各角色的本能高亮逻辑
+        // 注册 GetInstinctHighlight 监听器：秃鹫的本能高亮逻辑
         GetInstinctHighlight.EVENT.register(entity -> {
             if (!(entity instanceof PlayerBodyEntity)) return null;
             if (MinecraftClient.getInstance().player == null) return null;
