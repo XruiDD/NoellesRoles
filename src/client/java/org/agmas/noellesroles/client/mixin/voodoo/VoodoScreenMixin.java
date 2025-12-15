@@ -63,7 +63,9 @@ public abstract class VoodoScreenMixin extends LimitedHandledScreen<PlayerScreen
             int y = shouldBeY + 80;
 
             for(int i = 0; i < entries.size(); ++i) {
-                VoodooPlayerWidget child = new VoodooPlayerWidget(((LimitedInventoryScreen)(Object)this), x + apart * i, y, entries.get(i), MinecraftClient.getInstance().player.networkHandler.getPlayerListEntry(entries.get(i)), player.getWorld(), i);
+                PlayerListEntry playerEntry = MinecraftClient.getInstance().player.networkHandler.getPlayerListEntry(entries.get(i));
+                if (playerEntry == null) continue;
+                VoodooPlayerWidget child = new VoodooPlayerWidget(((LimitedInventoryScreen)(Object)this), x + apart * i, y, entries.get(i), playerEntry, player.getWorld(), i);
                 addDrawableChild(child);
             }
         }
