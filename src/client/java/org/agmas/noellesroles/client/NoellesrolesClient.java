@@ -109,6 +109,19 @@ public class NoellesrolesClient implements ClientModInitializer {
                     if (comp.poisonTicks > 0) return  GetInstinctHighlight.HighlightResult.always(Color.RED.getRGB());
                 }
             }
+            
+            return null;
+        });
+        // 注册 GetInstinctHighlight 监听器：各角色的本能高亮逻辑
+        GetInstinctHighlight.EVENT.register(entity -> {
+            if (!(entity instanceof PlayerBodyEntity)) return null;
+            if (MinecraftClient.getInstance().player == null) return null;
+            GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(
+                    MinecraftClient.getInstance().player.getWorld()
+            );
+            PlayerEntity localPlayer = MinecraftClient.getInstance().player;
+            if (gameWorldComponent.isRole(localPlayer, Noellesroles.VULTURE))
+                return GetInstinctHighlight.HighlightResult.withKeybind(Noellesroles.VULTURE.color());
             return null;
         });
 
