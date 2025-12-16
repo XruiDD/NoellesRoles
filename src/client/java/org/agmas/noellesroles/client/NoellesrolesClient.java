@@ -9,6 +9,7 @@ import dev.doctor4t.trainmurdermystery.entity.PlayerBodyEntity;
 import dev.doctor4t.trainmurdermystery.event.CanSeeBodyRole;
 import dev.doctor4t.trainmurdermystery.event.CanSeeMoney;
 import dev.doctor4t.trainmurdermystery.event.GetInstinctHighlight;
+import dev.doctor4t.trainmurdermystery.game.GameFunctions;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
@@ -70,9 +71,11 @@ public class NoellesrolesClient implements ClientModInitializer {
             if (!(entity instanceof PlayerEntity player) || player.isSpectator()) return null;
             if (MinecraftClient.getInstance().player == null) return null;
 
+
             GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(
                 MinecraftClient.getInstance().player.getWorld()
             );
+            if (!GameFunctions.isPlayerAliveAndSurvival(MinecraftClient.getInstance().player)) return null;
             PlayerEntity localPlayer = MinecraftClient.getInstance().player;
 
             // BARTENDER: 看到喝酒者发绿光，有护甲者发蓝光（需要视线）
@@ -90,10 +93,6 @@ public class NoellesrolesClient implements ClientModInitializer {
                     PlayerPoisonComponent comp = PlayerPoisonComponent.KEY.get(player);
                     if (comp.poisonTicks > 0) return  GetInstinctHighlight.HighlightResult.always(Color.RED.getRGB());
                 }
-            }
-
-            if(gameWorldComponent.isRole(localPlayer, Noellesroles.CORRUPT_COP)){
-                return GetInstinctHighlight.HighlightResult.withKeybind(Noellesroles.CORRUPT_COP.color());
             }
 
             // PATHOGEN: 已感染绿色，最近未感染目标显示按键提示（需要视线）

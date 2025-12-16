@@ -22,7 +22,7 @@ public class NeutralLockpickHandMixin {
     @WrapOperation(method = "render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;ILnet/minecraft/entity/LivingEntity;FFFFFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;getMainHandStack()Lnet/minecraft/item/ItemStack;"))
     private ItemStack hideNeutralLockpickMain(LivingEntity instance, Operation<ItemStack> original) {
         ItemStack ret = original.call(instance);
-        if (ret.isOf(TMMItems.LOCKPICK) && instance instanceof PlayerEntity player) {
+        if ((ret.isOf(TMMItems.CROWBAR))&& instance instanceof PlayerEntity player) {
             GameWorldComponent gameWorld = GameWorldComponent.KEY.get(player.getWorld());
             if (gameWorld.isRole(player, Noellesroles.JESTER)
                     || gameWorld.isRole(player, Noellesroles.VULTURE)

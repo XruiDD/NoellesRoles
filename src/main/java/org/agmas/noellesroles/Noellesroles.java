@@ -107,11 +107,11 @@ public class Noellesroles implements ModInitializer {
 
     // 小丑角色 - 中立阵营，被无辜者杀死时获胜
     public static Role JESTER = TMMRoles.registerRole(new Role(JESTER_ID, 0xF8C8DC, false, false, Role.MoodType.FAKE, TMMRoles.CIVILIAN.getMaxSprintTime(), false));
-    public static Role VULTURE =TMMRoles.registerRole(new Role(VULTURE_ID, new Color(181, 103, 0).getRGB(),false,false,Role.MoodType.FAKE,GameConstants.getInTicks(0, 20),true));
+    public static Role VULTURE =TMMRoles.registerRole(new Role(VULTURE_ID, new Color(181, 103, 0).getRGB(),false,false,Role.MoodType.FAKE,GameConstants.getInTicks(0, 20),false));
     // 黑警角色 - 中立阵营，杀光所有人获胜，阻止其他阵营获胜
-    public static Role CORRUPT_COP = TMMRoles.registerRole(new Role(CORRUPT_COP_ID, new Color(25, 50, 100).getRGB(), false, false, Role.MoodType.FAKE, TMMRoles.CIVILIAN.getMaxSprintTime(), true));
+    public static Role CORRUPT_COP = TMMRoles.registerRole(new Role(CORRUPT_COP_ID, new Color(25, 50, 100).getRGB(), false, false, Role.MoodType.FAKE, TMMRoles.CIVILIAN.getMaxSprintTime(), false));
     // 病原体角色 - 中立阵营，感染所有存活玩家获胜
-    public static Role PATHOGEN = TMMRoles.registerRole(new Role(PATHOGEN_ID, 0x7FFF00, false, false, Role.MoodType.FAKE, TMMRoles.CIVILIAN.getMaxSprintTime(), true));
+    public static Role PATHOGEN = TMMRoles.registerRole(new Role(PATHOGEN_ID, 0x7FFF00, false, false, Role.MoodType.FAKE, TMMRoles.CIVILIAN.getMaxSprintTime(), false));
 
     public static final CustomPayload.Id<MorphC2SPacket> MORPH_PACKET = MorphC2SPacket.ID;
     public static final CustomPayload.Id<SwapperC2SPacket> SWAP_PACKET = SwapperC2SPacket.ID;
@@ -204,7 +204,7 @@ public class Noellesroles implements ModInitializer {
                 VulturePlayerComponent vulturePlayerComponent = VulturePlayerComponent.KEY.get(player);
                 vulturePlayerComponent.reset();
                 vulturePlayerComponent.setBodiesRequired(gameWorldComponent.getAllPlayers().size() / 2);
-                player.giveItemStack(TMMItems.LOCKPICK.getDefaultStack());
+                player.giveItemStack(TMMItems.CROWBAR.getDefaultStack());
             }
             if (role.equals(CONDUCTOR)) {
                 player.giveItemStack(ModItems.MASTER_KEY.getDefaultStack());
@@ -230,16 +230,16 @@ public class Noellesroles implements ModInitializer {
             if (role.equals(JESTER)) {
                 JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(player);
                 jesterComponent.reset();
-                player.giveItemStack(TMMItems.LOCKPICK.getDefaultStack());
+                player.giveItemStack(TMMItems.CROWBAR.getDefaultStack());
             }
             if (role.equals(CORRUPT_COP)) {
                 CorruptCopPlayerComponent corruptCopComponent = CorruptCopPlayerComponent.KEY.get(player);
                 corruptCopComponent.reset();
                 player.giveItemStack(TMMItems.REVOLVER.getDefaultStack());
-                player.giveItemStack(TMMItems.LOCKPICK.getDefaultStack());
+                player.giveItemStack(TMMItems.CROWBAR.getDefaultStack());
             }
             if (role.equals(PATHOGEN)) {
-                player.giveItemStack(TMMItems.LOCKPICK.getDefaultStack());
+                player.giveItemStack(TMMItems.CROWBAR.getDefaultStack());
             }
         });
         ResetPlayer.EVENT.register(player -> {
