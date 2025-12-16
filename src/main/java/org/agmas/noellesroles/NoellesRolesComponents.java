@@ -6,6 +6,7 @@ import org.agmas.noellesroles.bartender.BartenderPlayerComponent;
 import org.agmas.noellesroles.corruptcop.CorruptCopPlayerComponent;
 import org.agmas.noellesroles.jester.JesterPlayerComponent;
 import org.agmas.noellesroles.pathogen.InfectedPlayerComponent;
+import org.agmas.noellesroles.bomber.BomberPlayerComponent;
 import org.agmas.noellesroles.recaller.RecallerPlayerComponent;
 import org.agmas.noellesroles.voodoo.VoodooPlayerComponent;
 import org.agmas.noellesroles.morphling.MorphlingPlayerComponent;
@@ -31,6 +32,7 @@ public class NoellesRolesComponents implements EntityComponentInitializer, World
         registry.beginRegistration(PlayerEntity.class, JesterPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(JesterPlayerComponent::new);
         registry.beginRegistration(PlayerEntity.class, CorruptCopPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(CorruptCopPlayerComponent::new);
         registry.beginRegistration(PlayerEntity.class, InfectedPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(InfectedPlayerComponent::new);
+        registry.beginRegistration(PlayerEntity.class, BomberPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(BomberPlayerComponent::new);
     }
 
     @Override

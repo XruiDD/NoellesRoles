@@ -73,5 +73,20 @@
   "announcement.goals.corrupt_cop": "Kill everyone to win! While you're alive, neither killers nor passengers can win.",
   "announcement.role.corrupt_cop": "Corrupt Cop",
   "announcement.win.corrupt_cop": "Corrupt Cop Wins!",
-  "game.win.corrupt_cop": "Justice has been served... my way."
+  "game.win.corrupt_cop": "Justice has been served... my way.",
+
+  "announcement.goals.bomber": "Plant bombs on players! You cannot buy knife or gun.",
+  "announcement.role.bomber": "Bomber",
+  "announcement.win.bomber": "Killers Win!",
+
+  "item.noellesroles.timed_bomb": "Timed Bomb",
+  "item.noellesroles.timed_bomb.tooltip": "Right click on a player to plant\nAfter 10s, bomb starts beeping\nCan be passed to other players (3s cooldown)\nExplodes after 15s of beeping",
+
+  "death_reason.noellesroles.bomb": "a bomb explosion.",
+
+  "tip.bomber.beeping": "BOMB! Pass it with %s! (%ss left)",
+  "tip.bomber.cooldown": "Transfer cooldown: %ss",
+
+  "subtitles.noellesroles.item.bomb.beep": "Bomb beeping",
+  "subtitles.noellesroles.item.bomb.explode": "Bomb explodes"
 }

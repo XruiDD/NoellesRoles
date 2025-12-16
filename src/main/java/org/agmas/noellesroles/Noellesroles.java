@@ -55,6 +55,8 @@ import org.agmas.noellesroles.voodoo.VoodooPlayerComponent;
 import org.agmas.noellesroles.vulture.VulturePlayerComponent;
 import org.agmas.noellesroles.jester.JesterPlayerComponent;
 import org.agmas.noellesroles.pathogen.InfectedPlayerComponent;
+import org.agmas.noellesroles.bomber.BomberPlayerComponent;
+import org.agmas.noellesroles.bomber.BomberShopHandler;
 
 import java.awt.*;
 import java.lang.reflect.Constructor;
@@ -85,11 +87,16 @@ public class Noellesroles implements ModInitializer {
     public static Identifier JESTER_ID = Identifier.of(MOD_ID, "jester");
     public static Identifier CORRUPT_COP_ID = Identifier.of(MOD_ID, "corrupt_cop");
     public static Identifier PATHOGEN_ID = Identifier.of(MOD_ID, "pathogen");
+    public static Identifier BOMBER_ID = Identifier.of(MOD_ID, "bomber");
+    // 炸弹死亡原因
+    public static Identifier DEATH_REASON_BOMB = Identifier.of(MOD_ID, "bomb");
 
     public static Role SWAPPER = TMMRoles.registerRole(new Role(SWAPPER_ID, new Color(57, 4, 170).getRGB(),false,true, Role.MoodType.FAKE,Integer.MAX_VALUE,true));
     public static Role PHANTOM =TMMRoles.registerRole(new Role(PHANTOM_ID, new Color(80, 5, 5, 192).getRGB(),false,true, Role.MoodType.FAKE,Integer.MAX_VALUE,true));
     public static Role MORPHLING =TMMRoles.registerRole(new Role(MORPHLING_ID, new Color(170, 2, 61).getRGB(),false,true, Role.MoodType.FAKE,Integer.MAX_VALUE,true));
     public static Role THE_INSANE_DAMNED_PARANOID_KILLER_OF_DOOM_DEATH_DESTRUCTION_AND_WAFFLES = TMMRoles.registerRole(new Role(THE_INSANE_DAMNED_PARANOID_KILLER_OF_DOOM_DEATH_DESTRUCTION_AND_WAFFLES_ID, new Color(255, 0, 0, 192).getRGB(),false,true, Role.MoodType.FAKE,Integer.MAX_VALUE,true));
+    // 爆破手角色 - 杀手阵营，无法购买刀和枪，只能用炸弹
+    public static Role BOMBER = TMMRoles.registerRole(new Role(BOMBER_ID, new Color(50, 50, 50).getRGB(), false, true, Role.MoodType.FAKE, Integer.MAX_VALUE, true));
 
 
     public static HashMap<Role, RoleAnnouncementTexts.RoleAnnouncementText> roleRoleAnnouncementTextHashMap = new HashMap<>();
@@ -132,6 +139,7 @@ public class Noellesroles implements ModInitializer {
         VANNILA_ROLE_IDS.add(TMMRoles.KILLER.identifier());
         NoellesRolesConfig.HANDLER.load();
         ModItems.init();
+        ModSounds.init();
         PayloadTypeRegistry.playC2S().register(MorphC2SPacket.ID, MorphC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(AbilityC2SPacket.ID, AbilityC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(SwapperC2SPacket.ID, SwapperC2SPacket.CODEC);
@@ -140,6 +148,7 @@ public class Noellesroles implements ModInitializer {
         registerEvents();
 
         BartenderShopHandler.register();
+        BomberShopHandler.register();
 
         registerPackets();
         //NoellesRolesEntities.init();
@@ -251,6 +260,7 @@ public class Noellesroles implements ModInitializer {
             JesterPlayerComponent.KEY.get(player).reset();
             CorruptCopPlayerComponent.KEY.get(player).reset();
             InfectedPlayerComponent.KEY.get(player).reset();
+            BomberPlayerComponent.KEY.get(player).reset();
         });
 
         // Bartender and Recaller get +50 coins when completing tasks

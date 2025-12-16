@@ -94,5 +94,19 @@
   "announcement.role.pathogen": "病原体",
   "announcement.win.pathogen": "病原体胜利！",
   "game.win.pathogen": "感染已经扩散到了每一个角落……",
-  "tip.pathogen.infect": "按 %s 键以感染 %s"
+  "tip.pathogen.infect": "按 %s 键以感染 %s",
+
+  "announcement.goals.bomber": "在玩家身上放置炸弹！你无法购买一般的武器。",
+  "announcement.role.bomber": "爆破手",
+  "announcement.win.bomber": "杀手胜利！",
+
+  "item.noellesroles.timed_bomb": "定时炸弹",
+  "item.noellesroles.timed_bomb.tooltip": "右键点击玩家放置炸弹\n10秒后炸弹开始滴滴声\n可传递给其他玩家（3秒冷却）\n滴滴声15秒后爆炸",
+
+  "death_reason.noellesroles.bomb": "炸成碎片。",
+
+  "tip.bomber.bomb_warning": "你的身上有一个炸弹！%s秒后会爆炸！你必须将他传递给别人！",
+
+  "subtitles.noellesroles.item.bomb.beep": "炸弹滴滴声",
+  "subtitles.noellesroles.item.bomb.explode": "炸弹爆炸"
 }

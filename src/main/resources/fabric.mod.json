@@ -39,7 +39,8 @@
       "noellesroles:vulture",
       "noellesroles:jester",
       "noellesroles:corrupt_cop",
-      "noellesroles:infected"
+      "noellesroles:infected",
+      "noellesroles:bomber"
     ]
   },
   "mixins": [

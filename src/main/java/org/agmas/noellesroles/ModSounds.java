@@ -1,0 +1,20 @@
+package org.agmas.noellesroles;
+
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
+import net.minecraft.sound.SoundEvent;
+import net.minecraft.util.Identifier;
+
+public class ModSounds {
+    public static final SoundEvent BOMB_BEEP = registerSound("item.bomb.beep");
+    public static final SoundEvent BOMB_EXPLODE = registerSound("item.bomb.explode");
+
+    private static SoundEvent registerSound(String name) {
+        Identifier id = Identifier.of(Noellesroles.MOD_ID, name);
+        return Registry.register(Registries.SOUND_EVENT, id, SoundEvent.of(id));
+    }
+
+    public static void init() {
+        // 静态初始化时自动注册
+    }
+}

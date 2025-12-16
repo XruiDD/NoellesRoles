@@ -1,8 +1,7 @@
 package org.agmas.noellesroles;
 
-import dev.doctor4t.trainmurdermystery.index.TMMItems;
-import dev.doctor4t.trainmurdermystery.index.tag.TMMItemTags;
 import net.minecraft.item.Item;
+import org.agmas.noellesroles.bomber.TimedBombItem;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
@@ -23,6 +22,10 @@ public class ModItems {
     public static final Item ROLE_MINE = register(
             new Item(new Item.Settings().maxCount(1)),
             "role_mine"
+    );
+    public static final Item TIMED_BOMB = register(
+            new TimedBombItem(new Item.Settings().maxCount(1)),
+            "timed_bomb"
     );
     public static Item register(Item item, String id) {
         // Create the identifier for the item.
