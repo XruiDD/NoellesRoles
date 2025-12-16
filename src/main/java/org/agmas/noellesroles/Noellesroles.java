@@ -179,7 +179,7 @@ public class Noellesroles implements ModInitializer {
             if (deathReason == GameConstants.DeathReasons.FELL_OUT_OF_TRAIN) return null;
             GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(victim.getWorld());
             BartenderPlayerComponent bartenderPlayerComponent = BartenderPlayerComponent.KEY.get(victim);
-            if (bartenderPlayerComponent.armor > 0) {
+            if (bartenderPlayerComponent.armor > 0 && deathReason != GameConstants.DeathReasons.SHOT_INNOCENT) {
                 victim.getWorld().playSound(victim, victim.getBlockPos(), TMMSounds.ITEM_PSYCHO_ARMOUR, SoundCategory.MASTER, 5.0F, 1.0F);
                 bartenderPlayerComponent.armor--;
                 return KillPlayer.KillResult.cancel();
