@@ -9,6 +9,7 @@ import dev.doctor4t.trainmurdermystery.entity.PlayerBodyEntity;
 import dev.doctor4t.trainmurdermystery.event.CanSeeBodyRole;
 import dev.doctor4t.trainmurdermystery.event.CanSeeMoney;
 import dev.doctor4t.trainmurdermystery.event.GetInstinctHighlight;
+import dev.doctor4t.trainmurdermystery.event.ShouldShowCohort;
 import dev.doctor4t.trainmurdermystery.game.GameFunctions;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -117,6 +118,48 @@ public class NoellesrolesClient implements ClientModInitializer {
             if (gameWorldComponent.isRole(localPlayer, Noellesroles.VULTURE))
                 return GetInstinctHighlight.HighlightResult.withKeybind(Noellesroles.VULTURE.color());
             return null;
+        });
+
+        // 注册 GetInstinctHighlight 监听器：卧底角色高亮逻辑
+        // 让杀手误认为卧底是同伙（按Alt时显示红色）
+        GetInstinctHighlight.EVENT.register(entity -> {
+            if (!(entity instanceof PlayerEntity player) || player.isSpectator()) return null;
+            if (MinecraftClient.getInstance().player == null) return null;
+
+            GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(
+                    MinecraftClient.getInstance().player.getWorld()
+            );
+            PlayerEntity localPlayer = MinecraftClient.getInstance().player;
+
+            // 只有当查看者是杀手时才生效
+            if (!gameWorldComponent.canUseKillerFeatures(localPlayer)) return null;
+            if (!GameFunctions.isPlayerAliveAndSurvival(localPlayer)) return null;
+
+            // 如果目标是卧底，让杀手误以为是同伙（显示红色）
+            if (gameWorldComponent.isRole(player, Noellesroles.UNDERCOVER)) {
+                // 使用与杀手同伙相同的红色（需要按Alt键）
+                return GetInstinctHighlight.HighlightResult.withKeybind(0xFF0000, GetInstinctHighlight.HighlightResult.PRIORITY_HIGH);
+            }
+
+            return null;
+        });
+
+        // 注册 ShouldShowCohort 监听器：卧底角色cohort提示逻辑
+        // 让杀手看向卧底时显示"cohort"（同伙）提示
+        ShouldShowCohort.EVENT.register((viewer, target) -> {
+            if (viewer == null || target == null) return null;
+            GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(viewer.getWorld());
+
+            // 只有当查看者是杀手时才生效
+            if (!gameWorldComponent.canUseKillerFeatures(viewer)) return null;
+            if (!GameFunctions.isPlayerAliveAndSurvival(viewer)) return null;
+
+            // 如果目标是卧底，显示cohort提示
+            if (gameWorldComponent.isRole(target, Noellesroles.UNDERCOVER)) {
+                return ShouldShowCohort.CohortResult.show();
+            }
+
+            return null; // 不处理，使用默认逻辑
         });
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {

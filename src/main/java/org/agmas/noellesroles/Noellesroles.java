@@ -82,7 +82,7 @@ public class Noellesroles implements ModInitializer {
     public static Identifier VULTURE_ID = Identifier.of(MOD_ID, "vulture");
     public static Identifier THE_INSANE_DAMNED_PARANOID_KILLER_OF_DOOM_DEATH_DESTRUCTION_AND_WAFFLES_ID = Identifier.of(MOD_ID, "the_insane_damned_paranoid_killer");
     public static Identifier TIMEKEEPER_ID = Identifier.of(MOD_ID, "time_keeper");
-    public static Identifier APATHETIC_ID = Identifier.of(MOD_ID, "apathetic");
+    public static Identifier UNDERCOVER_ID = Identifier.of(MOD_ID, "undercover");
     public static Identifier TOXICOLOGIST_ID = Identifier.of(MOD_ID, "toxicologist");
     public static Identifier JESTER_ID = Identifier.of(MOD_ID, "jester");
     public static Identifier CORRUPT_COP_ID = Identifier.of(MOD_ID, "corrupt_cop");
@@ -101,7 +101,7 @@ public class Noellesroles implements ModInitializer {
 
     public static HashMap<Role, RoleAnnouncementTexts.RoleAnnouncementText> roleRoleAnnouncementTextHashMap = new HashMap<>();
     public static Role TIMEKEEPER = TMMRoles.registerRole(new Role(TIMEKEEPER_ID, new Color(0, 38, 255).getRGB(), true, false, Role.MoodType.REAL, GameConstants.getInTicks(0, 10), true));
-    public static Role APATHETIC = TMMRoles.registerRole(new Role(APATHETIC_ID, new Color(192, 192, 192).getRGB(), true, false, Role.MoodType.NONE, GameConstants.getInTicks(0, 10), false));
+    public static Role UNDERCOVER = TMMRoles.registerRole(new Role(UNDERCOVER_ID, new Color(192, 192, 192).getRGB(), true, false, Role.MoodType.NONE, GameConstants.getInTicks(0, 10), false));
     public static Role CONDUCTOR =TMMRoles.registerRole(new Role(CONDUCTOR_ID, new Color(255, 205, 84).getRGB(),true,false, Role.MoodType.REAL,TMMRoles.CIVILIAN.getMaxSprintTime(),false));
     public static Role AWESOME_BINGLUS = TMMRoles.registerRole(new Role(AWESOME_BINGLUS_ID, new Color(155, 255, 168).getRGB(),true,false, Role.MoodType.REAL,TMMRoles.CIVILIAN.getMaxSprintTime(),false));
     public static Role BARTENDER =TMMRoles.registerRole(new Role(BARTENDER_ID, new Color(217,241,240).getRGB(),true,false, Role.MoodType.REAL,TMMRoles.CIVILIAN.getMaxSprintTime(),false));
@@ -304,9 +304,9 @@ public class Noellesroles implements ModInitializer {
         // Jester kill detection - when jester is killed by an innocent, mark as won
         KillPlayer.AFTER.register((victim, killer, deathReason) -> {
             GameWorldComponent gameComponent = GameWorldComponent.KEY.get(victim.getWorld());
-
             if (killer != null && gameComponent.isRole(killer, BOMBER)) {
                 PlayerShopComponent.KEY.get(killer).addToBalance(100);
+            }
             // Check if victim is a jester
             if (!gameComponent.isRole(victim, JESTER)) return;
 

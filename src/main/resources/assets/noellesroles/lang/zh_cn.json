@@ -55,9 +55,9 @@
   "announcement.role.time_keeper": "计时员",
   "announcement.win.time_keeper": "乘客胜利！",
 
-  "announcement.goals.apathetic": "你没有情绪值。",
-  "announcement.role.apathetic": "木头人",
-  "announcement.win.apathetic": "乘客胜利！",
+  "announcement.goals.undercover": "你没有情绪值，且杀手会误以为你是同伙。",
+  "announcement.role.undercover": "卧底",
+  "announcement.win.undercover": "乘客胜利!",
 
   "announcement.goals.toxicologist": "你可以看到谁中毒了。",
   "announcement.role.toxicologist": "毒理学家",

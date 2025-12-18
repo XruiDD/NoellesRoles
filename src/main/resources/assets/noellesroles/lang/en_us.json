@@ -5,9 +5,9 @@
   "announcement.goals.awesome_binglus": "Awesome Binglu",
   "announcement.role.awesome_binglus": "Awesome Binglus",
 
-  "announcement.goals.apathetic": "You don't have a Mood.",
-  "announcement.role.apathetic": "Apathetic",
-  "announcement.win.apathetic": "Passagers Win!",
+  "announcement.goals.undercover": "You don't have a Mood, and Killers will mistake you for their ally.",
+  "announcement.role.undercover": "Undercover",
+  "announcement.win.undercover": "Passengers Win!",
 
   "announcement.goals.conductor": "Use the master key to open up every door on the train!",
   "announcement.role.conductor": "Conductor",
