@@ -305,6 +305,8 @@ public class Noellesroles implements ModInitializer {
         KillPlayer.AFTER.register((victim, killer, deathReason) -> {
             GameWorldComponent gameComponent = GameWorldComponent.KEY.get(victim.getWorld());
 
+            if (killer != null && gameComponent.isRole(killer, BOMBER)) {
+                PlayerShopComponent.KEY.get(killer).addToBalance(100);
             // Check if victim is a jester
             if (!gameComponent.isRole(victim, JESTER)) return;
 
