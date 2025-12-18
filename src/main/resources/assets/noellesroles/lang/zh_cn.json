@@ -105,8 +105,34 @@
 
   "death_reason.noellesroles.bomb": "炸成碎片。",
 
+  "death_reason.noellesroles.assassinated": "身份被刺客识破。",
+  "death_reason.noellesroles.assassin_misfire": "刺客的误判。",
+
   "tip.bomber.bomb_warning": "你的身上有一个炸弹！%s秒后会爆炸！你必须将他传递给别人！",
 
   "subtitles.noellesroles.item.bomb.beep": "炸弹滴滴声",
-  "subtitles.noellesroles.item.bomb.explode": "炸弹爆炸"
+  "subtitles.noellesroles.item.bomb.explode": "炸弹爆炸",
+
+  "announcement.goals.assassin": "用你的毒辣眼光识破玩家的真实身份！猜对—砰！猜错—也砰！（义警太聪明了，猜不了）",
+  "announcement.role.assassin": "刺客",
+  "announcement.win.assassin": "杀手胜利！",
+
+  "hud.assassin.select_target": "选择你的目标——别选错了哦",
+  "hud.assassin.guess_role": "猜猜 %s 是什么身份？（不许反悔）",
+  "hud.assassin.guesses_remaining": "剩余猜测次数：%s/%s",
+  "hud.assassin.cooldown": "冷却中：%s秒",
+  "hud.assassin.press_key_hint": "按 [%s] 键打开刺客菜单",
+  "hud.assassin.on_cooldown": "技能冷却中！",
+  "hud.assassin.no_guesses": "没有剩余猜测次数！",
+
+  "screen.assassin.title": "刺杀菜单",
+  "screen.assassin.button.cancel": "撤销目标",
+  "screen.assassin.title.select_target": "§c选择刺杀目标",
+  "screen.assassin.subtitle.click_to_confirm": "§7点击头像确认目标",
+  "screen.assassin.unknown_target": "未知目标",
+  "screen.assassin.title.confirm_execution": "§4身份确认: %s",
+  "screen.assassin.subtitle.warning": "§c警告: 猜测错误将导致自身死亡",
+
+  "tip.assassin.guess_correct": "%s 的身份被你一眼看穿——他倒了！",
+  "tip.assassin.guess_wrong": "哎呀！%s 可不是你想的那样...砰！过于自信的代价来了。"
 }

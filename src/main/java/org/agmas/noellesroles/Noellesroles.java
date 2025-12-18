@@ -47,6 +47,7 @@ import org.agmas.noellesroles.config.NoellesRolesConfig;
 import org.agmas.noellesroles.corruptcop.CorruptCopPlayerComponent;
 import org.agmas.noellesroles.morphling.MorphlingPlayerComponent;
 import org.agmas.noellesroles.packet.AbilityC2SPacket;
+import org.agmas.noellesroles.packet.AssassinGuessRoleC2SPacket;
 import org.agmas.noellesroles.packet.MorphC2SPacket;
 import org.agmas.noellesroles.packet.SwapperC2SPacket;
 import org.agmas.noellesroles.packet.VultureEatC2SPacket;
@@ -57,6 +58,7 @@ import org.agmas.noellesroles.jester.JesterPlayerComponent;
 import org.agmas.noellesroles.pathogen.InfectedPlayerComponent;
 import org.agmas.noellesroles.bomber.BomberPlayerComponent;
 import org.agmas.noellesroles.bomber.BomberShopHandler;
+import org.agmas.noellesroles.assassin.AssassinPlayerComponent;
 
 import java.awt.*;
 import java.lang.reflect.Constructor;
@@ -88,8 +90,12 @@ public class Noellesroles implements ModInitializer {
     public static Identifier CORRUPT_COP_ID = Identifier.of(MOD_ID, "corrupt_cop");
     public static Identifier PATHOGEN_ID = Identifier.of(MOD_ID, "pathogen");
     public static Identifier BOMBER_ID = Identifier.of(MOD_ID, "bomber");
+    public static Identifier ASSASSIN_ID = Identifier.of(MOD_ID, "assassin");
     // 炸弹死亡原因
     public static Identifier DEATH_REASON_BOMB = Identifier.of(MOD_ID, "bomb");
+    // 刺客死亡原因
+    public static Identifier DEATH_REASON_ASSASSINATED = Identifier.of(MOD_ID, "assassinated");  // 被刺客猜中身份
+    public static Identifier DEATH_REASON_ASSASSIN_MISFIRE = Identifier.of(MOD_ID, "assassin_misfire");  // 刺客猜错自己死亡
 
     public static Role SWAPPER = TMMRoles.registerRole(new Role(SWAPPER_ID, new Color(57, 4, 170).getRGB(),false,true, Role.MoodType.FAKE,Integer.MAX_VALUE,true));
     public static Role PHANTOM =TMMRoles.registerRole(new Role(PHANTOM_ID, new Color(80, 5, 5, 192).getRGB(),false,true, Role.MoodType.FAKE,Integer.MAX_VALUE,true));
@@ -97,6 +103,8 @@ public class Noellesroles implements ModInitializer {
     public static Role THE_INSANE_DAMNED_PARANOID_KILLER_OF_DOOM_DEATH_DESTRUCTION_AND_WAFFLES = TMMRoles.registerRole(new Role(THE_INSANE_DAMNED_PARANOID_KILLER_OF_DOOM_DEATH_DESTRUCTION_AND_WAFFLES_ID, new Color(255, 0, 0, 192).getRGB(),false,true, Role.MoodType.FAKE,Integer.MAX_VALUE,true));
     // 爆破手角色 - 杀手阵营，无法购买刀和枪，只能用炸弹
     public static Role BOMBER = TMMRoles.registerRole(new Role(BOMBER_ID, new Color(50, 50, 50).getRGB(), false, true, Role.MoodType.FAKE, Integer.MAX_VALUE, true));
+    // 刺客角色 - 杀手阵营，可以猜测玩家身份
+    public static Role ASSASSIN = TMMRoles.registerRole(new Role(ASSASSIN_ID, new Color(139, 0, 0).getRGB(), false, true, Role.MoodType.FAKE, Integer.MAX_VALUE, true));
 
 
     public static HashMap<Role, RoleAnnouncementTexts.RoleAnnouncementText> roleRoleAnnouncementTextHashMap = new HashMap<>();
@@ -124,6 +132,7 @@ public class Noellesroles implements ModInitializer {
     public static final CustomPayload.Id<SwapperC2SPacket> SWAP_PACKET = SwapperC2SPacket.ID;
     public static final CustomPayload.Id<AbilityC2SPacket> ABILITY_PACKET = AbilityC2SPacket.ID;
     public static final CustomPayload.Id<VultureEatC2SPacket> VULTURE_PACKET = VultureEatC2SPacket.ID;
+    public static final CustomPayload.Id<AssassinGuessRoleC2SPacket> ASSASSIN_GUESS_ROLE_PACKET = AssassinGuessRoleC2SPacket.ID;
     public static final ArrayList<Role> VANNILA_ROLES = new ArrayList<>();
     public static final ArrayList<Identifier> VANNILA_ROLE_IDS = new ArrayList<>();
 
@@ -144,6 +153,7 @@ public class Noellesroles implements ModInitializer {
         PayloadTypeRegistry.playC2S().register(AbilityC2SPacket.ID, AbilityC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(SwapperC2SPacket.ID, SwapperC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(VultureEatC2SPacket.ID, VultureEatC2SPacket.CODEC);
+        PayloadTypeRegistry.playC2S().register(AssassinGuessRoleC2SPacket.ID, AssassinGuessRoleC2SPacket.CODEC);
 
         registerEvents();
 
@@ -250,6 +260,15 @@ public class Noellesroles implements ModInitializer {
             if (role.equals(PATHOGEN)) {
                 player.giveItemStack(TMMItems.CROWBAR.getDefaultStack());
             }
+            if (role.equals(ASSASSIN)) {
+                AssassinPlayerComponent assassinComp = AssassinPlayerComponent.KEY.get(player);
+                assassinComp.reset();
+                int totalPlayers = gameWorldComponent.getAllPlayers().size();
+                assassinComp.setMaxGuesses(totalPlayers);  // (totalPlayers + 3) / 4
+                // 刺客开局冷却30秒
+                assassinComp.setCooldown(GameConstants.getInTicks(0, 60));
+                // 刺客没有开局道具，只依靠猜测技能
+            }
         });
         ResetPlayer.EVENT.register(player -> {
             BartenderPlayerComponent.KEY.get(player).reset();
@@ -261,6 +280,7 @@ public class Noellesroles implements ModInitializer {
             CorruptCopPlayerComponent.KEY.get(player).reset();
             InfectedPlayerComponent.KEY.get(player).reset();
             BomberPlayerComponent.KEY.get(player).reset();
+            AssassinPlayerComponent.KEY.get(player).reset();
         });
 
         // Bartender and Recaller get +50 coins when completing tasks
@@ -550,6 +570,71 @@ public class Noellesroles implements ModInitializer {
                     }
                 }
             }
+        });
+
+        // 刺客猜测角色（唯一需要服务器处理的数据包）
+        ServerPlayNetworking.registerGlobalReceiver(Noellesroles.ASSASSIN_GUESS_ROLE_PACKET, (payload, context) -> {
+            ServerPlayerEntity assassin = context.player();
+            GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(assassin.getWorld());
+
+            // 验证角色和状态
+            if (!gameWorldComponent.isRole(assassin, ASSASSIN)) return;
+            if (!GameFunctions.isPlayerAliveAndSurvival(assassin)) return;
+
+            AssassinPlayerComponent assassinComp = AssassinPlayerComponent.KEY.get(assassin);
+            if (!assassinComp.canGuess()) return;
+
+            // 验证目标
+            ServerPlayerEntity target = (ServerPlayerEntity) assassin.getWorld().getPlayerByUuid(payload.targetPlayer());
+            if (target == null) return;
+            if (GameFunctions.isPlayerEliminated(target)) return;
+
+            // 🔒 关键安全验证：防止恶意客户端猜测不可猜测的角色
+            if (target.equals(assassin)) return;  // 不能猜测自己
+            if (gameWorldComponent.isRole(target, TMMRoles.VIGILANTE)) return;  // 义警不能被猜测
+            Role targetRole = gameWorldComponent.getRole(target);
+            if (targetRole == null) return;
+            if (TMMRoles.SPECIAL_ROLES.contains(targetRole)) return;  // 特殊角色不能被猜测
+            if (targetRole.equals(ASSASSIN)) return;  // 不能猜测其他刺客
+
+            // 判断猜测是否正确
+            boolean guessedCorrectly = targetRole.identifier().equals(payload.guessedRole());
+
+            // 播放枪响音效（对所有玩家可见）
+            assassin.getWorld().playSound(
+                null,  // 所有人都能听到
+                assassin.getX(), assassin.getY(), assassin.getZ(),
+                TMMSounds.ITEM_REVOLVER_SHOOT,
+                SoundCategory.PLAYERS,
+                2.0F,  // 音量
+                1.0F   // 音调
+            );
+
+            // 执行结果
+            if (guessedCorrectly) {
+                // 发送消息给刺客（通过 actionbar 显示）- 先发送消息再击杀
+                assassin.sendMessage(
+                    net.minecraft.text.Text.translatable("tip.assassin.guess_correct", target.getName())
+                        .formatted(net.minecraft.util.Formatting.GREEN, net.minecraft.util.Formatting.BOLD),
+                    true
+                );
+
+                // 猜对：杀死目标
+                GameFunctions.killPlayer(target, true, assassin, DEATH_REASON_ASSASSINATED);
+            } else {
+                // 发送消息（通过 actionbar 显示）- 先发送消息再自杀
+                assassin.sendMessage(
+                    net.minecraft.text.Text.translatable("tip.assassin.guess_wrong", target.getName())
+                        .formatted(net.minecraft.util.Formatting.RED, net.minecraft.util.Formatting.BOLD),
+                    true
+                );
+
+                // 猜错：自己死亡
+                GameFunctions.killPlayer(assassin, true, assassin, DEATH_REASON_ASSASSIN_MISFIRE);
+            }
+
+            // 消耗猜测次数，设置冷却
+            assassinComp.useGuess();
         });
     }
 

@@ -84,9 +84,35 @@
 
   "death_reason.noellesroles.bomb": "a bomb explosion.",
 
+  "death_reason.noellesroles.assassinated": "being exposed by the assassin.",
+  "death_reason.noellesroles.assassin_misfire": "the assassin's misjudgment.",
+
   "tip.bomber.beeping": "BOMB! Pass it with %s! (%ss left)",
   "tip.bomber.cooldown": "Transfer cooldown: %ss",
 
   "subtitles.noellesroles.item.bomb.beep": "Bomb beeping",
-  "subtitles.noellesroles.item.bomb.explode": "Bomb explodes"
+  "subtitles.noellesroles.item.bomb.explode": "Bomb explodes",
+
+  "announcement.goals.assassin": "Use your keen eye to expose players' true identities! Right guess—BANG! Wrong guess—also BANG! (Vigilante's too smart to fool)",
+  "announcement.role.assassin": "Assassin",
+  "announcement.win.assassin": "Killers Win!",
+
+  "hud.assassin.select_target": "Pick your target—choose wisely",
+  "hud.assassin.guess_role": "Who is %s really? (No take-backs!)",
+  "hud.assassin.guesses_remaining": "Guesses remaining: %s/%s",
+  "hud.assassin.cooldown": "Cooldown: %ss",
+  "hud.assassin.press_key_hint": "Press [%s] to open Assassin Menu",
+  "hud.assassin.on_cooldown": "Ability on cooldown!",
+  "hud.assassin.no_guesses": "No guesses remaining!",
+
+  "screen.assassin.title": "Assassin Menu",
+  "screen.assassin.button.cancel": "✖ Cancel",
+  "screen.assassin.title.select_target": "§c⚡ Select Your Target ⚡",
+  "screen.assassin.subtitle.click_to_confirm": "§7Click avatar to confirm",
+  "screen.assassin.unknown_target": "Unknown Target",
+  "screen.assassin.title.confirm_execution": "§4☠ Execution Confirmed: %s ☠",
+  "screen.assassin.subtitle.warning": "§cWarning: Wrong guess = Your death",
+
+  "tip.assassin.guess_correct": "Bingo! You saw right through %s—they're down!",
+  "tip.assassin.guess_wrong": "Oops! %s isn't what you thought... BANG! Overconfidence has its price."
 }

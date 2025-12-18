@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_21",
   "client": [
     "NeutralLockpickHandMixin",
+    "assassin.AssassinHudMixin",
     "bartender.DefenseVialHandMixin",
     "coroner.CoronerHudMixin",
     "morphling.MorphlingCapeRendererMixin",

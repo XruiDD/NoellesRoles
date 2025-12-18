@@ -20,7 +20,9 @@ import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.entity.player.PlayerEntity;
 import org.agmas.noellesroles.Noellesroles;
+import org.agmas.noellesroles.assassin.AssassinPlayerComponent;
 import org.agmas.noellesroles.bartender.BartenderPlayerComponent;
+import org.agmas.noellesroles.client.screen.AssassinScreen;
 import org.agmas.noellesroles.packet.AbilityC2SPacket;
 import org.agmas.noellesroles.packet.VultureEatC2SPacket;
 import org.agmas.noellesroles.pathogen.InfectedPlayerComponent;
@@ -211,6 +213,20 @@ public class NoellesrolesClient implements ClientModInitializer {
                 client.execute(() -> {
                     if (MinecraftClient.getInstance().player == null) return;
                     GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(MinecraftClient.getInstance().player.getWorld());
+
+                    // 刺客角色按G打开刺客界面
+                    if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.ASSASSIN)) {
+                        if (GameFunctions.isPlayerAliveAndSurvival(MinecraftClient.getInstance().player)) {
+                            AssassinPlayerComponent assassinComp = AssassinPlayerComponent.KEY.get(MinecraftClient.getInstance().player);
+                            // 检查是否可以使用技能（不在冷却中且有剩余次数）
+                            if (assassinComp.canGuess()) {
+                                MinecraftClient.getInstance().setScreen(new AssassinScreen((net.minecraft.client.network.ClientPlayerEntity) MinecraftClient.getInstance().player));
+                            }
+                            // 如果不能使用，不打开界面，HUD 会显示相应的提示信息
+                        }
+                        return;
+                    }
+
                     if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.VULTURE)) {
                         if (targetBody == null) return;
                         ClientPlayNetworking.send(new VultureEatC2SPacket(targetBody.getUuid()));
