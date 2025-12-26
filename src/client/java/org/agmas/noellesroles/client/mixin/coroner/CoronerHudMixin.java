@@ -1,11 +1,11 @@
 package org.agmas.noellesroles.client.mixin.coroner;
 
-import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
-import dev.doctor4t.trainmurdermystery.cca.PlayerMoodComponent;
-import dev.doctor4t.trainmurdermystery.client.TMMClient;
-import dev.doctor4t.trainmurdermystery.client.gui.RoleNameRenderer;
-import dev.doctor4t.trainmurdermystery.entity.PlayerBodyEntity;
-import dev.doctor4t.trainmurdermystery.game.GameFunctions;
+import dev.doctor4t.wathe.cca.GameWorldComponent;
+import dev.doctor4t.wathe.cca.PlayerMoodComponent;
+import dev.doctor4t.wathe.client.WatheClient;
+import dev.doctor4t.wathe.client.gui.RoleNameRenderer;
+import dev.doctor4t.wathe.entity.PlayerBodyEntity;
+import dev.doctor4t.wathe.game.GameFunctions;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
@@ -51,7 +51,7 @@ public abstract class CoronerHudMixin {
                 context.getMatrices().scale(0.6F, 0.6F, 1.0F);
                 if(isCoroner){
                     PlayerMoodComponent moodComponent = PlayerMoodComponent.KEY.get(MinecraftClient.getInstance().player);
-                    if (moodComponent.isLowerThanMid() && TMMClient.isPlayerAliveAndInSurvival()) {
+                    if (moodComponent.isLowerThanMid() && WatheClient.isPlayerAliveAndInSurvival()) {
                         Text name = Text.translatable("hud.coroner.sanity_requirements");
                         context.drawTextWithShadow(renderer, name, -renderer.getWidth(name) / 2, 32, Colors.YELLOW);
                         context.getMatrices().pop();
@@ -61,7 +61,7 @@ public abstract class CoronerHudMixin {
                 // 秃鹫专属提示
                 if (isVulture) {
                     AbilityPlayerComponent abilityPlayerComponent = AbilityPlayerComponent.KEY.get(player);
-                    if (abilityPlayerComponent.getCooldown() <= 0 && TMMClient.isPlayerAliveAndInSurvival()) {
+                    if (abilityPlayerComponent.getCooldown() <= 0 && WatheClient.isPlayerAliveAndInSurvival()) {
                         Text eatPrompt = Text.translatable("hud.vulture.eat", NoellesrolesClient.abilityBind.getBoundKeyLocalizedText()).withColor(Colors.RED);
                         context.drawTextWithShadow(renderer, eatPrompt, -renderer.getWidth(eatPrompt) / 2, 32, Colors.WHITE);
                     }
@@ -74,7 +74,7 @@ public abstract class CoronerHudMixin {
     /**
      * 射线检测尸体实体，将结果存储到 NoellesrolesClient.targetBody
      */
-    @Inject(method = "renderHud", at = @At(value = "INVOKE", target = "Ldev/doctor4t/trainmurdermystery/game/GameFunctions;isPlayerSpectatingOrCreative(Lnet/minecraft/entity/player/PlayerEntity;)Z"))
+    @Inject(method = "renderHud", at = @At(value = "INVOKE", target = "Ldev/doctor4t/wathe/game/GameFunctions;isPlayerSpectatingOrCreative(Lnet/minecraft/entity/player/PlayerEntity;)Z"))
     private static void detectTargetBody(TextRenderer renderer, ClientPlayerEntity player, DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
         float range = GameFunctions.isPlayerSpectatingOrCreative(player) ? 8.0F : 2.0F;
         HitResult line = ProjectileUtil.getCollision(player, (entity) -> entity instanceof PlayerBodyEntity, range);

@@ -1,9 +1,7 @@
 package org.agmas.noellesroles.client.mixin.bartender;
 
-import dev.doctor4t.trainmurdermystery.block_entity.BeveragePlateBlockEntity;
-import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
-import dev.doctor4t.trainmurdermystery.event.CanSeePoison;
-import dev.doctor4t.trainmurdermystery.index.TMMParticles;
+import dev.doctor4t.wathe.block_entity.BeveragePlateBlockEntity;
+import dev.doctor4t.wathe.cca.GameWorldComponent;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;

@@ -1,34 +1,27 @@
 package org.agmas.noellesroles;
 
-import dev.doctor4t.trainmurdermystery.api.Role;
-import dev.doctor4t.trainmurdermystery.api.TMMRoles;
-import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
-import dev.doctor4t.trainmurdermystery.cca.PlayerMoodComponent;
-import dev.doctor4t.trainmurdermystery.cca.PlayerPsychoComponent;
-import dev.doctor4t.trainmurdermystery.cca.PlayerShopComponent;
-import dev.doctor4t.trainmurdermystery.client.gui.RoleAnnouncementTexts;
-import dev.doctor4t.trainmurdermystery.entity.PlayerBodyEntity;
-import dev.doctor4t.trainmurdermystery.event.CanSeePoison;
-import dev.doctor4t.trainmurdermystery.event.CheckWinCondition;
-import dev.doctor4t.trainmurdermystery.event.KillPlayer;
-import dev.doctor4t.trainmurdermystery.event.PlayerPoisoned;
-import dev.doctor4t.trainmurdermystery.event.ResetPlayer;
-import dev.doctor4t.trainmurdermystery.event.RoleAssigned;
-import dev.doctor4t.trainmurdermystery.event.ShouldDropOnDeath;
-import dev.doctor4t.trainmurdermystery.event.ShouldPunishGunShooter;
-import dev.doctor4t.trainmurdermystery.event.TaskComplete;
-import dev.doctor4t.trainmurdermystery.game.GameConstants;
-import dev.doctor4t.trainmurdermystery.game.GameFunctions;
-import dev.doctor4t.trainmurdermystery.index.TMMItems;
-import dev.doctor4t.trainmurdermystery.index.TMMSounds;
-import dev.doctor4t.trainmurdermystery.util.AnnounceWelcomePayload;
+import dev.doctor4t.wathe.api.Role;
+import dev.doctor4t.wathe.api.WatheRoles;
+import dev.doctor4t.wathe.cca.GameWorldComponent;
+import dev.doctor4t.wathe.cca.PlayerShopComponent;
+import dev.doctor4t.wathe.client.gui.RoleAnnouncementTexts;
+import dev.doctor4t.wathe.entity.PlayerBodyEntity;
+import dev.doctor4t.wathe.api.event.CanSeePoison;
+import dev.doctor4t.wathe.api.event.CheckWinCondition;
+import dev.doctor4t.wathe.api.event.KillPlayer;
+import dev.doctor4t.wathe.api.event.PlayerPoisoned;
+import dev.doctor4t.wathe.api.event.ResetPlayer;
+import dev.doctor4t.wathe.api.event.RoleAssigned;
+import dev.doctor4t.wathe.api.event.ShouldDropOnDeath;
+import dev.doctor4t.wathe.api.event.ShouldPunishGunShooter;
+import dev.doctor4t.wathe.api.event.TaskComplete;
+import dev.doctor4t.wathe.game.GameConstants;
+import dev.doctor4t.wathe.game.GameFunctions;
+import dev.doctor4t.wathe.index.WatheItems;
+import dev.doctor4t.wathe.index.WatheSounds;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.fabricmc.loader.impl.util.log.Log;
-import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
@@ -51,7 +44,6 @@ import org.agmas.noellesroles.packet.AssassinGuessRoleC2SPacket;
 import org.agmas.noellesroles.packet.MorphC2SPacket;
 import org.agmas.noellesroles.packet.SwapperC2SPacket;
 import org.agmas.noellesroles.packet.VultureEatC2SPacket;
-import org.agmas.noellesroles.packet.ScavengerResetKnifeCDC2SPacket;
 import org.agmas.noellesroles.recaller.RecallerPlayerComponent;
 import org.agmas.noellesroles.voodoo.VoodooPlayerComponent;
 import org.agmas.noellesroles.vulture.VulturePlayerComponent;
@@ -64,7 +56,6 @@ import org.agmas.noellesroles.scavenger.ScavengerPlayerComponent;
 import org.agmas.noellesroles.scavenger.ScavengerShopHandler;
 
 import java.awt.*;
-import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.List;
 
@@ -101,58 +92,57 @@ public class Noellesroles implements ModInitializer {
     public static Identifier DEATH_REASON_ASSASSINATED = Identifier.of(MOD_ID, "assassinated");  // 被刺客猜中身份
     public static Identifier DEATH_REASON_ASSASSIN_MISFIRE = Identifier.of(MOD_ID, "assassin_misfire");  // 刺客猜错自己死亡
 
-    public static Role SWAPPER = TMMRoles.registerRole(new Role(SWAPPER_ID, new Color(57, 4, 170).getRGB(),false,true, Role.MoodType.FAKE,Integer.MAX_VALUE,true));
-    public static Role PHANTOM =TMMRoles.registerRole(new Role(PHANTOM_ID, new Color(80, 5, 5, 192).getRGB(),false,true, Role.MoodType.FAKE,Integer.MAX_VALUE,true));
-    public static Role MORPHLING =TMMRoles.registerRole(new Role(MORPHLING_ID, new Color(170, 2, 61).getRGB(),false,true, Role.MoodType.FAKE,Integer.MAX_VALUE,true));
-    public static Role THE_INSANE_DAMNED_PARANOID_KILLER_OF_DOOM_DEATH_DESTRUCTION_AND_WAFFLES = TMMRoles.registerRole(new Role(THE_INSANE_DAMNED_PARANOID_KILLER_OF_DOOM_DEATH_DESTRUCTION_AND_WAFFLES_ID, new Color(255, 0, 0, 192).getRGB(),false,true, Role.MoodType.FAKE,Integer.MAX_VALUE,true));
-    // 爆破手角色 - 杀手阵营，无法购买刀和枪，只能用炸弹
-    public static Role BOMBER = TMMRoles.registerRole(new Role(BOMBER_ID, new Color(50, 50, 50).getRGB(), false, true, Role.MoodType.FAKE, Integer.MAX_VALUE, true));
+    public static Role SWAPPER = WatheRoles.registerRole(new Role(SWAPPER_ID, new Color(57, 4, 170).getRGB(),false,true, Role.MoodType.FAKE,Integer.MAX_VALUE,true));
+    public static Role PHANTOM =WatheRoles.registerRole(new Role(PHANTOM_ID, new Color(80, 5, 5, 192).getRGB(),false,true, Role.MoodType.FAKE,Integer.MAX_VALUE,true));
+    public static Role MORPHLING =WatheRoles.registerRole(new Role(MORPHLING_ID, new Color(170, 2, 61).getRGB(),false,true, Role.MoodType.FAKE,Integer.MAX_VALUE,true));
+    public static Role THE_INSANE_DAMNED_PARANOID_KILLER_OF_DOOM_DEATH_DESTRUCTION_AND_WAFFLES = WatheRoles.registerRole(new Role(THE_INSANE_DAMNED_PARANOID_KILLER_OF_DOOM_DEATH_DESTRUCTION_AND_WAFFLES_ID, new Color(255, 0, 0, 192).getRGB(),false,true, Role.MoodType.FAKE,Integer.MAX_VALUE,true));
+    // 炸弹客角色 - 杀手阵营，无法购买刀和枪，只能用炸弹
+    public static Role BOMBER = WatheRoles.registerRole(new Role(BOMBER_ID, new Color(50, 50, 50).getRGB(), false, true, Role.MoodType.FAKE, Integer.MAX_VALUE, true));
     // 刺客角色 - 杀手阵营，可以猜测玩家身份
-    public static Role ASSASSIN = TMMRoles.registerRole(new Role(ASSASSIN_ID, new Color(139, 0, 0).getRGB(), false, true, Role.MoodType.FAKE, Integer.MAX_VALUE, true));
+    public static Role ASSASSIN = WatheRoles.registerRole(new Role(ASSASSIN_ID, new Color(139, 0, 0).getRGB(), false, true, Role.MoodType.FAKE, Integer.MAX_VALUE, true));
     // 清道夫角色 - 杀手阵营，杀人后尸体对其他人不可见（秃鹫和中立除外），杀人奖励+50金币，只能买刀，可以花100金币重置刀CD
-    public static Role SCAVENGER = TMMRoles.registerRole(new Role(SCAVENGER_ID, new Color(101, 67, 33).getRGB(), false, true, Role.MoodType.FAKE, Integer.MAX_VALUE, true));
+    public static Role SCAVENGER = WatheRoles.registerRole(new Role(SCAVENGER_ID, new Color(101, 67, 33).getRGB(), false, true, Role.MoodType.FAKE, Integer.MAX_VALUE, true));
 
 
     public static HashMap<Role, RoleAnnouncementTexts.RoleAnnouncementText> roleRoleAnnouncementTextHashMap = new HashMap<>();
-    public static Role TIMEKEEPER = TMMRoles.registerRole(new Role(TIMEKEEPER_ID, new Color(0, 38, 255).getRGB(), true, false, Role.MoodType.REAL, GameConstants.getInTicks(0, 10), true));
-    public static Role UNDERCOVER = TMMRoles.registerRole(new Role(UNDERCOVER_ID, new Color(192, 192, 192).getRGB(), true, false, Role.MoodType.NONE, GameConstants.getInTicks(0, 10), false));
-    public static Role CONDUCTOR =TMMRoles.registerRole(new Role(CONDUCTOR_ID, new Color(255, 205, 84).getRGB(),true,false, Role.MoodType.REAL,TMMRoles.CIVILIAN.getMaxSprintTime(),false));
-    public static Role AWESOME_BINGLUS = TMMRoles.registerRole(new Role(AWESOME_BINGLUS_ID, new Color(155, 255, 168).getRGB(),true,false, Role.MoodType.REAL,TMMRoles.CIVILIAN.getMaxSprintTime(),false));
-    public static Role BARTENDER =TMMRoles.registerRole(new Role(BARTENDER_ID, new Color(217,241,240).getRGB(),true,false, Role.MoodType.REAL,TMMRoles.CIVILIAN.getMaxSprintTime(),false));
-    public static Role NOISEMAKER =TMMRoles.registerRole(new Role(NOISEMAKER_ID, new Color(200, 255, 0).getRGB(),true,false, Role.MoodType.REAL,TMMRoles.CIVILIAN.getMaxSprintTime(),false));
-    public static Role VOODOO =TMMRoles.registerRole(new Role(VOODOO_ID, new Color(128, 114, 253).getRGB(),true,false,Role.MoodType.REAL, TMMRoles.CIVILIAN.getMaxSprintTime(),false));
-    public static Role CORONER =TMMRoles.registerRole(new Role(CORONER_ID, new Color(122, 122, 122).getRGB(),true,false,Role.MoodType.REAL, TMMRoles.CIVILIAN.getMaxSprintTime(),false));
-    public static Role RECALLER = TMMRoles.registerRole(new Role(RECALLER_ID, new Color(158, 255, 255).getRGB(),true,false,Role.MoodType.REAL, TMMRoles.CIVILIAN.getMaxSprintTime(),false));
-    public static Role TOXICOLOGIST = TMMRoles.registerRole(new Role(TOXICOLOGIST_ID, new Color(184, 41, 90).getRGB(), true, false, Role.MoodType.REAL, GameConstants.getInTicks(0, 10), false));
+    public static Role TIMEKEEPER = WatheRoles.registerRole(new Role(TIMEKEEPER_ID, new Color(0, 38, 255).getRGB(), true, false, Role.MoodType.REAL, GameConstants.getInTicks(0, 10), true));
+    public static Role UNDERCOVER = WatheRoles.registerRole(new Role(UNDERCOVER_ID, new Color(192, 192, 192).getRGB(), true, false, Role.MoodType.NONE, GameConstants.getInTicks(0, 10), false));
+    public static Role CONDUCTOR =WatheRoles.registerRole(new Role(CONDUCTOR_ID, new Color(255, 205, 84).getRGB(),true,false, Role.MoodType.REAL,WatheRoles.CIVILIAN.getMaxSprintTime(),false));
+    public static Role AWESOME_BINGLUS = WatheRoles.registerRole(new Role(AWESOME_BINGLUS_ID, new Color(155, 255, 168).getRGB(),true,false, Role.MoodType.REAL,WatheRoles.CIVILIAN.getMaxSprintTime(),false));
+    public static Role BARTENDER =WatheRoles.registerRole(new Role(BARTENDER_ID, new Color(217,241,240).getRGB(),true,false, Role.MoodType.REAL,WatheRoles.CIVILIAN.getMaxSprintTime(),false));
+    public static Role NOISEMAKER =WatheRoles.registerRole(new Role(NOISEMAKER_ID, new Color(200, 255, 0).getRGB(),true,false, Role.MoodType.REAL,WatheRoles.CIVILIAN.getMaxSprintTime(),false));
+    public static Role VOODOO =WatheRoles.registerRole(new Role(VOODOO_ID, new Color(128, 114, 253).getRGB(),true,false,Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(),false));
+    public static Role CORONER =WatheRoles.registerRole(new Role(CORONER_ID, new Color(122, 122, 122).getRGB(),true,false,Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(),false));
+    public static Role RECALLER = WatheRoles.registerRole(new Role(RECALLER_ID, new Color(158, 255, 255).getRGB(),true,false,Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(),false));
+    public static Role TOXICOLOGIST = WatheRoles.registerRole(new Role(TOXICOLOGIST_ID, new Color(184, 41, 90).getRGB(), true, false, Role.MoodType.REAL, GameConstants.getInTicks(0, 10), false));
 
 
     // 小丑角色 - 中立阵营，被无辜者杀死时获胜
-    public static Role JESTER = TMMRoles.registerRole(new Role(JESTER_ID, 0xF8C8DC, false, false, Role.MoodType.FAKE, TMMRoles.CIVILIAN.getMaxSprintTime(), false));
-    public static Role VULTURE =TMMRoles.registerRole(new Role(VULTURE_ID, new Color(181, 103, 0).getRGB(),false,false,Role.MoodType.FAKE,GameConstants.getInTicks(0, 20),false));
+    public static Role JESTER = WatheRoles.registerRole(new Role(JESTER_ID, 0xF8C8DC, false, false, Role.MoodType.FAKE, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
+    public static Role VULTURE =WatheRoles.registerRole(new Role(VULTURE_ID, new Color(181, 103, 0).getRGB(),false,false,Role.MoodType.FAKE,GameConstants.getInTicks(0, 20),false));
     // 黑警角色 - 中立阵营，杀光所有人获胜，阻止其他阵营获胜
-    public static Role CORRUPT_COP = TMMRoles.registerRole(new Role(CORRUPT_COP_ID, new Color(25, 50, 100).getRGB(), false, false, Role.MoodType.FAKE, TMMRoles.CIVILIAN.getMaxSprintTime(), false));
+    public static Role CORRUPT_COP = WatheRoles.registerRole(new Role(CORRUPT_COP_ID, new Color(25, 50, 100).getRGB(), false, false, Role.MoodType.FAKE, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
     // 病原体角色 - 中立阵营，感染所有存活玩家获胜
-    public static Role PATHOGEN = TMMRoles.registerRole(new Role(PATHOGEN_ID, 0x7FFF00, false, false, Role.MoodType.FAKE, TMMRoles.CIVILIAN.getMaxSprintTime(), false));
+    public static Role PATHOGEN = WatheRoles.registerRole(new Role(PATHOGEN_ID, 0x7FFF00, false, false, Role.MoodType.FAKE, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
 
     public static final CustomPayload.Id<MorphC2SPacket> MORPH_PACKET = MorphC2SPacket.ID;
     public static final CustomPayload.Id<SwapperC2SPacket> SWAP_PACKET = SwapperC2SPacket.ID;
     public static final CustomPayload.Id<AbilityC2SPacket> ABILITY_PACKET = AbilityC2SPacket.ID;
     public static final CustomPayload.Id<VultureEatC2SPacket> VULTURE_PACKET = VultureEatC2SPacket.ID;
     public static final CustomPayload.Id<AssassinGuessRoleC2SPacket> ASSASSIN_GUESS_ROLE_PACKET = AssassinGuessRoleC2SPacket.ID;
-    public static final CustomPayload.Id<ScavengerResetKnifeCDC2SPacket> SCAVENGER_RESET_KNIFE_CD_PACKET = ScavengerResetKnifeCDC2SPacket.ID;
     public static final ArrayList<Role> VANNILA_ROLES = new ArrayList<>();
     public static final ArrayList<Identifier> VANNILA_ROLE_IDS = new ArrayList<>();
 
     @Override
     public void onInitialize() {
-        VANNILA_ROLES.add(TMMRoles.KILLER);
-        VANNILA_ROLES.add(TMMRoles.VIGILANTE);
-        VANNILA_ROLES.add(TMMRoles.CIVILIAN);
-        VANNILA_ROLES.add(TMMRoles.LOOSE_END);
-        VANNILA_ROLE_IDS.add(TMMRoles.LOOSE_END.identifier());
-        VANNILA_ROLE_IDS.add(TMMRoles.VIGILANTE.identifier());
-        VANNILA_ROLE_IDS.add(TMMRoles.CIVILIAN.identifier());
-        VANNILA_ROLE_IDS.add(TMMRoles.KILLER.identifier());
+        VANNILA_ROLES.add(WatheRoles.KILLER);
+        VANNILA_ROLES.add(WatheRoles.VIGILANTE);
+        VANNILA_ROLES.add(WatheRoles.CIVILIAN);
+        VANNILA_ROLES.add(WatheRoles.LOOSE_END);
+        VANNILA_ROLE_IDS.add(WatheRoles.LOOSE_END.identifier());
+        VANNILA_ROLE_IDS.add(WatheRoles.VIGILANTE.identifier());
+        VANNILA_ROLE_IDS.add(WatheRoles.CIVILIAN.identifier());
+        VANNILA_ROLE_IDS.add(WatheRoles.KILLER.identifier());
         NoellesRolesConfig.HANDLER.load();
         ModItems.init();
         ModSounds.init();
@@ -161,7 +151,6 @@ public class Noellesroles implements ModInitializer {
         PayloadTypeRegistry.playC2S().register(SwapperC2SPacket.ID, SwapperC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(VultureEatC2SPacket.ID, VultureEatC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(AssassinGuessRoleC2SPacket.ID, AssassinGuessRoleC2SPacket.CODEC);
-        PayloadTypeRegistry.playC2S().register(ScavengerResetKnifeCDC2SPacket.ID, ScavengerResetKnifeCDC2SPacket.CODEC);
 
         registerEvents();
 
@@ -177,12 +166,7 @@ public class Noellesroles implements ModInitializer {
 
     public void registerEvents() {
         // Master key should drop on death
-        ShouldDropOnDeath.EVENT.register(stack -> {
-            if (stack.isOf(ModItems.MASTER_KEY)) {
-                return true;
-            }
-            return false;
-        });
+        ShouldDropOnDeath.EVENT.register((stack, victim) -> stack.isOf(ModItems.MASTER_KEY));
 
         // Bartender defense vial - convert poison to armor
         PlayerPoisoned.BEFORE.register((player, ticks, poisoner) -> {
@@ -208,7 +192,7 @@ public class Noellesroles implements ModInitializer {
             GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(victim.getWorld());
             BartenderPlayerComponent bartenderPlayerComponent = BartenderPlayerComponent.KEY.get(victim);
             if (bartenderPlayerComponent.armor > 0 && deathReason != GameConstants.DeathReasons.SHOT_INNOCENT) {
-                victim.getWorld().playSound(victim, victim.getBlockPos(), TMMSounds.ITEM_PSYCHO_ARMOUR, SoundCategory.MASTER, 5.0F, 1.0F);
+                victim.getWorld().playSound(victim, victim.getBlockPos(), WatheSounds.ITEM_PSYCHO_ARMOUR, SoundCategory.MASTER, 5.0F, 1.0F);
                 bartenderPlayerComponent.armor--;
                 return KillPlayer.KillResult.cancel();
             }
@@ -232,42 +216,42 @@ public class Noellesroles implements ModInitializer {
                 VulturePlayerComponent vulturePlayerComponent = VulturePlayerComponent.KEY.get(player);
                 vulturePlayerComponent.reset();
                 vulturePlayerComponent.setBodiesRequired(gameWorldComponent.getAllPlayers().size() / 2);
-                player.giveItemStack(TMMItems.CROWBAR.getDefaultStack());
+                player.giveItemStack(WatheItems.CROWBAR.getDefaultStack());
             }
             if (role.equals(CONDUCTOR)) {
                 player.giveItemStack(ModItems.MASTER_KEY.getDefaultStack());
             }
             if (role.equals(AWESOME_BINGLUS)) {
-                player.giveItemStack(TMMItems.NOTE.getDefaultStack());
-                player.giveItemStack(TMMItems.NOTE.getDefaultStack());
-                player.giveItemStack(TMMItems.NOTE.getDefaultStack());
-                player.giveItemStack(TMMItems.NOTE.getDefaultStack());
-                player.giveItemStack(TMMItems.NOTE.getDefaultStack());
-                player.giveItemStack(TMMItems.NOTE.getDefaultStack());
-                player.giveItemStack(TMMItems.NOTE.getDefaultStack());
-                player.giveItemStack(TMMItems.NOTE.getDefaultStack());
-                player.giveItemStack(TMMItems.NOTE.getDefaultStack());
-                player.giveItemStack(TMMItems.NOTE.getDefaultStack());
-                player.giveItemStack(TMMItems.NOTE.getDefaultStack());
-                player.giveItemStack(TMMItems.NOTE.getDefaultStack());
-                player.giveItemStack(TMMItems.NOTE.getDefaultStack());
-                player.giveItemStack(TMMItems.NOTE.getDefaultStack());
-                player.giveItemStack(TMMItems.NOTE.getDefaultStack());
-                player.giveItemStack(TMMItems.NOTE.getDefaultStack());
+                player.giveItemStack(WatheItems.NOTE.getDefaultStack());
+                player.giveItemStack(WatheItems.NOTE.getDefaultStack());
+                player.giveItemStack(WatheItems.NOTE.getDefaultStack());
+                player.giveItemStack(WatheItems.NOTE.getDefaultStack());
+                player.giveItemStack(WatheItems.NOTE.getDefaultStack());
+                player.giveItemStack(WatheItems.NOTE.getDefaultStack());
+                player.giveItemStack(WatheItems.NOTE.getDefaultStack());
+                player.giveItemStack(WatheItems.NOTE.getDefaultStack());
+                player.giveItemStack(WatheItems.NOTE.getDefaultStack());
+                player.giveItemStack(WatheItems.NOTE.getDefaultStack());
+                player.giveItemStack(WatheItems.NOTE.getDefaultStack());
+                player.giveItemStack(WatheItems.NOTE.getDefaultStack());
+                player.giveItemStack(WatheItems.NOTE.getDefaultStack());
+                player.giveItemStack(WatheItems.NOTE.getDefaultStack());
+                player.giveItemStack(WatheItems.NOTE.getDefaultStack());
+                player.giveItemStack(WatheItems.NOTE.getDefaultStack());
             }
             if (role.equals(JESTER)) {
                 JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(player);
                 jesterComponent.reset();
-                player.giveItemStack(TMMItems.CROWBAR.getDefaultStack());
+                player.giveItemStack(WatheItems.CROWBAR.getDefaultStack());
             }
             if (role.equals(CORRUPT_COP)) {
                 CorruptCopPlayerComponent corruptCopComponent = CorruptCopPlayerComponent.KEY.get(player);
                 corruptCopComponent.reset();
-                player.giveItemStack(TMMItems.REVOLVER.getDefaultStack());
-                player.giveItemStack(TMMItems.CROWBAR.getDefaultStack());
+                player.giveItemStack(WatheItems.REVOLVER.getDefaultStack());
+                player.giveItemStack(WatheItems.CROWBAR.getDefaultStack());
             }
             if (role.equals(PATHOGEN)) {
-                player.giveItemStack(TMMItems.CROWBAR.getDefaultStack());
+                player.giveItemStack(WatheItems.CROWBAR.getDefaultStack());
             }
             if (role.equals(ASSASSIN)) {
                 AssassinPlayerComponent assassinComp = AssassinPlayerComponent.KEY.get(player);
@@ -277,13 +261,6 @@ public class Noellesroles implements ModInitializer {
                 // 刺客开局冷却30秒
                 assassinComp.setCooldown(GameConstants.getInTicks(0, 60));
                 // 刺客没有开局道具，只依靠猜测技能
-            }
-            if (role.equals(SCAVENGER)) {
-                ScavengerPlayerComponent scavengerComp = ScavengerPlayerComponent.KEY.get(player);
-                scavengerComp.reset();
-                // 清道夫开局获得刀和撬棍
-                player.giveItemStack(TMMItems.KNIFE.getDefaultStack());
-                player.giveItemStack(TMMItems.CROWBAR.getDefaultStack());
             }
         });
         ResetPlayer.EVENT.register(player -> {
@@ -341,14 +318,12 @@ public class Noellesroles implements ModInitializer {
         // Jester kill detection - when jester is killed by an innocent, mark as won
         KillPlayer.AFTER.register((victim, killer, deathReason) -> {
             GameWorldComponent gameComponent = GameWorldComponent.KEY.get(victim.getWorld());
-            // 爆破手击杀奖励+100金币
+            // 炸弹客击杀奖励+100金币
             if (killer != null && gameComponent.isRole(killer, BOMBER)) {
                 PlayerShopComponent.KEY.get(killer).addToBalance(100);
             }
-            // 清道夫击杀奖励+50金币（总共150，因为默认杀人100）
+            // 记录清道夫杀人
             if (killer != null && gameComponent.isRole(killer, SCAVENGER)) {
-                PlayerShopComponent.KEY.get(killer).addToBalance(50);
-                // 记录清道夫杀死的玩家，用于隐藏尸体
                 ScavengerPlayerComponent scavengerComp = ScavengerPlayerComponent.KEY.get(killer);
                 scavengerComp.addHiddenBody(victim.getUuid());
             }
@@ -616,10 +591,10 @@ public class Noellesroles implements ModInitializer {
 
             // 🔒 关键安全验证：防止恶意客户端猜测不可猜测的角色
             if (target.equals(assassin)) return;  // 不能猜测自己
-            if (gameWorldComponent.isRole(target, TMMRoles.VIGILANTE)) return;  // 义警不能被猜测
+            if (gameWorldComponent.isRole(target, WatheRoles.VIGILANTE)) return;  // 义警不能被猜测
             Role targetRole = gameWorldComponent.getRole(target);
             if (targetRole == null) return;
-            if (TMMRoles.SPECIAL_ROLES.contains(targetRole)) return;  // 特殊角色不能被猜测
+            if (WatheRoles.SPECIAL_ROLES.contains(targetRole)) return;  // 特殊角色不能被猜测
             if (targetRole.equals(ASSASSIN)) return;  // 不能猜测其他刺客
 
             // 判断猜测是否正确
@@ -629,7 +604,7 @@ public class Noellesroles implements ModInitializer {
             assassin.getWorld().playSound(
                 null,  // 所有人都能听到
                 assassin.getX(), assassin.getY(), assassin.getZ(),
-                TMMSounds.ITEM_REVOLVER_SHOOT,
+                WatheSounds.ITEM_REVOLVER_SHOOT,
                 SoundCategory.PLAYERS,
                 2.0F,  // 音量
                 1.0F   // 音调
@@ -660,62 +635,6 @@ public class Noellesroles implements ModInitializer {
 
             // 消耗猜测次数，设置冷却
             assassinComp.useGuess();
-        });
-
-        // 清道夫：重置刀CD
-        ServerPlayNetworking.registerGlobalReceiver(Noellesroles.SCAVENGER_RESET_KNIFE_CD_PACKET, (payload, context) -> {
-            ServerPlayerEntity scavenger = context.player();
-            GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(scavenger.getWorld());
-
-            // 验证角色和状态
-            if (!gameWorldComponent.isRole(scavenger, SCAVENGER)) return;
-            if (!GameFunctions.isPlayerAliveAndSurvival(scavenger)) return;
-
-            PlayerShopComponent playerShopComponent = PlayerShopComponent.KEY.get(scavenger);
-
-            // 检查金币是否足够（100金币）
-            if (playerShopComponent.balance < 100) {
-                scavenger.sendMessage(
-                    net.minecraft.text.Text.translatable("tip.scavenger.not_enough_money")
-                        .formatted(net.minecraft.util.Formatting.RED),
-                    true
-                );
-                return;
-            }
-
-            // 扣除100金币
-            playerShopComponent.balance -= 100;
-            playerShopComponent.sync();
-
-            // 重置刀的CD（通过移除并重新给予刀物品）
-            // 遍历玩家物品栏，找到刀并移除
-            for (int i = 0; i < scavenger.getInventory().size(); i++) {
-                net.minecraft.item.ItemStack stack = scavenger.getInventory().getStack(i);
-                if (stack.isOf(TMMItems.KNIFE)) {
-                    scavenger.getInventory().removeStack(i);
-                    break;
-                }
-            }
-
-            // 给予新的刀（CD已重置）
-            scavenger.giveItemStack(TMMItems.KNIFE.getDefaultStack());
-
-            // 播放音效反馈
-            scavenger.getWorld().playSound(
-                null,
-                scavenger.getX(), scavenger.getY(), scavenger.getZ(),
-                SoundEvents.ENTITY_PLAYER_LEVELUP,
-                SoundCategory.PLAYERS,
-                0.5F,
-                1.5F
-            );
-
-            // 发送成功消息
-            scavenger.sendMessage(
-                net.minecraft.text.Text.translatable("tip.scavenger.knife_cd_reset")
-                    .formatted(net.minecraft.util.Formatting.GREEN),
-                true
-            );
         });
     }
 

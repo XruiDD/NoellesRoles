@@ -2,7 +2,7 @@ package org.agmas.noellesroles.client.mixin.morphling;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import dev.doctor4t.trainmurdermystery.client.TMMClient;
+import dev.doctor4t.wathe.client.WatheClient;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.render.entity.feature.ElytraFeatureRenderer;
 import net.minecraft.client.util.SkinTextures;
@@ -23,14 +23,14 @@ public class MorphlingElytraRendererMixin {
                     target = "Lnet/minecraft/client/network/AbstractClientPlayerEntity;getSkinTextures()Lnet/minecraft/client/util/SkinTextures;"))
     private SkinTextures morphling_wrapElytraTexture(AbstractClientPlayerEntity instance, Operation<SkinTextures> original) {
         // 优先处理疯狂模式
-        if (TMMClient.moodComponent != null) {
+        if (WatheClient.moodComponent != null) {
             ConfigWorldComponent config = ConfigWorldComponent.KEY.get(instance.getWorld());
             if (config.insaneSeesMorphs &&
-                TMMClient.moodComponent.isLowerThanDepressed() &&
+                WatheClient.moodComponent.isLowerThanDepressed() &&
                 NoellesrolesClient.SHUFFLED_PLAYER_ENTRIES_CACHE.containsKey(instance.getUuid())) {
 
                 UUID shuffledUuid = NoellesrolesClient.SHUFFLED_PLAYER_ENTRIES_CACHE.get(instance.getUuid());
-                return TMMClient.PLAYER_ENTRIES_CACHE.get(shuffledUuid).getSkinTextures();
+                return WatheClient.PLAYER_ENTRIES_CACHE.get(shuffledUuid).getSkinTextures();
             }
         }
 

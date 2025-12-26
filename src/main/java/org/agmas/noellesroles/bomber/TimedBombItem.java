@@ -1,7 +1,7 @@
 package org.agmas.noellesroles.bomber;
 
-import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
-import dev.doctor4t.trainmurdermystery.game.GameFunctions;
+import dev.doctor4t.wathe.cca.GameWorldComponent;
+import dev.doctor4t.wathe.game.GameFunctions;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.ProjectileUtil;
 import net.minecraft.item.Item;
@@ -23,7 +23,7 @@ import java.util.List;
 
 /**
  * 定时炸弹物品
- * - 爆破手使用：放置炸弹到目标玩家身上
+ * - 炸弹客使用：放置炸弹到目标玩家身上
  * - 携带者使用：传递炸弹给目标玩家
  */
 public class TimedBombItem extends Item {
@@ -54,7 +54,7 @@ public class TimedBombItem extends Item {
                     BomberPlayerComponent userComponent = BomberPlayerComponent.KEY.get(user);
                     BomberPlayerComponent targetComponent = BomberPlayerComponent.KEY.get(target);
 
-                    // 这确保即使是爆破手拿到炸弹后也能正常传递
+                    // 这确保即使是炸弹客拿到炸弹后也能正常传递
                     if (userComponent.isBeeping()) {
                         if(userComponent.canTransfer()){
                             userComponent.transferBomb(target);
@@ -63,7 +63,7 @@ public class TimedBombItem extends Item {
                         return TypedActionResult.pass(itemStack);
                     }
 
-                    // 如果使用者是爆破手且没有携带炸弹，放置炸弹
+                    // 如果使用者是炸弹客且没有携带炸弹，放置炸弹
                     if (gameWorld.isRole(user, Noellesroles.BOMBER)) {
                         // 目标已经有炸弹，不能再放置
                         if (targetComponent.hasBomb()) {

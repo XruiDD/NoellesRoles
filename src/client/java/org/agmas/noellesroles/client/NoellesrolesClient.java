@@ -1,16 +1,16 @@
 package org.agmas.noellesroles.client;
 
 import com.google.common.collect.Maps;
-import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
-import dev.doctor4t.trainmurdermystery.cca.PlayerMoodComponent;
-import dev.doctor4t.trainmurdermystery.cca.PlayerPoisonComponent;
-import dev.doctor4t.trainmurdermystery.client.TMMClient;
-import dev.doctor4t.trainmurdermystery.entity.PlayerBodyEntity;
-import dev.doctor4t.trainmurdermystery.event.CanSeeBodyRole;
-import dev.doctor4t.trainmurdermystery.event.CanSeeMoney;
-import dev.doctor4t.trainmurdermystery.event.GetInstinctHighlight;
-import dev.doctor4t.trainmurdermystery.event.ShouldShowCohort;
-import dev.doctor4t.trainmurdermystery.game.GameFunctions;
+import dev.doctor4t.wathe.cca.GameWorldComponent;
+import dev.doctor4t.wathe.cca.PlayerMoodComponent;
+import dev.doctor4t.wathe.cca.PlayerPoisonComponent;
+import dev.doctor4t.wathe.client.WatheClient;
+import dev.doctor4t.wathe.entity.PlayerBodyEntity;
+import dev.doctor4t.wathe.api.event.CanSeeBodyRole;
+import dev.doctor4t.wathe.api.event.CanSeeMoney;
+import dev.doctor4t.wathe.api.event.GetInstinctHighlight;
+import dev.doctor4t.wathe.api.event.ShouldShowCohort;
+import dev.doctor4t.wathe.game.GameFunctions;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
@@ -43,7 +43,7 @@ public class NoellesrolesClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        abilityBind = KeyBindingHelper.registerKeyBinding(new KeyBinding("key." + Noellesroles.MOD_ID + ".ability", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_G, "category.trainmurdermystery.keybinds"));
+        abilityBind = KeyBindingHelper.registerKeyBinding(new KeyBinding("key." + Noellesroles.MOD_ID + ".ability", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_G, "category.wathe.keybinds"));
 
         CanSeeMoney.EVENT.register(player -> {
             if (player.isSpectator()) return null;
@@ -63,7 +63,7 @@ public class NoellesrolesClient implements ClientModInitializer {
                 if (component.isRole(playerEntity, Noellesroles.CORONER)) {
                     // 验尸官需要 50% 以上的理智值才能查看尸体信息
                     PlayerMoodComponent moodComponent = PlayerMoodComponent.KEY.get(playerEntity);
-                    return !moodComponent.isLowerThanMid() || !TMMClient.isPlayerAliveAndInSurvival();
+                    return !moodComponent.isLowerThanMid() || !WatheClient.isPlayerAliveAndInSurvival();
                 }
             }
             return false;
@@ -71,14 +71,17 @@ public class NoellesrolesClient implements ClientModInitializer {
 
         // 注册 GetInstinctHighlight 监听器：各角色的本能高亮逻辑
         GetInstinctHighlight.EVENT.register(entity -> {
-            if (!(entity instanceof PlayerEntity player) || player.isSpectator()) return null;
-            if (MinecraftClient.getInstance().player == null) return null;
 
+            if (!(entity instanceof PlayerEntity player) || player.isSpectator()) return null;
+
+            if (MinecraftClient.getInstance().player == null) return null;
 
             GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(
                 MinecraftClient.getInstance().player.getWorld()
             );
+
             if (!GameFunctions.isPlayerAliveAndSurvival(MinecraftClient.getInstance().player)) return null;
+
             PlayerEntity localPlayer = MinecraftClient.getInstance().player;
 
             // BARTENDER: 看到喝酒者发绿光，有护甲者发蓝光（需要视线）
@@ -105,7 +108,7 @@ public class NoellesrolesClient implements ClientModInitializer {
                     // Already infected - green
                     return GetInstinctHighlight.HighlightResult.always(Noellesroles.PATHOGEN.color());
                 }
-                return GetInstinctHighlight.HighlightResult.withKeybind(Color.WHITE.getRGB());
+                return GetInstinctHighlight.HighlightResult.withKeybind(Color.BLUE.getRGB());
             }
             return null;
         });
@@ -168,8 +171,8 @@ public class NoellesrolesClient implements ClientModInitializer {
             insanityTime++;
             if (insanityTime >= 20*6) {
                 insanityTime = 0;
-                List<UUID> keys = new ArrayList<UUID>(TMMClient.PLAYER_ENTRIES_CACHE.keySet());
-                List<UUID> originalkeys = new ArrayList<UUID>(TMMClient.PLAYER_ENTRIES_CACHE.keySet());
+                List<UUID> keys = new ArrayList<UUID>(WatheClient.PLAYER_ENTRIES_CACHE.keySet());
+                List<UUID> originalkeys = new ArrayList<UUID>(WatheClient.PLAYER_ENTRIES_CACHE.keySet());
                 Collections.shuffle(keys);
                 int i = 0;
                 for (UUID o : originalkeys) {

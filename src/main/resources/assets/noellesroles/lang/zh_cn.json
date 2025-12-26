@@ -97,7 +97,7 @@
   "tip.pathogen.infect": "按 %s 键以感染 %s",
 
   "announcement.goals.bomber": "在玩家身上放置炸弹！你无法购买一般的武器。",
-  "announcement.role.bomber": "爆破手",
+  "announcement.role.bomber": "炸弹客",
   "announcement.win.bomber": "杀手胜利！",
 
   "item.noellesroles.timed_bomb": "定时炸弹",

@@ -1,8 +1,8 @@
 package org.agmas.noellesroles.bomber;
 
-import dev.doctor4t.trainmurdermystery.game.GameConstants;
-import dev.doctor4t.trainmurdermystery.game.GameFunctions;
-import dev.doctor4t.trainmurdermystery.index.TMMParticles;
+import dev.doctor4t.wathe.game.GameConstants;
+import dev.doctor4t.wathe.game.GameFunctions;
+import dev.doctor4t.wathe.index.WatheParticles;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -28,7 +28,7 @@ import org.ladysnake.cca.api.v3.component.tick.ServerTickingComponent;
 import java.util.UUID;
 
 /**
- * 爆破手玩家组件
+ * 炸弹客玩家组件
  * 管理炸弹状态：放置、滴滴声、传递冷却、爆炸
  */
 public class BomberPlayerComponent implements AutoSyncedComponent, ServerTickingComponent, ClientTickingComponent {
@@ -47,7 +47,7 @@ public class BomberPlayerComponent implements AutoSyncedComponent, ServerTicking
     private int transferCooldown = 0;
     // 是否正在滴滴声阶段
     private boolean isBeeping = false;
-    // 放置炸弹的爆破手UUID
+    // 放置炸弹的炸弹客UUID
     private UUID bomberUuid = null;
 
     // 常量
@@ -76,7 +76,7 @@ public class BomberPlayerComponent implements AutoSyncedComponent, ServerTicking
 
     /**
      * 在此玩家身上放置炸弹
-     * @param bomber 放置炸弹的爆破手
+     * @param bomber 放置炸弹的炸弹客
      */
     public void placeBomb(PlayerEntity bomber) {
         this.hasBomb = true;
@@ -216,7 +216,7 @@ public class BomberPlayerComponent implements AutoSyncedComponent, ServerTicking
 
         // 生成粒子特效
         // 大爆炸粒子
-        serverWorld.spawnParticles(TMMParticles.BIG_EXPLOSION,
+        serverWorld.spawnParticles(WatheParticles.BIG_EXPLOSION,
                 player.getX(), player.getY() + 0.5, player.getZ(),
                 1, 0, 0, 0, 0);
 
@@ -232,7 +232,7 @@ public class BomberPlayerComponent implements AutoSyncedComponent, ServerTicking
 
         // 杀死携带炸弹的玩家
         if (GameFunctions.isPlayerAliveAndSurvival(player)) {
-            // 获取爆破手玩家
+            // 获取炸弹客玩家
             PlayerEntity bomber = bomberUuid != null ? player.getWorld().getPlayerByUuid(bomberUuid) : null;
             GameFunctions.killPlayer(player, true, bomber, Noellesroles.DEATH_REASON_BOMB);
         }

@@ -1,9 +1,9 @@
 package org.agmas.noellesroles.client.screen;
 
-import dev.doctor4t.trainmurdermystery.api.Role;
-import dev.doctor4t.trainmurdermystery.api.TMMRoles;
-import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
-import dev.doctor4t.trainmurdermystery.game.GameFunctions;
+import dev.doctor4t.wathe.api.Role;
+import dev.doctor4t.wathe.api.WatheRoles;
+import dev.doctor4t.wathe.cca.GameWorldComponent;
+import dev.doctor4t.wathe.game.GameFunctions;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
@@ -58,7 +58,7 @@ public class AssassinScreen extends Screen {
             targets.removeIf(p -> {
                 if (p.getUuid().equals(player.getUuid())) return true;
                 if (!alivePlayers.contains(p.getUuid())) return true;
-                if (gameWorld.isRole(p, TMMRoles.VIGILANTE)) return true;
+                if (gameWorld.isRole(p, WatheRoles.VIGILANTE)) return true;
                 return false;
             });
 
@@ -184,10 +184,12 @@ public class AssassinScreen extends Screen {
 
     private List<Role> getAllGuessableRoles() {
         List<Role> roles = new ArrayList<>();
-        for (Role role : TMMRoles.ROLES) {
-            if (TMMRoles.SPECIAL_ROLES.contains(role)) continue;
-            if (role.equals(TMMRoles.VIGILANTE)) continue;
-            if(role.canUseKiller()) continue;
+        GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(player.getWorld());
+        for (Role role : WatheRoles.ROLES) {
+            if (WatheRoles.SPECIAL_ROLES.contains(role)) continue;
+            if (role.equals(WatheRoles.VIGILANTE)) continue;
+            if (role.canUseKiller()) continue;
+            if (!gameWorldComponent.isRoleEnabled(role)) continue;
             roles.add(role);
         }
         return roles;

@@ -1,9 +1,9 @@
 package org.agmas.noellesroles.bartender;
 
-import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
-import dev.doctor4t.trainmurdermystery.event.BuildShopEntries;
-import dev.doctor4t.trainmurdermystery.event.ShopPurchase;
-import dev.doctor4t.trainmurdermystery.util.ShopEntry;
+import dev.doctor4t.wathe.cca.GameWorldComponent;
+import dev.doctor4t.wathe.api.event.BuildShopEntries;
+import dev.doctor4t.wathe.api.event.ShopPurchase;
+import dev.doctor4t.wathe.util.ShopEntry;
 import org.agmas.noellesroles.ModItems;
 import org.agmas.noellesroles.Noellesroles;
 

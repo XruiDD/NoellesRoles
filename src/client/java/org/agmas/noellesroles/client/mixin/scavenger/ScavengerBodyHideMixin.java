@@ -1,9 +1,10 @@
 package org.agmas.noellesroles.client.mixin.scavenger;
 
-import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
-import dev.doctor4t.trainmurdermystery.client.TMMClient;
-import dev.doctor4t.trainmurdermystery.client.render.entity.PlayerBodyEntityRenderer;
-import dev.doctor4t.trainmurdermystery.entity.PlayerBodyEntity;
+import dev.doctor4t.wathe.api.Faction;
+import dev.doctor4t.wathe.cca.GameWorldComponent;
+import dev.doctor4t.wathe.client.WatheClient;
+import dev.doctor4t.wathe.client.render.entity.PlayerBodyEntityRenderer;
+import dev.doctor4t.wathe.entity.PlayerBodyEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.VertexConsumerProvider;
@@ -26,13 +27,13 @@ import java.util.UUID;
 @Mixin(PlayerBodyEntityRenderer.class)
 public class ScavengerBodyHideMixin {
 
-    @Inject(method = "render(Ldev/doctor4t/trainmurdermystery/entity/PlayerBodyEntity;FFLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "render(Ldev/doctor4t/wathe/entity/PlayerBodyEntity;FFLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V", at = @At("HEAD"), cancellable = true)
     private void hideScavengerBodies(PlayerBodyEntity body, float yaw, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, CallbackInfo ci) {
         ClientPlayerEntity localPlayer = MinecraftClient.getInstance().player;
         if (localPlayer == null || localPlayer.getWorld() == null) return;
 
         // 旁观者和创造模式始终可以看到所有尸体
-        if (TMMClient.isPlayerSpectatingOrCreative()) {
+        if (WatheClient.isPlayerSpectatingOrCreative()) {
             return;
         }
 
@@ -56,16 +57,8 @@ public class ScavengerBodyHideMixin {
             return; // 不是清道夫的尸体，正常渲染
         }
 
-        // 尸体是清道夫杀的，检查当前玩家是否有查看权限
         // 秃鹫可以看到
-        if (gameWorldComponent.isRole(localPlayer, Noellesroles.VULTURE)) {
-            return;
-        }
-
-        // 中立角色可以看到（小丑、黑警、病原体）
-        if (gameWorldComponent.isRole(localPlayer, Noellesroles.JESTER) ||
-            gameWorldComponent.isRole(localPlayer, Noellesroles.CORRUPT_COP) ||
-            gameWorldComponent.isRole(localPlayer, Noellesroles.PATHOGEN)) {
+        if (gameWorldComponent.getRole(localPlayer).getFaction() == Faction.KILLER || gameWorldComponent.getRole(localPlayer).getFaction() == Faction.NEUTRAL) {
             return;
         }
 

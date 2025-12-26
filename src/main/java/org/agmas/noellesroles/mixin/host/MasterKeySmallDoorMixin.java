@@ -2,9 +2,9 @@ package org.agmas.noellesroles.mixin.host;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import dev.doctor4t.trainmurdermystery.block.SmallDoorBlock;
-import dev.doctor4t.trainmurdermystery.block.TrainDoorBlock;
-import dev.doctor4t.trainmurdermystery.index.TMMItems;
+import dev.doctor4t.wathe.block.SmallDoorBlock;
+import dev.doctor4t.wathe.block.TrainDoorBlock;
+import dev.doctor4t.wathe.index.WatheItems;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import org.agmas.noellesroles.ModItems;
