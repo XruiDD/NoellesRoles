@@ -105,15 +105,15 @@
 
   "death_reason.noellesroles.bomb": "炸成碎片。",
 
-  "death_reason.noellesroles.assassinated": "身份被刺客识破。",
-  "death_reason.noellesroles.assassin_misfire": "刺客的误判。",
+  "death_reason.noellesroles.assassinated": "身份被刺客识破",
+  "death_reason.noellesroles.assassin_misfire": "刺客的误判",
 
   "tip.bomber.bomb_warning": "你的身上有一个炸弹！%s秒后会爆炸！你必须将他传递给别人！",
 
   "subtitles.noellesroles.item.bomb.beep": "炸弹滴滴声",
   "subtitles.noellesroles.item.bomb.explode": "炸弹爆炸",
 
-  "announcement.goals.assassin": "用你的毒辣眼光识破玩家的真实身份！猜对—砰！猜错—也砰！（义警太聪明了，猜不了）",
+  "announcement.goals.assassin": "用你的毒辣眼光识破玩家的真实身份！猜对—砰！猜错—也砰！",
   "announcement.role.assassin": "刺客",
   "announcement.win.assassin": "杀手胜利！",
 
@@ -134,5 +134,15 @@
   "screen.assassin.subtitle.warning": "§c警告: 猜测错误将导致自身死亡",
 
   "tip.assassin.guess_correct": "%s 的身份被你一眼看穿——他倒了！",
-  "tip.assassin.guess_wrong": "哎呀！%s 可不是你想的那样...砰！过于自信的代价来了。"
+  "tip.assassin.guess_wrong": "哎呀！%s 可不是你想的那样...砰！过于自信的代价来了。",
+
+  "announcement.goals.scavenger": "清除痕迹！你杀的人尸体大部分人看不到。额外：每次击杀多50金币，只能用刀，可花100金币重置刀的CD。",
+  "announcement.role.scavenger": "清道夫",
+  "announcement.win.scavenger": "杀手胜利！",
+
+  "item.noellesroles.scavenger_reset_knife_cd": "重置刀冷却",
+  "item.noellesroles.scavenger_reset_knife_cd.tooltip": "花费100金币\n立即重置刀的冷却时间",
+
+  "tip.scavenger.knife_cd_reset": "刀的冷却已重置！",
+  "tip.scavenger.not_enough_money": "需要100金币才能重置刀的冷却！"
 }

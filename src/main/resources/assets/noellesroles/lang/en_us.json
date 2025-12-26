@@ -114,5 +114,15 @@
   "screen.assassin.subtitle.warning": "§cWarning: Wrong guess = Your death",
 
   "tip.assassin.guess_correct": "Bingo! You saw right through %s—they're down!",
-  "tip.assassin.guess_wrong": "Oops! %s isn't what you thought... BANG! Overconfidence has its price."
+  "tip.assassin.guess_wrong": "Oops! %s isn't what you thought... BANG! Overconfidence has its price.",
+
+  "announcement.goals.scavenger": "Cover your tracks! Bodies you create are invisible to most. Bonus: Extra cash per kill, knife-only arsenal, and a 100-coin CD reset option.",
+  "announcement.role.scavenger": "Scavenger",
+  "announcement.win.scavenger": "Killers Win!",
+
+  "item.noellesroles.scavenger_reset_knife_cd": "Knife CD Reset",
+  "item.noellesroles.scavenger_reset_knife_cd.tooltip": "Costs 100 coins\nInstantly resets your knife cooldown",
+
+  "tip.scavenger.knife_cd_reset": "Knife cooldown reset!",
+  "tip.scavenger.not_enough_money": "Need 100 coins to reset knife CD!"
 }

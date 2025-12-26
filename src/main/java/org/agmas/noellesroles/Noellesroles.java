@@ -51,6 +51,7 @@ import org.agmas.noellesroles.packet.AssassinGuessRoleC2SPacket;
 import org.agmas.noellesroles.packet.MorphC2SPacket;
 import org.agmas.noellesroles.packet.SwapperC2SPacket;
 import org.agmas.noellesroles.packet.VultureEatC2SPacket;
+import org.agmas.noellesroles.packet.ScavengerResetKnifeCDC2SPacket;
 import org.agmas.noellesroles.recaller.RecallerPlayerComponent;
 import org.agmas.noellesroles.voodoo.VoodooPlayerComponent;
 import org.agmas.noellesroles.vulture.VulturePlayerComponent;
@@ -59,6 +60,8 @@ import org.agmas.noellesroles.pathogen.InfectedPlayerComponent;
 import org.agmas.noellesroles.bomber.BomberPlayerComponent;
 import org.agmas.noellesroles.bomber.BomberShopHandler;
 import org.agmas.noellesroles.assassin.AssassinPlayerComponent;
+import org.agmas.noellesroles.scavenger.ScavengerPlayerComponent;
+import org.agmas.noellesroles.scavenger.ScavengerShopHandler;
 
 import java.awt.*;
 import java.lang.reflect.Constructor;
@@ -91,6 +94,7 @@ public class Noellesroles implements ModInitializer {
     public static Identifier PATHOGEN_ID = Identifier.of(MOD_ID, "pathogen");
     public static Identifier BOMBER_ID = Identifier.of(MOD_ID, "bomber");
     public static Identifier ASSASSIN_ID = Identifier.of(MOD_ID, "assassin");
+    public static Identifier SCAVENGER_ID = Identifier.of(MOD_ID, "scavenger");
     // 炸弹死亡原因
     public static Identifier DEATH_REASON_BOMB = Identifier.of(MOD_ID, "bomb");
     // 刺客死亡原因
@@ -105,6 +109,8 @@ public class Noellesroles implements ModInitializer {
     public static Role BOMBER = TMMRoles.registerRole(new Role(BOMBER_ID, new Color(50, 50, 50).getRGB(), false, true, Role.MoodType.FAKE, Integer.MAX_VALUE, true));
     // 刺客角色 - 杀手阵营，可以猜测玩家身份
     public static Role ASSASSIN = TMMRoles.registerRole(new Role(ASSASSIN_ID, new Color(139, 0, 0).getRGB(), false, true, Role.MoodType.FAKE, Integer.MAX_VALUE, true));
+    // 清道夫角色 - 杀手阵营，杀人后尸体对其他人不可见（秃鹫和中立除外），杀人奖励+50金币，只能买刀，可以花100金币重置刀CD
+    public static Role SCAVENGER = TMMRoles.registerRole(new Role(SCAVENGER_ID, new Color(101, 67, 33).getRGB(), false, true, Role.MoodType.FAKE, Integer.MAX_VALUE, true));
 
 
     public static HashMap<Role, RoleAnnouncementTexts.RoleAnnouncementText> roleRoleAnnouncementTextHashMap = new HashMap<>();
@@ -133,6 +139,7 @@ public class Noellesroles implements ModInitializer {
     public static final CustomPayload.Id<AbilityC2SPacket> ABILITY_PACKET = AbilityC2SPacket.ID;
     public static final CustomPayload.Id<VultureEatC2SPacket> VULTURE_PACKET = VultureEatC2SPacket.ID;
     public static final CustomPayload.Id<AssassinGuessRoleC2SPacket> ASSASSIN_GUESS_ROLE_PACKET = AssassinGuessRoleC2SPacket.ID;
+    public static final CustomPayload.Id<ScavengerResetKnifeCDC2SPacket> SCAVENGER_RESET_KNIFE_CD_PACKET = ScavengerResetKnifeCDC2SPacket.ID;
     public static final ArrayList<Role> VANNILA_ROLES = new ArrayList<>();
     public static final ArrayList<Identifier> VANNILA_ROLE_IDS = new ArrayList<>();
 
@@ -154,11 +161,13 @@ public class Noellesroles implements ModInitializer {
         PayloadTypeRegistry.playC2S().register(SwapperC2SPacket.ID, SwapperC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(VultureEatC2SPacket.ID, VultureEatC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(AssassinGuessRoleC2SPacket.ID, AssassinGuessRoleC2SPacket.CODEC);
+        PayloadTypeRegistry.playC2S().register(ScavengerResetKnifeCDC2SPacket.ID, ScavengerResetKnifeCDC2SPacket.CODEC);
 
         registerEvents();
 
         BartenderShopHandler.register();
         BomberShopHandler.register();
+        ScavengerShopHandler.register();
 
         registerPackets();
         //NoellesRolesEntities.init();
@@ -269,6 +278,13 @@ public class Noellesroles implements ModInitializer {
                 assassinComp.setCooldown(GameConstants.getInTicks(0, 60));
                 // 刺客没有开局道具，只依靠猜测技能
             }
+            if (role.equals(SCAVENGER)) {
+                ScavengerPlayerComponent scavengerComp = ScavengerPlayerComponent.KEY.get(player);
+                scavengerComp.reset();
+                // 清道夫开局获得刀和撬棍
+                player.giveItemStack(TMMItems.KNIFE.getDefaultStack());
+                player.giveItemStack(TMMItems.CROWBAR.getDefaultStack());
+            }
         });
         ResetPlayer.EVENT.register(player -> {
             BartenderPlayerComponent.KEY.get(player).reset();
@@ -281,6 +297,7 @@ public class Noellesroles implements ModInitializer {
             InfectedPlayerComponent.KEY.get(player).reset();
             BomberPlayerComponent.KEY.get(player).reset();
             AssassinPlayerComponent.KEY.get(player).reset();
+            ScavengerPlayerComponent.KEY.get(player).reset();
         });
 
         // Bartender and Recaller get +50 coins when completing tasks
@@ -324,8 +341,16 @@ public class Noellesroles implements ModInitializer {
         // Jester kill detection - when jester is killed by an innocent, mark as won
         KillPlayer.AFTER.register((victim, killer, deathReason) -> {
             GameWorldComponent gameComponent = GameWorldComponent.KEY.get(victim.getWorld());
+            // 爆破手击杀奖励+100金币
             if (killer != null && gameComponent.isRole(killer, BOMBER)) {
                 PlayerShopComponent.KEY.get(killer).addToBalance(100);
+            }
+            // 清道夫击杀奖励+50金币（总共150，因为默认杀人100）
+            if (killer != null && gameComponent.isRole(killer, SCAVENGER)) {
+                PlayerShopComponent.KEY.get(killer).addToBalance(50);
+                // 记录清道夫杀死的玩家，用于隐藏尸体
+                ScavengerPlayerComponent scavengerComp = ScavengerPlayerComponent.KEY.get(killer);
+                scavengerComp.addHiddenBody(victim.getUuid());
             }
             // Check if victim is a jester
             if (!gameComponent.isRole(victim, JESTER)) return;
@@ -630,11 +655,67 @@ public class Noellesroles implements ModInitializer {
                 );
 
                 // 猜错：自己死亡
-                GameFunctions.killPlayer(assassin, true, assassin, DEATH_REASON_ASSASSIN_MISFIRE);
+                GameFunctions.killPlayer(assassin, true, null, DEATH_REASON_ASSASSIN_MISFIRE);
             }
 
             // 消耗猜测次数，设置冷却
             assassinComp.useGuess();
+        });
+
+        // 清道夫：重置刀CD
+        ServerPlayNetworking.registerGlobalReceiver(Noellesroles.SCAVENGER_RESET_KNIFE_CD_PACKET, (payload, context) -> {
+            ServerPlayerEntity scavenger = context.player();
+            GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(scavenger.getWorld());
+
+            // 验证角色和状态
+            if (!gameWorldComponent.isRole(scavenger, SCAVENGER)) return;
+            if (!GameFunctions.isPlayerAliveAndSurvival(scavenger)) return;
+
+            PlayerShopComponent playerShopComponent = PlayerShopComponent.KEY.get(scavenger);
+
+            // 检查金币是否足够（100金币）
+            if (playerShopComponent.balance < 100) {
+                scavenger.sendMessage(
+                    net.minecraft.text.Text.translatable("tip.scavenger.not_enough_money")
+                        .formatted(net.minecraft.util.Formatting.RED),
+                    true
+                );
+                return;
+            }
+
+            // 扣除100金币
+            playerShopComponent.balance -= 100;
+            playerShopComponent.sync();
+
+            // 重置刀的CD（通过移除并重新给予刀物品）
+            // 遍历玩家物品栏，找到刀并移除
+            for (int i = 0; i < scavenger.getInventory().size(); i++) {
+                net.minecraft.item.ItemStack stack = scavenger.getInventory().getStack(i);
+                if (stack.isOf(TMMItems.KNIFE)) {
+                    scavenger.getInventory().removeStack(i);
+                    break;
+                }
+            }
+
+            // 给予新的刀（CD已重置）
+            scavenger.giveItemStack(TMMItems.KNIFE.getDefaultStack());
+
+            // 播放音效反馈
+            scavenger.getWorld().playSound(
+                null,
+                scavenger.getX(), scavenger.getY(), scavenger.getZ(),
+                SoundEvents.ENTITY_PLAYER_LEVELUP,
+                SoundCategory.PLAYERS,
+                0.5F,
+                1.5F
+            );
+
+            // 发送成功消息
+            scavenger.sendMessage(
+                net.minecraft.text.Text.translatable("tip.scavenger.knife_cd_reset")
+                    .formatted(net.minecraft.util.Formatting.GREEN),
+                true
+            );
         });
     }
 
