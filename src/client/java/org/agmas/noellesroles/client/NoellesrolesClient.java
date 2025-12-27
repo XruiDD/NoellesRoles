@@ -19,6 +19,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.math.MathHelper;
 import org.agmas.noellesroles.Noellesroles;
 import org.agmas.noellesroles.assassin.AssassinPlayerComponent;
 import org.agmas.noellesroles.bartender.BartenderPlayerComponent;
@@ -143,7 +144,7 @@ public class NoellesrolesClient implements ClientModInitializer {
             // 如果目标是卧底，让杀手误以为是同伙（显示红色）
             if (gameWorldComponent.isRole(player, Noellesroles.UNDERCOVER)) {
                 // 使用与杀手同伙相同的红色（需要按Alt键）
-                return GetInstinctHighlight.HighlightResult.withKeybind(0xFF0000, GetInstinctHighlight.HighlightResult.PRIORITY_HIGH);
+                return GetInstinctHighlight.HighlightResult.withKeybind(MathHelper.hsvToRgb(0F, 1.0F, 0.6F), GetInstinctHighlight.HighlightResult.PRIORITY_HIGH);
             }
 
             return null;
