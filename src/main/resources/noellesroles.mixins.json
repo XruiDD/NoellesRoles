@@ -8,8 +8,7 @@
     "bartender.DefenseVialApplyMixin",
     "host.MasterKeySmallDoorMixin",
     "host.MasterKeyTrainDoorMixin",
-    "noisemaker.NoisemakerKillMixin",
-    "voodoo.VoodooVooMixin"
+    "noisemaker.NoisemakerKillMixin"
   ],
   "injectors": {
     "defaultRequire": 1

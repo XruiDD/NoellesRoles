@@ -322,11 +322,28 @@ public class Noellesroles implements ModInitializer {
             if (killer != null && gameComponent.isRole(killer, BOMBER)) {
                 PlayerShopComponent.KEY.get(killer).addToBalance(100);
             }
+
             // 记录清道夫杀人
-            if (killer != null && gameComponent.isRole(killer, SCAVENGER)) {
+            if (killer != null && gameComponent.isRole(killer, SCAVENGER) && !gameComponent.isRole(victim, NOISEMAKER)) {
                 ScavengerPlayerComponent scavengerComp = ScavengerPlayerComponent.KEY.get(killer);
                 scavengerComp.addHiddenBody(victim.getUuid());
             }
+
+            if (NoellesRolesConfig.HANDLER.instance().voodooNonKillerDeaths || killer != null) {
+                if (gameComponent.isRole(victim, Noellesroles.VOODOO)) {
+                    VoodooPlayerComponent voodooPlayerComponent = VoodooPlayerComponent.KEY.get(victim);
+                    if (voodooPlayerComponent.target != null && (deathReason != DEATH_REASON_ASSASSINATED || !gameComponent.isRole(victim ,ASSASSIN))) {
+                        PlayerEntity voodooed = victim.getWorld().getPlayerByUuid(voodooPlayerComponent.target);
+                        if (voodooed != null) {
+                            if (GameFunctions.isPlayerAliveAndSurvival(voodooed) && voodooed != victim) {
+                                GameFunctions.killPlayer(voodooed, true, null, Identifier.of(Noellesroles.MOD_ID, "voodoo"));
+                            }
+                        }
+                    }
+                }
+            }
+
+
             // Check if victim is a jester
             if (!gameComponent.isRole(victim, JESTER)) return;
 
