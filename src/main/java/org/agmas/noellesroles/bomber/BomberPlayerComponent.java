@@ -255,7 +255,11 @@ public class BomberPlayerComponent implements AutoSyncedComponent, ServerTicking
 
     @Override
     public void clientTick() {
-        // 客户端可以在这里添加视觉效果
+
+    }
+
+    public UUID getBomberUuid() {
+        return bomberUuid;
     }
 
     // Getters
