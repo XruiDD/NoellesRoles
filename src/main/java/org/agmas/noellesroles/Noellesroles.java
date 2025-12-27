@@ -314,10 +314,10 @@ public class Noellesroles implements ModInitializer {
             }
             return null;
         });
-
         // Jester kill detection - when jester is killed by an innocent, mark as won
         KillPlayer.AFTER.register((victim, killer, deathReason) -> {
             GameWorldComponent gameComponent = GameWorldComponent.KEY.get(victim.getWorld());
+            BomberPlayerComponent.KEY.get(victim).reset();
             // 炸弹客击杀奖励+100金币
             if (killer != null && gameComponent.isRole(killer, BOMBER)) {
                 PlayerShopComponent.KEY.get(killer).addToBalance(100);

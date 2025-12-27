@@ -4,6 +4,7 @@ import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.game.GameFunctions;
 import dev.doctor4t.wathe.index.WatheParticles;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.particle.ItemStackParticleEffect;
@@ -25,7 +26,11 @@ import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
 import org.ladysnake.cca.api.v3.component.tick.ClientTickingComponent;
 import org.ladysnake.cca.api.v3.component.tick.ServerTickingComponent;
 
+
 import java.util.UUID;
+
+import static org.agmas.noellesroles.ModItems.TIMED_BOMB;
+
 
 /**
  * 炸弹客玩家组件
@@ -61,6 +66,9 @@ public class BomberPlayerComponent implements AutoSyncedComponent, ServerTicking
     }
 
     public void reset() {
+        if(hasBomb){
+            removeBombFromInventory(player);
+        }
         this.hasBomb = false;
         this.bombTimer = 0;
         this.beepTimer = 0;
@@ -134,7 +142,7 @@ public class BomberPlayerComponent implements AutoSyncedComponent, ServerTicking
         removeBombFromInventory(this.player);
 
         // 给目标物品栏添加炸弹物品
-        target.giveItemStack(ModItems.TIMED_BOMB.getDefaultStack());
+        target.giveItemStack(TIMED_BOMB.getDefaultStack());
 
         // 播放传递音效
         player.getWorld().playSound(null, target.getX(), target.getY(), target.getZ(),
@@ -151,7 +159,7 @@ public class BomberPlayerComponent implements AutoSyncedComponent, ServerTicking
     private void removeBombFromInventory(PlayerEntity player) {
         for (int i = 0; i < player.getInventory().size(); i++) {
             ItemStack stack = player.getInventory().getStack(i);
-            if (stack.isOf(ModItems.TIMED_BOMB)) {
+            if (stack.isOf(TIMED_BOMB)) {
                 player.getInventory().removeStack(i, 1);
                 break;
             }
@@ -177,7 +185,7 @@ public class BomberPlayerComponent implements AutoSyncedComponent, ServerTicking
                 transferCooldown = TRANSFER_COOLDOWN_TICKS;
                 beepTimer = BEEP_DURATION_TICKS;
                 // 给玩家物品栏添加炸弹物品
-                player.giveItemStack(ModItems.TIMED_BOMB.getDefaultStack());
+                player.giveItemStack(TIMED_BOMB.getDefaultStack());
                 this.sync();
             }
         } else {
@@ -226,7 +234,7 @@ public class BomberPlayerComponent implements AutoSyncedComponent, ServerTicking
                 100, 0, 0, 0, 0.2);
 
         // 炸弹物品碎片粒子
-        serverWorld.spawnParticles(new ItemStackParticleEffect(ParticleTypes.ITEM, ModItems.TIMED_BOMB.getDefaultStack()),
+        serverWorld.spawnParticles(new ItemStackParticleEffect(ParticleTypes.ITEM, TIMED_BOMB.getDefaultStack()),
                 player.getX(), player.getY() + 0.5, player.getZ(),
                 100, 0, 0, 0, 1.0);
 
