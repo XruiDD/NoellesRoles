@@ -584,15 +584,11 @@ public class Noellesroles implements ModInitializer {
 
                     // Play coughing sound centered on the infected target (nearby players can hear)
                     if (context.player().getWorld() instanceof ServerWorld serverWorld) {
-                        Vec3d pos = nearestTarget.getPos();
-                        serverWorld.playSound(
-                            null,
-                            nearestTarget.getBlockPos(),
-                            SoundEvents.ENTITY_PANDA_SNEEZE,
-                            SoundCategory.PLAYERS,
-                            2.0F,
-                            0.8F
-                        );
+                        // 生成随机延迟：10-20秒
+                        int delayTicks = 200 + serverWorld.random.nextInt(201); // 200 + [0, 400] = [200, 600]
+
+                        // 在被感染者的Component中设置延迟音效
+                        targetInfected.scheduleSneezeSound(delayTicks);
                     }
                 }
             }
