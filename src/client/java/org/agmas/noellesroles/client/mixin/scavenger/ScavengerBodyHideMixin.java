@@ -57,12 +57,11 @@ public class ScavengerBodyHideMixin {
             return; // 不是清道夫的尸体，正常渲染
         }
 
-        // 秃鹫可以看到
+        // 中立可以看到
         if (gameWorldComponent.getRole(localPlayer).getFaction() == Faction.KILLER || gameWorldComponent.getRole(localPlayer).getFaction() == Faction.NEUTRAL) {
             return;
         }
 
-        // 其他玩家（包括杀手、无辜者、验尸官）无法看到清道夫的尸体
         ci.cancel();
     }
 }

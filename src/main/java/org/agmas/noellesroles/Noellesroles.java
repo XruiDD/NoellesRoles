@@ -509,14 +509,31 @@ public class Noellesroles implements ModInitializer {
                     if (context.player().getWorld().getPlayerByUuid(payload.player()) != null) {
                         if (payload.player2() != null) {
                             if (context.player().getWorld().getPlayerByUuid(payload.player2()) != null) {
-                                PlayerEntity player1 = context.player().getWorld().getPlayerByUuid(payload.player2());
-                                PlayerEntity player2 = context.player().getWorld().getPlayerByUuid(payload.player());
-                                Vec3d swapperPos = context.player().getWorld().getPlayerByUuid(payload.player2()).getPos();
-                                Vec3d swappedPos = context.player().getWorld().getPlayerByUuid(payload.player()).getPos();
+
+                                PlayerEntity player1 = context.player().getWorld().getPlayerByUuid(payload.player());
+                                PlayerEntity player2 = context.player().getWorld().getPlayerByUuid(payload.player2());
+
+                                if(player1 == null)
+                                    return;
+                                if(player2 == null)
+                                    return;
+
+                                Vec3d swappedPos1 = player1.getPos();
+                                Vec3d swappedPos2 = player2.getPos();
+
                                 if (!context.player().getWorld().isSpaceEmpty(player1)) return;
                                 if (!context.player().getWorld().isSpaceEmpty(player2)) return;
-                                context.player().getWorld().getPlayerByUuid(payload.player2()).refreshPositionAfterTeleport(swappedPos.x, swappedPos.y, swappedPos.z);
-                                context.player().getWorld().getPlayerByUuid(payload.player()).refreshPositionAfterTeleport(swapperPos.x, swapperPos.y, swapperPos.z);
+
+                                if(player1.isSleeping()){
+                                    player1.wakeUp();
+                                }
+
+                                if(player2.isSleeping()){
+                                    player2.wakeUp();
+                                }
+
+                                player1.refreshPositionAndAngles(swappedPos2.x, swappedPos2.y, swappedPos2.z, player2.getYaw(), player2.getPitch());
+                                player2.refreshPositionAndAngles(swappedPos1.x, swappedPos1.y, swappedPos1.z, player1.getYaw(), player1.getPitch());
                             }
                         }
                     }
