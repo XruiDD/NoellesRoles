@@ -217,7 +217,6 @@ public class Noellesroles implements ModInitializer {
                 VulturePlayerComponent vulturePlayerComponent = VulturePlayerComponent.KEY.get(player);
                 vulturePlayerComponent.reset();
                 vulturePlayerComponent.setBodiesRequired(gameWorldComponent.getAllPlayers().size() / 2);
-                player.giveItemStack(WatheItems.CROWBAR.getDefaultStack());
             }
             if (role.equals(CONDUCTOR)) {
                 player.giveItemStack(ModItems.MASTER_KEY.getDefaultStack());
@@ -243,13 +242,11 @@ public class Noellesroles implements ModInitializer {
             if (role.equals(JESTER)) {
                 JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(player);
                 jesterComponent.reset();
-                player.giveItemStack(WatheItems.CROWBAR.getDefaultStack());
             }
             if (role.equals(CORRUPT_COP)) {
                 CorruptCopPlayerComponent corruptCopComponent = CorruptCopPlayerComponent.KEY.get(player);
                 corruptCopComponent.reset();
                 player.giveItemStack(WatheItems.REVOLVER.getDefaultStack());
-                player.giveItemStack(WatheItems.CROWBAR.getDefaultStack());
             }
             if (role.equals(PATHOGEN)) {
                 PathogenPlayerComponent pathogenComp = PathogenPlayerComponent.KEY.get(player);
@@ -258,7 +255,6 @@ public class Noellesroles implements ModInitializer {
                 pathogenComp.setBaseCooldownByPlayerCount(gameWorldComponent.getAllPlayers().size());
                 // Set initial cooldown to 10 seconds
                 abilityPlayerComponent.cooldown = GameConstants.getInTicks(0, 10);
-                player.giveItemStack(WatheItems.CROWBAR.getDefaultStack());
             }
             if (role.equals(ASSASSIN)) {
                 AssassinPlayerComponent assassinComp = AssassinPlayerComponent.KEY.get(player);
