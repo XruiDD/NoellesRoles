@@ -352,13 +352,16 @@ public class Noellesroles implements ModInitializer {
                 }
             }
             BomberPlayerComponent bomberPlayerComponent = BomberPlayerComponent.KEY.get(victim);
-            if(bomberPlayerComponent.hasBomb() && killer == null && (deathReason == GameConstants.DeathReasons.FELL_OUT_OF_TRAIN || deathReason == GameConstants.DeathReasons.ESCAPED))
+            if(bomberPlayerComponent.hasBomb() && killer == null)
             {
                 PlayerEntity bomber = victim.getWorld().getPlayerByUuid(bomberPlayerComponent.getBomberUuid());
                 if(bomber != null){
-                    PlayerShopComponent.KEY.get(bomber).addToBalance(200);
+                    if((deathReason == GameConstants.DeathReasons.FELL_OUT_OF_TRAIN || deathReason == GameConstants.DeathReasons.ESCAPED)){
+                        PlayerShopComponent.KEY.get(bomber).addToBalance(200);
+                    }else{
+                        PlayerShopComponent.KEY.get(bomber).addToBalance(100);
+                    }
                 }
-
             }
 
 
