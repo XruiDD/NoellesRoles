@@ -136,7 +136,7 @@
   "tip.assassin.guess_correct": "%s 的身份被你一眼看穿——他倒了！",
   "tip.assassin.guess_wrong": "哎呀！%s 可不是你想的那样...砰！过于自信的代价来了。",
 
-  "announcement.goals.scavenger": "清除痕迹！你杀的人尸体大部分人看不到。额外：每次击杀多50金币，只能用刀，可花100金币重置刀的CD。",
+  "announcement.goals.scavenger": "清除痕迹！你杀的人尸体大部分人看不到。额外：每次击杀多100金币，只能用刀，可花100金币重置刀的CD。",
   "announcement.role.scavenger": "清道夫",
   "announcement.win.scavenger": "杀手胜利！",
 
