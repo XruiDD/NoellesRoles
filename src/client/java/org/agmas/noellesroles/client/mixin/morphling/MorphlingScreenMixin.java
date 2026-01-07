@@ -1,29 +1,17 @@
 package org.agmas.noellesroles.client.mixin.morphling;
 
 import dev.doctor4t.wathe.cca.GameWorldComponent;
-import dev.doctor4t.wathe.client.gui.RoundTextRenderer;
 import dev.doctor4t.wathe.client.gui.screen.ingame.LimitedHandledScreen;
 import dev.doctor4t.wathe.client.gui.screen.ingame.LimitedInventoryScreen;
-import dev.doctor4t.wathe.game.GameConstants;
-import dev.doctor4t.wathe.util.AnnounceWelcomePayload;
-import dev.doctor4t.wathe.util.ShopEntry;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.loader.impl.util.log.Log;
-import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.Drawable;
-import net.minecraft.client.gui.Element;
-import net.minecraft.client.gui.Selectable;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.text.Text;
 import org.agmas.noellesroles.Noellesroles;
 import org.agmas.noellesroles.client.MorphlingPlayerWidget;
-import org.agmas.noellesroles.client.NoellesrolesClient;
+import org.agmas.noellesroles.client.widget.PlayerSelectWidget;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -32,7 +20,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 
@@ -51,13 +38,11 @@ public abstract class MorphlingScreenMixin extends LimitedHandledScreen<PlayerSc
             List<UUID> lives = gameWorldComponent.getAllAlivePlayers();
             List<AbstractClientPlayerEntity> entries = MinecraftClient.getInstance().world.getPlayers();
             entries.removeIf(p -> !lives.contains(p.getUuid()) || p.getUuid().equals(player.getUuid()));
-            int apart = 36;
-            int x = ((LimitedInventoryScreen)(Object)this).width / 2 - (entries.size()) * apart / 2 + 9;
-            int shouldBeY = (((LimitedInventoryScreen)(Object)this).height - 32) / 2;
-            int y = shouldBeY + 80;
 
             for(int i = 0; i < entries.size(); ++i) {
-                MorphlingPlayerWidget child = new MorphlingPlayerWidget(((LimitedInventoryScreen)(Object)this), x + apart * i, y, entries.get(i), i);
+                int x = PlayerSelectWidget.calculateGridX(((LimitedInventoryScreen)(Object)this).width, entries.size(), i);
+                int y = PlayerSelectWidget.calculateGridY(((LimitedInventoryScreen)(Object)this).height, entries.size(), i);
+                MorphlingPlayerWidget child = new MorphlingPlayerWidget(((LimitedInventoryScreen)(Object)this), x, y, entries.get(i), i);
                 addDrawableChild(child);
             }
         }

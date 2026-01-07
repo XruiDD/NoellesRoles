@@ -15,8 +15,8 @@ import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.text.Text;
 import org.agmas.noellesroles.ConfigWorldComponent;
 import org.agmas.noellesroles.Noellesroles;
-import org.agmas.noellesroles.client.SwapperPlayerWidget;
 import org.agmas.noellesroles.client.VoodooPlayerWidget;
+import org.agmas.noellesroles.client.widget.PlayerSelectWidget;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -25,7 +25,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -45,8 +44,8 @@ public abstract class VoodoScreenMixin extends LimitedHandledScreen<PlayerScreen
             int y = (height- 32) / 2;
             int x = width / 2;
             if (!configWorldComponent.naturalVoodoosAllowed) {
-                Text text = Text.literal("Voodoo deaths must be triggered by another player!");
-                context.drawTextWithShadow(MinecraftClient.getInstance().textRenderer, text, x - (MinecraftClient.getInstance().textRenderer.getWidth(text)/2), y + 40, Color.RED.getRGB());
+                Text text = Text.translatable("hud.voodoo.natural_death_disabled");
+                context.drawTextWithShadow(MinecraftClient.getInstance().textRenderer, text, x - (MinecraftClient.getInstance().textRenderer.getWidth(text)/2), y + 35, Color.RED.getRGB());
             }
         }
     }
@@ -57,15 +56,13 @@ public abstract class VoodoScreenMixin extends LimitedHandledScreen<PlayerScreen
         if (gameWorldComponent.isRole(player,Noellesroles.VOODOO)) {
             List<UUID> entries = gameWorldComponent.getAllPlayers();
             entries.removeIf((e) -> e.equals(player.getUuid()));
-            int apart = 36;
-            int x = width / 2 - (entries.size()) * apart / 2 + 9;
-            int shouldBeY = (height - 32) / 2;
-            int y = shouldBeY + 80;
 
             for(int i = 0; i < entries.size(); ++i) {
                 PlayerListEntry playerEntry = MinecraftClient.getInstance().player.networkHandler.getPlayerListEntry(entries.get(i));
                 if (playerEntry == null) continue;
-                VoodooPlayerWidget child = new VoodooPlayerWidget(((LimitedInventoryScreen)(Object)this), x + apart * i, y, entries.get(i), playerEntry, player.getWorld(), i);
+                int x = PlayerSelectWidget.calculateGridX(width, entries.size(), i);
+                int y = PlayerSelectWidget.calculateGridY(height, entries.size(), i);
+                VoodooPlayerWidget child = new VoodooPlayerWidget(((LimitedInventoryScreen)(Object)this), x, y, entries.get(i), playerEntry, player.getWorld(), i);
                 addDrawableChild(child);
             }
         }

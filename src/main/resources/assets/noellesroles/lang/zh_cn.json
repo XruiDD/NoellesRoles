@@ -31,6 +31,7 @@
   "announcement.goals.voodoo": "选择一名玩家，在你死时与你一起同归于尽。",
   "announcement.role.voodoo": "巫毒师",
   "announcement.win.voodoo": "乘客胜利！",
+  "hud.voodoo.natural_death_disabled": "巫毒死亡必须由其他玩家触发！",
 
   "announcement.goals.swapper": "指定任意两名玩家交换位置。",
   "announcement.role.swapper": "交换者",

@@ -32,6 +32,7 @@
 
   "announcement.goals.voodoo": "Choose another player to go down with you.",
   "announcement.role.voodoo": "Voodoo",
+  "hud.voodoo.natural_death_disabled": "Voodoo deaths must be triggered by another player!",
 
   "announcement.goals.swapper": "Swap places with other players.",
   "announcement.role.swapper": "Swapper",

@@ -3,8 +3,6 @@ package org.agmas.noellesroles.client.mixin.swapper;
 import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.client.gui.screen.ingame.LimitedHandledScreen;
 import dev.doctor4t.wathe.client.gui.screen.ingame.LimitedInventoryScreen;
-import net.fabricmc.loader.impl.util.log.Log;
-import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
@@ -12,10 +10,9 @@ import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 import org.agmas.noellesroles.Noellesroles;
-import org.agmas.noellesroles.client.MorphlingPlayerWidget;
 import org.agmas.noellesroles.client.SwapperPlayerWidget;
+import org.agmas.noellesroles.client.widget.PlayerSelectWidget;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -45,10 +42,10 @@ public abstract class SwapperScreenMixin extends LimitedHandledScreen<PlayerScre
             int x = width / 2;
             if (SwapperPlayerWidget.playerChoiceOne == null) {
                 Text name = Text.translatable("hud.swapper.first_player_selection");
-                context.drawTextWithShadow(MinecraftClient.getInstance().textRenderer, name, x - (MinecraftClient.getInstance().textRenderer.getWidth(name)/2), y + 40, Color.CYAN.getRGB());
+                context.drawTextWithShadow(MinecraftClient.getInstance().textRenderer, name, x - (MinecraftClient.getInstance().textRenderer.getWidth(name)/2), y + 35, Color.CYAN.getRGB());
             } else {
                 Text name = Text.translatable("hud.swapper.second_player_selection");
-                context.drawTextWithShadow(MinecraftClient.getInstance().textRenderer, name, x - (MinecraftClient.getInstance().textRenderer.getWidth(name)/2), y + 40, Color.RED.getRGB());
+                context.drawTextWithShadow(MinecraftClient.getInstance().textRenderer, name, x - (MinecraftClient.getInstance().textRenderer.getWidth(name)/2), y + 35, Color.RED.getRGB());
             }
         }
     }
@@ -60,13 +57,11 @@ public abstract class SwapperScreenMixin extends LimitedHandledScreen<PlayerScre
             List<UUID> lives = gameWorldComponent.getAllAlivePlayers();
             List<AbstractClientPlayerEntity> entries = MinecraftClient.getInstance().world.getPlayers();
             entries.removeIf(p -> !lives.contains(p.getUuid()));
-            int apart = 36;
-            int x = width / 2 - (entries.size()) * apart / 2 + 9;
-            int shouldBeY = (height - 32) / 2;
-            int y = shouldBeY + 80;
 
             for(int i = 0; i < entries.size(); ++i) {
-                SwapperPlayerWidget child = new SwapperPlayerWidget(((LimitedInventoryScreen)(Object)this), x + apart * i, y, entries.get(i), i);
+                int x = PlayerSelectWidget.calculateGridX(width, entries.size(), i);
+                int y = PlayerSelectWidget.calculateGridY(height, entries.size(), i);
+                SwapperPlayerWidget child = new SwapperPlayerWidget(((LimitedInventoryScreen)(Object)this), x, y, entries.get(i), i);
                 addDrawableChild(child);
             }
         }
