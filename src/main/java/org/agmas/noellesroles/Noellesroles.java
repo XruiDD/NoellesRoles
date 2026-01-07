@@ -14,7 +14,6 @@ import dev.doctor4t.wathe.api.event.PlayerPoisoned;
 import dev.doctor4t.wathe.api.event.ResetPlayer;
 import dev.doctor4t.wathe.api.event.RoleAssigned;
 import dev.doctor4t.wathe.api.event.ShouldDropOnDeath;
-import dev.doctor4t.wathe.api.event.ShouldPunishGunShooter;
 import dev.doctor4t.wathe.api.event.TaskComplete;
 import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.game.GameFunctions;
@@ -380,14 +379,6 @@ public class Noellesroles implements ModInitializer {
             }
         });
 
-        // Corrupt Cop - cancel gun punishment for killing anyone
-        ShouldPunishGunShooter.EVENT.register((shooter, victim) -> {
-            GameWorldComponent gameComponent = GameWorldComponent.KEY.get(shooter.getWorld());
-            if (gameComponent.isRole(shooter, CORRUPT_COP)) {
-                return ShouldPunishGunShooter.PunishResult.cancel();
-            }
-            return null;
-        });
 
         // Pathogen win condition - when all living players (except pathogen) are infected
         CheckWinCondition.EVENT.register((world, gameComponent, currentStatus) -> {
