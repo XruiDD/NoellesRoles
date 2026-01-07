@@ -50,6 +50,7 @@ import org.agmas.noellesroles.voodoo.VoodooPlayerComponent;
 import org.agmas.noellesroles.vulture.VulturePlayerComponent;
 import org.agmas.noellesroles.jester.JesterPlayerComponent;
 import org.agmas.noellesroles.pathogen.InfectedPlayerComponent;
+import org.agmas.noellesroles.pathogen.PathogenPlayerComponent;
 import org.agmas.noellesroles.bomber.BomberPlayerComponent;
 import org.agmas.noellesroles.bomber.BomberShopHandler;
 import org.agmas.noellesroles.assassin.AssassinPlayerComponent;
@@ -252,6 +253,12 @@ public class Noellesroles implements ModInitializer {
                 player.giveItemStack(WatheItems.CROWBAR.getDefaultStack());
             }
             if (role.equals(PATHOGEN)) {
+                PathogenPlayerComponent pathogenComp = PathogenPlayerComponent.KEY.get(player);
+                pathogenComp.reset();
+                // Set base cooldown based on player count (6-11: 20s, 12-17: 15s, 18-24: 10s, 24+: 7s)
+                pathogenComp.setBaseCooldownByPlayerCount(gameWorldComponent.getAllPlayers().size());
+                // Set initial cooldown to 10 seconds
+                abilityPlayerComponent.cooldown = GameConstants.getInTicks(0, 10);
                 player.giveItemStack(WatheItems.CROWBAR.getDefaultStack());
             }
             if (role.equals(ASSASSIN)) {
@@ -273,6 +280,7 @@ public class Noellesroles implements ModInitializer {
             JesterPlayerComponent.KEY.get(player).reset();
             CorruptCopPlayerComponent.KEY.get(player).reset();
             InfectedPlayerComponent.KEY.get(player).reset();
+            PathogenPlayerComponent.KEY.get(player).reset();
             BomberPlayerComponent.KEY.get(player).reset();
             AssassinPlayerComponent.KEY.get(player).reset();
             ScavengerPlayerComponent.KEY.get(player).reset();
@@ -596,8 +604,9 @@ public class Noellesroles implements ModInitializer {
                     InfectedPlayerComponent targetInfected = InfectedPlayerComponent.KEY.get(nearestTarget);
                     targetInfected.setInfected(true, context.player().getUuid());
 
-                    // Set 15 second cooldown
-                    abilityPlayerComponent.cooldown = GameConstants.getInTicks(0, 15);
+                    // Set cooldown based on player count (calculated at game start)
+                    PathogenPlayerComponent pathogenComp = PathogenPlayerComponent.KEY.get(context.player());
+                    abilityPlayerComponent.cooldown = pathogenComp.getBaseCooldownTicks();
                     abilityPlayerComponent.sync();
 
                     // Play coughing sound centered on the infected target (nearby players can hear)

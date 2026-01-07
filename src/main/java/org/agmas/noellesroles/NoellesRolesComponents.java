@@ -7,6 +7,7 @@ import org.agmas.noellesroles.bartender.BartenderPlayerComponent;
 import org.agmas.noellesroles.corruptcop.CorruptCopPlayerComponent;
 import org.agmas.noellesroles.jester.JesterPlayerComponent;
 import org.agmas.noellesroles.pathogen.InfectedPlayerComponent;
+import org.agmas.noellesroles.pathogen.PathogenPlayerComponent;
 import org.agmas.noellesroles.bomber.BomberPlayerComponent;
 import org.agmas.noellesroles.recaller.RecallerPlayerComponent;
 import org.agmas.noellesroles.voodoo.VoodooPlayerComponent;
@@ -34,6 +35,7 @@ public class NoellesRolesComponents implements EntityComponentInitializer, World
         registry.beginRegistration(PlayerEntity.class, JesterPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(JesterPlayerComponent::new);
         registry.beginRegistration(PlayerEntity.class, CorruptCopPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(CorruptCopPlayerComponent::new);
         registry.beginRegistration(PlayerEntity.class, InfectedPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(InfectedPlayerComponent::new);
+        registry.beginRegistration(PlayerEntity.class, PathogenPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(PathogenPlayerComponent::new);
         registry.beginRegistration(PlayerEntity.class, BomberPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(BomberPlayerComponent::new);
         registry.beginRegistration(PlayerEntity.class, AssassinPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(AssassinPlayerComponent::new);
         registry.beginRegistration(PlayerEntity.class, ScavengerPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(ScavengerPlayerComponent::new);
