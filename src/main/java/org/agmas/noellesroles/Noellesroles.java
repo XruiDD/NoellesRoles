@@ -18,6 +18,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -449,6 +450,36 @@ public class Noellesroles implements ModInitializer {
             return null;
         });
 
+        DoorInteraction.EVENT.register((DoorInteraction.DoorInteractionContext context) -> {
+            if (context.isBlasted() || context.isJammed()) {
+                return DoorInteraction.DoorInteractionResult.PASS;
+            }
+            if (context.isOpen()) {
+                return DoorInteraction.DoorInteractionResult.PASS;
+            }
+            PlayerEntity player = context.getPlayer();
+            ItemStack handItem = context.getHandItem();
+            DoorInteraction.DoorType doorType = context.getDoorType();
+            if (handItem.isOf(ModItems.MASTER_KEY)) {
+                if (doorType == DoorInteraction.DoorType.TRAIN_DOOR || context.requiresKey()) {
+                    return DoorInteraction.DoorInteractionResult.ALLOW;
+                }
+            }
+            if (handItem.isOf(WatheItems.KEY)) {
+                if (player.getItemCooldownManager().isCoolingDown(WatheItems.KEY)) {
+                    return DoorInteraction.DoorInteractionResult.DENY;
+                }
+                GameWorldComponent gameWorld = GameWorldComponent.KEY.get(context.getWorld());
+                if (gameWorld.isRole(player, Noellesroles.VULTURE) || gameWorld.isRole(player, Noellesroles.PATHOGEN)){
+                    player.getItemCooldownManager().set(WatheItems.KEY, 200);
+                    return DoorInteraction.DoorInteractionResult.ALLOW;
+                } else if (gameWorld.isRole(player, Noellesroles.CORRUPT_COP) && doorType == DoorInteraction.DoorType.SMALL_DOOR){
+                    player.getItemCooldownManager().set(WatheItems.KEY, 200);
+                    return DoorInteraction.DoorInteractionResult.ALLOW;
+                }
+            }
+            return DoorInteraction.DoorInteractionResult.PASS;
+        });
     }
 
 

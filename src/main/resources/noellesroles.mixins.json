@@ -6,8 +6,6 @@
   "mixins": [
     "bartender.CocktailItemMixin",
     "bartender.DefenseVialApplyMixin",
-    "host.MasterKeySmallDoorMixin",
-    "host.MasterKeyTrainDoorMixin",
     "noisemaker.NoisemakerKillMixin"
   ],
   "injectors": {
