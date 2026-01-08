@@ -3,18 +3,11 @@ package org.agmas.noellesroles;
 import dev.doctor4t.wathe.api.Role;
 import dev.doctor4t.wathe.api.RoleAppearanceCondition;
 import dev.doctor4t.wathe.api.WatheRoles;
+import dev.doctor4t.wathe.api.event.*;
 import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.cca.PlayerShopComponent;
 import dev.doctor4t.wathe.client.gui.RoleAnnouncementTexts;
 import dev.doctor4t.wathe.entity.PlayerBodyEntity;
-import dev.doctor4t.wathe.api.event.CanSeePoison;
-import dev.doctor4t.wathe.api.event.CheckWinCondition;
-import dev.doctor4t.wathe.api.event.KillPlayer;
-import dev.doctor4t.wathe.api.event.PlayerPoisoned;
-import dev.doctor4t.wathe.api.event.ResetPlayer;
-import dev.doctor4t.wathe.api.event.RoleAssigned;
-import dev.doctor4t.wathe.api.event.ShouldDropOnDeath;
-import dev.doctor4t.wathe.api.event.TaskComplete;
 import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.game.GameFunctions;
 import dev.doctor4t.wathe.index.WatheItems;
@@ -375,6 +368,13 @@ public class Noellesroles implements ModInitializer {
             }
         });
 
+        ShouldPunishGunShooter.EVENT.register((shooter, victim) -> {
+            GameWorldComponent gameComponent = GameWorldComponent.KEY.get(shooter.getWorld());
+            if (gameComponent.isRole(shooter, CORRUPT_COP)) {
+                return ShouldPunishGunShooter.PunishResult.cancel();
+            }
+            return null;
+        });
 
         // Pathogen win condition - when all living players (except pathogen) are infected
         CheckWinCondition.EVENT.register((world, gameComponent, currentStatus) -> {
