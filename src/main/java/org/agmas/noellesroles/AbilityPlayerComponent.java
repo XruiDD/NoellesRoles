@@ -1,9 +1,10 @@
 package org.agmas.noellesroles;
 
-import dev.doctor4t.wathe.game.GameConstants;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
@@ -11,8 +12,6 @@ import org.ladysnake.cca.api.v3.component.ComponentRegistry;
 import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
 import org.ladysnake.cca.api.v3.component.tick.ClientTickingComponent;
 import org.ladysnake.cca.api.v3.component.tick.ServerTickingComponent;
-
-import java.util.UUID;
 
 public class AbilityPlayerComponent implements AutoSyncedComponent, ServerTickingComponent, ClientTickingComponent {
     public static final ComponentKey<AbilityPlayerComponent> KEY = ComponentRegistry.getOrCreate(Identifier.of(Noellesroles.MOD_ID, "ability"), AbilityPlayerComponent.class);
@@ -32,14 +31,33 @@ public class AbilityPlayerComponent implements AutoSyncedComponent, ServerTickin
         KEY.sync(this.player);
     }
 
+    @Override
+    public boolean shouldSyncWith(ServerPlayerEntity player) {
+        return player == this.player;
+    }
+
+    @Override
+    public void writeSyncPacket(RegistryByteBuf buf, ServerPlayerEntity recipient) {
+        buf.writeInt(this.cooldown);
+    }
+
+    @Override
+    public void applySyncPacket(RegistryByteBuf buf) {
+        this.cooldown = buf.readInt();
+    }
+
     public void clientTick() {
+        if (this.cooldown > 1) {
+            this.cooldown--;
+        }
     }
 
     public void serverTick() {
         if (this.cooldown > 0) {
             --this.cooldown;
-
-            this.sync();
+            if (this.cooldown % 20 == 0) {
+                this.sync();
+            }
         }
     }
 

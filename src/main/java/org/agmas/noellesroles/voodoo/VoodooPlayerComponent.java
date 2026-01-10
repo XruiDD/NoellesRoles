@@ -3,6 +3,7 @@ package org.agmas.noellesroles.voodoo;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import org.agmas.noellesroles.Noellesroles;
 import org.jetbrains.annotations.NotNull;
@@ -30,6 +31,10 @@ public class VoodooPlayerComponent implements AutoSyncedComponent {
         KEY.sync(this.player);
     }
 
+    @Override
+    public boolean shouldSyncWith(ServerPlayerEntity player) {
+        return player == this.player;
+    }
 
     public void setTarget(UUID target) {
         this.target = target;

@@ -1,24 +1,19 @@
 package org.agmas.noellesroles;
 
-import dev.doctor4t.wathe.game.GameConstants;
-import net.minecraft.entity.player.PlayerEntity;
+
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
-import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
 import org.agmas.noellesroles.config.NoellesRolesConfig;
 import org.jetbrains.annotations.NotNull;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
 import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
-import org.ladysnake.cca.api.v3.component.tick.ClientTickingComponent;
-import org.ladysnake.cca.api.v3.component.tick.ServerTickingComponent;
 
-import java.util.UUID;
-
-public class ConfigWorldComponent implements AutoSyncedComponent, ServerTickingComponent {
+public class ConfigWorldComponent implements AutoSyncedComponent {
     public static final ComponentKey<ConfigWorldComponent> KEY = ComponentRegistry.getOrCreate(Identifier.of(Noellesroles.MOD_ID, "config"), ConfigWorldComponent.class);
     public boolean insaneSeesMorphs = true;
     public boolean naturalVoodoosAllowed = false;
@@ -36,6 +31,20 @@ public class ConfigWorldComponent implements AutoSyncedComponent, ServerTickingC
         KEY.sync(this.world);
     }
 
+    @Override
+    public void writeSyncPacket(RegistryByteBuf buf, ServerPlayerEntity recipient) {
+        // 同步配置数据到客户端
+        buf.writeBoolean(this.insaneSeesMorphs);
+        buf.writeBoolean(this.naturalVoodoosAllowed);
+    }
+
+    @Override
+    public void applySyncPacket(RegistryByteBuf buf) {
+        // 从服务端接收配置数据
+        this.insaneSeesMorphs = buf.readBoolean();
+        this.naturalVoodoosAllowed = buf.readBoolean();
+    }
+
     public void writeToNbt(@NotNull NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
         insaneSeesMorphs = NoellesRolesConfig.HANDLER.instance().insanePlayersSeeMorphs;
         naturalVoodoosAllowed = NoellesRolesConfig.HANDLER.instance().voodooNonKillerDeaths;
@@ -46,10 +55,5 @@ public class ConfigWorldComponent implements AutoSyncedComponent, ServerTickingC
     public void readFromNbt(@NotNull NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
         if (tag.contains("insaneSeesMorphs"))   this.insaneSeesMorphs = tag.getBoolean("insaneSeesMorphs");
         if (tag.contains("naturalVoodoosAllowed"))   this.naturalVoodoosAllowed = tag.getBoolean("naturalVoodoosAllowed");
-    }
-
-    @Override
-    public void serverTick() {
-        this.sync();
     }
 }

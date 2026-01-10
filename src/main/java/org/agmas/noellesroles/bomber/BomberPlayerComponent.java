@@ -4,7 +4,6 @@ import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.game.GameFunctions;
 import dev.doctor4t.wathe.index.WatheParticles;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.particle.ItemStackParticleEffect;
@@ -16,14 +15,11 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
-import org.agmas.noellesroles.ModItems;
 import org.agmas.noellesroles.ModSounds;
 import org.agmas.noellesroles.Noellesroles;
 import org.jetbrains.annotations.NotNull;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
-import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
-import org.ladysnake.cca.api.v3.component.tick.ClientTickingComponent;
 import org.ladysnake.cca.api.v3.component.tick.ServerTickingComponent;
 
 
@@ -36,7 +32,7 @@ import static org.agmas.noellesroles.ModItems.TIMED_BOMB;
  * 炸弹客玩家组件
  * 管理炸弹状态：放置、滴滴声、传递冷却、爆炸
  */
-public class BomberPlayerComponent implements AutoSyncedComponent, ServerTickingComponent, ClientTickingComponent {
+public class BomberPlayerComponent implements ServerTickingComponent {
     public static final ComponentKey<BomberPlayerComponent> KEY = ComponentRegistry.getOrCreate(
             Identifier.of(Noellesroles.MOD_ID, "bomber"), BomberPlayerComponent.class);
 
@@ -54,6 +50,8 @@ public class BomberPlayerComponent implements AutoSyncedComponent, ServerTicking
     private boolean isBeeping = false;
     // 放置炸弹的炸弹客UUID
     private UUID bomberUuid = null;
+    // 上一次显示的倒计时秒数（用于避免每tick发送消息）
+    private int lastDisplayedSeconds = -1;
 
     // 常量
     public static final int BOMB_DELAY_TICKS = GameConstants.getInTicks(0, 10); // 10秒后开始滴滴声
@@ -75,11 +73,7 @@ public class BomberPlayerComponent implements AutoSyncedComponent, ServerTicking
         this.transferCooldown = 0;
         this.isBeeping = false;
         this.bomberUuid = null;
-        this.sync();
-    }
-
-    public void sync() {
-        KEY.sync(this.player);
+        this.lastDisplayedSeconds = -1;
     }
 
     /**
@@ -93,7 +87,7 @@ public class BomberPlayerComponent implements AutoSyncedComponent, ServerTicking
         this.isBeeping = false;
         this.bomberUuid = bomber.getUuid();
         this.transferCooldown = 0;
-        this.sync();
+        this.lastDisplayedSeconds = -1;
     }
 
     /**
@@ -131,12 +125,14 @@ public class BomberPlayerComponent implements AutoSyncedComponent, ServerTicking
         targetComponent.isBeeping = true;
         targetComponent.bomberUuid = this.bomberUuid;
         targetComponent.transferCooldown = TRANSFER_COOLDOWN_TICKS;
+        targetComponent.lastDisplayedSeconds = -1;
 
         // 清除自己的炸弹
         this.hasBomb = false;
         this.bombTimer = 0;
         this.beepTimer = 0;
         this.isBeeping = false;
+        this.lastDisplayedSeconds = -1;
 
         // 移除自己物品栏中的炸弹物品
         removeBombFromInventory(this.player);
@@ -147,10 +143,6 @@ public class BomberPlayerComponent implements AutoSyncedComponent, ServerTicking
         // 播放传递音效
         player.getWorld().playSound(null, target.getX(), target.getY(), target.getZ(),
                 SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 1.0F, 1.0F);
-
-        this.sync();
-        targetComponent.sync();
-
     }
 
     /**
@@ -184,9 +176,7 @@ public class BomberPlayerComponent implements AutoSyncedComponent, ServerTicking
                 isBeeping = true;
                 transferCooldown = TRANSFER_COOLDOWN_TICKS;
                 beepTimer = BEEP_DURATION_TICKS;
-                // 给玩家物品栏添加炸弹物品
                 player.giveItemStack(TIMED_BOMB.getDefaultStack());
-                this.sync();
             }
         } else {
             // 滴滴声阶段
@@ -196,17 +186,20 @@ public class BomberPlayerComponent implements AutoSyncedComponent, ServerTicking
                     player.getWorld().playSound(null, player.getX(), player.getY(), player.getZ(),
                             ModSounds.BOMB_BEEP, SoundCategory.PLAYERS, 2.0F, 1.0F);
                 }
+
                 int secondsLeft = (beepTimer + 19) / 20;
-                player.sendMessage(Text.translatable("tip.bomber.bomb_warning", secondsLeft)
-                        .formatted(Formatting.RED, Formatting.BOLD), true);
+                if (secondsLeft != lastDisplayedSeconds) {
+                    lastDisplayedSeconds = secondsLeft;
+                    player.sendMessage(Text.translatable("tip.bomber.bomb_warning", secondsLeft)
+                            .formatted(Formatting.RED, Formatting.BOLD), true);
+                }
+
                 beepTimer--;
             } else {
                 // 爆炸！
                 explode();
             }
         }
-
-        this.sync();
     }
 
     /**
@@ -250,12 +243,7 @@ public class BomberPlayerComponent implements AutoSyncedComponent, ServerTicking
         this.bombTimer = 0;
         this.beepTimer = 0;
         this.isBeeping = false;
-        this.sync();
-    }
-
-    @Override
-    public void clientTick() {
-
+        this.lastDisplayedSeconds = -1;
     }
 
     public UUID getBomberUuid() {
@@ -282,6 +270,7 @@ public class BomberPlayerComponent implements AutoSyncedComponent, ServerTicking
     public boolean canTransfer() {
         return hasBomb && isBeeping && transferCooldown <= 0;
     }
+
     @Override
     public void writeToNbt(@NotNull NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
         tag.putBoolean("hasBomb", this.hasBomb);

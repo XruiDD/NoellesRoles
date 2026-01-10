@@ -90,7 +90,7 @@ public class NoellesrolesClient implements ClientModInitializer {
                 if (localPlayer.canSee(player)) {
                     BartenderPlayerComponent comp = BartenderPlayerComponent.KEY.get(player);
                     if (comp.glowTicks > 0) return GetInstinctHighlight.HighlightResult.always(Color.GREEN.getRGB());
-                    if (comp.armor > 0) return  GetInstinctHighlight.HighlightResult.always(Color.BLUE.getRGB());
+                    if (comp.armor) return  GetInstinctHighlight.HighlightResult.always(Color.BLUE.getRGB());
                 }
             }
 

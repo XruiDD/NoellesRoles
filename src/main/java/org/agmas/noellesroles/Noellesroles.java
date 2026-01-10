@@ -31,7 +31,6 @@ import net.minecraft.util.math.Vec3d;
 import org.agmas.noellesroles.bartender.BartenderPlayerComponent;
 import org.agmas.noellesroles.bartender.BartenderShopHandler;
 import org.agmas.noellesroles.config.NoellesRolesConfig;
-import org.agmas.noellesroles.corruptcop.CorruptCopPlayerComponent;
 import org.agmas.noellesroles.morphling.MorphlingPlayerComponent;
 import org.agmas.noellesroles.packet.AbilityC2SPacket;
 import org.agmas.noellesroles.packet.AssassinGuessRoleC2SPacket;
@@ -186,9 +185,9 @@ public class Noellesroles implements ModInitializer {
             if (deathReason == GameConstants.DeathReasons.FELL_OUT_OF_TRAIN) return null;
             GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(victim.getWorld());
             BartenderPlayerComponent bartenderPlayerComponent = BartenderPlayerComponent.KEY.get(victim);
-            if (bartenderPlayerComponent.armor > 0 && deathReason != GameConstants.DeathReasons.SHOT_INNOCENT) {
+            if (bartenderPlayerComponent.armor && deathReason != GameConstants.DeathReasons.SHOT_INNOCENT) {
                 victim.getWorld().playSound(null, victim.getBlockPos(), WatheSounds.ITEM_PSYCHO_ARMOUR, SoundCategory.MASTER, 5.0F, 1.0F);
-                bartenderPlayerComponent.armor--;
+                bartenderPlayerComponent.armor = false;
                 return KillPlayer.KillResult.cancel();
             }
             return null;
@@ -238,8 +237,6 @@ public class Noellesroles implements ModInitializer {
                 jesterComponent.reset();
             }
             if (role.equals(CORRUPT_COP)) {
-                CorruptCopPlayerComponent corruptCopComponent = CorruptCopPlayerComponent.KEY.get(player);
-                corruptCopComponent.reset();
                 player.giveItemStack(WatheItems.REVOLVER.getDefaultStack());
             }
             if (role.equals(PATHOGEN)) {
@@ -267,7 +264,6 @@ public class Noellesroles implements ModInitializer {
             RecallerPlayerComponent.KEY.get(player).reset();
             VulturePlayerComponent.KEY.get(player).reset();
             JesterPlayerComponent.KEY.get(player).reset();
-            CorruptCopPlayerComponent.KEY.get(player).reset();
             InfectedPlayerComponent.KEY.get(player).reset();
             PathogenPlayerComponent.KEY.get(player).reset();
             BomberPlayerComponent.KEY.get(player).reset();
@@ -364,7 +360,6 @@ public class Noellesroles implements ModInitializer {
                     // Jester wins!
                     JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(victim);
                     jesterComponent.won = true;
-                    jesterComponent.sync();
                 }
             }
         });
@@ -501,6 +496,8 @@ public class Noellesroles implements ModInitializer {
             }
             if (gameWorldComponent.isRole(context.player(), MORPHLING) && GameFunctions.isPlayerAliveAndSurvival(context.player())) {
                 MorphlingPlayerComponent morphlingPlayerComponent = (MorphlingPlayerComponent) MorphlingPlayerComponent.KEY.get(context.player());
+                // 服务端验证冷却是否结束，防止作弊
+                if (morphlingPlayerComponent.getMorphTicks() != 0) return;
                 morphlingPlayerComponent.startMorph(payload.player());
             }
         });
@@ -627,8 +624,7 @@ public class Noellesroles implements ModInitializer {
 
                     // Set cooldown based on player count (calculated at game start)
                     PathogenPlayerComponent pathogenComp = PathogenPlayerComponent.KEY.get(context.player());
-                    abilityPlayerComponent.cooldown = pathogenComp.getBaseCooldownTicks();
-                    abilityPlayerComponent.sync();
+                    abilityPlayerComponent.setCooldown(pathogenComp.getBaseCooldownTicks());
 
                     // Play coughing sound centered on the infected target (nearby players can hear)
                     if (context.player().getWorld() instanceof ServerWorld serverWorld) {

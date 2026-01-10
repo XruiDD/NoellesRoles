@@ -4,6 +4,7 @@ import dev.doctor4t.wathe.game.GameConstants;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import org.agmas.noellesroles.Noellesroles;
 import org.jetbrains.annotations.NotNull;
@@ -13,7 +14,7 @@ import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
 import org.ladysnake.cca.api.v3.component.tick.ClientTickingComponent;
 import org.ladysnake.cca.api.v3.component.tick.ServerTickingComponent;
 
-public class AssassinPlayerComponent implements AutoSyncedComponent, ServerTickingComponent, ClientTickingComponent {
+public class AssassinPlayerComponent implements AutoSyncedComponent, ServerTickingComponent {
     public static final ComponentKey<AssassinPlayerComponent> KEY = ComponentRegistry.getOrCreate(Identifier.of(Noellesroles.MOD_ID, "assassin"), AssassinPlayerComponent.class);
     private final PlayerEntity player;
 
@@ -65,6 +66,11 @@ public class AssassinPlayerComponent implements AutoSyncedComponent, ServerTicki
         this.sync();
     }
 
+    @Override
+    public boolean shouldSyncWith(ServerPlayerEntity player) {
+        return player == this.player;
+    }
+
     /**
      * 检查是否可以使用猜测技能
      * @return 如果有剩余次数且不在冷却中，返回true
@@ -85,16 +91,10 @@ public class AssassinPlayerComponent implements AutoSyncedComponent, ServerTicki
     }
 
     @Override
-    public void clientTick() {
-        // 客户端不需要tick逻辑
-    }
-
-    @Override
     public void serverTick() {
-        // 每tick减少冷却时间
         if (cooldownTicks > 0) {
             cooldownTicks--;
-            if (cooldownTicks % 20 == 0) {  // 每秒同步一次，减少网络流量
+            if (cooldownTicks % 20 == 0) {
                 this.sync();
             }
         }

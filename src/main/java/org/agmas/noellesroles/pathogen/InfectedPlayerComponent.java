@@ -1,8 +1,11 @@
 package org.agmas.noellesroles.pathogen;
 
+import dev.doctor4t.wathe.cca.GameWorldComponent;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
@@ -38,6 +41,22 @@ public class InfectedPlayerComponent implements AutoSyncedComponent, ServerTicki
 
     public void sync() {
         KEY.sync(this.player);
+    }
+
+    @Override
+    public boolean shouldSyncWith(ServerPlayerEntity recipient) {
+        GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(recipient.getWorld());
+        return gameWorldComponent.isRole(recipient, Noellesroles.PATHOGEN);
+    }
+
+    @Override
+    public void writeSyncPacket(RegistryByteBuf buf, ServerPlayerEntity recipient) {
+        buf.writeBoolean(this.infected);
+    }
+
+    @Override
+    public void applySyncPacket(RegistryByteBuf buf) {
+        this.infected = buf.readBoolean();
     }
 
     @Override

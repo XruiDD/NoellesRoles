@@ -1,16 +1,9 @@
 package org.agmas.noellesroles.morphling;
 
-import dev.doctor4t.wathe.Wathe;
-import dev.doctor4t.wathe.cca.GameWorldComponent;
-import dev.doctor4t.wathe.cca.PlayerPsychoComponent;
 import dev.doctor4t.wathe.game.GameConstants;
-import dev.doctor4t.wathe.index.WatheItems;
-import dev.doctor4t.wathe.util.ShopEntry;
-import net.fabricmc.loader.impl.util.log.Log;
-import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
@@ -20,12 +13,11 @@ import org.jetbrains.annotations.NotNull;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
 import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
-import org.ladysnake.cca.api.v3.component.tick.ClientTickingComponent;
 import org.ladysnake.cca.api.v3.component.tick.ServerTickingComponent;
 
 import java.util.UUID;
 
-public class MorphlingPlayerComponent implements AutoSyncedComponent, ServerTickingComponent, ClientTickingComponent {
+public class MorphlingPlayerComponent implements AutoSyncedComponent, ServerTickingComponent {
     public static final ComponentKey<MorphlingPlayerComponent> KEY = ComponentRegistry.getOrCreate(Identifier.of(Noellesroles.MOD_ID, "morphling"), MorphlingPlayerComponent.class);
     private final PlayerEntity player;
     public UUID disguise;
@@ -44,7 +36,21 @@ public class MorphlingPlayerComponent implements AutoSyncedComponent, ServerTick
         KEY.sync(this.player);
     }
 
-    public void clientTick() {
+    @Override
+    public void writeSyncPacket(RegistryByteBuf buf, ServerPlayerEntity recipient){
+        if (recipient == this.player) {
+            buf.writeInt(this.morphTicks);
+            buf.writeUuid(this.disguise == null ? player.getUuid() : this.disguise);
+        } else {
+            buf.writeInt(this.morphTicks > 0 ? 1 : 0);
+            buf.writeUuid(this.disguise == null ? player.getUuid() : this.disguise);
+        }
+    }
+
+    @Override
+    public void applySyncPacket(RegistryByteBuf buf) {
+        this.morphTicks = buf.readInt();
+        this.disguise = buf.readUuid();
     }
 
     public void serverTick() {
@@ -52,19 +58,20 @@ public class MorphlingPlayerComponent implements AutoSyncedComponent, ServerTick
             if (player.getWorld().getPlayerByUuid(disguise) != null) {
                 if (((ServerPlayerEntity)player.getWorld().getPlayerByUuid(disguise)).interactionManager.getGameMode() == GameMode.SPECTATOR) {
                     stopMorph();
+                    return;
                 }
             } else {
                 stopMorph();
+                return;
             }
             if (--this.morphTicks == 0) {
                 this.stopMorph();
             }
-
-            this.sync();
         }
         if (this.morphTicks < 0) {
-            this.morphTicks++;
-            this.sync();
+            if (++this.morphTicks % 20 == 0) {
+                this.sync();
+            }
         }
     }
 
@@ -77,6 +84,7 @@ public class MorphlingPlayerComponent implements AutoSyncedComponent, ServerTick
 
     public void stopMorph() {
         this.morphTicks = -GameConstants.getInTicks(0,20);
+        this.sync();
     }
 
     public int getMorphTicks() {

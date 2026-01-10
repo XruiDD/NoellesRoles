@@ -6,28 +6,22 @@ import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.util.Identifier;
 import org.agmas.noellesroles.Noellesroles;
 import org.jetbrains.annotations.NotNull;
+import org.ladysnake.cca.api.v3.component.Component;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
-import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
 
-public class JesterPlayerComponent implements AutoSyncedComponent {
+public class JesterPlayerComponent implements Component {
     public static final ComponentKey<JesterPlayerComponent> KEY =
         ComponentRegistry.getOrCreate(Identifier.of(Noellesroles.MOD_ID, "jester"), JesterPlayerComponent.class);
 
-    private final PlayerEntity player;
     public boolean won = false;
 
     public JesterPlayerComponent(PlayerEntity player) {
-        this.player = player;
+
     }
 
     public void reset() {
         this.won = false;
-        this.sync();
-    }
-
-    public void sync() {
-        KEY.sync(this.player);
     }
 
     @Override

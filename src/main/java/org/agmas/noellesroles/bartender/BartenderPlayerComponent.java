@@ -1,23 +1,21 @@
 package org.agmas.noellesroles.bartender;
 
+import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.game.GameConstants;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
-import net.minecraft.world.GameMode;
 import org.agmas.noellesroles.Noellesroles;
 import org.jetbrains.annotations.NotNull;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
 import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
-import org.ladysnake.cca.api.v3.component.tick.ClientTickingComponent;
 import org.ladysnake.cca.api.v3.component.tick.ServerTickingComponent;
 
-import java.util.UUID;
-
-public class BartenderPlayerComponent implements AutoSyncedComponent, ServerTickingComponent, ClientTickingComponent {
+public class BartenderPlayerComponent implements AutoSyncedComponent, ServerTickingComponent {
     public static final ComponentKey<BartenderPlayerComponent> KEY = ComponentRegistry.getOrCreate(Identifier.of(Noellesroles.MOD_ID, "bartender"), BartenderPlayerComponent.class);
     public static final int INITIAL_PRICE = 100;
     public static final int MAX_PRICE = 300;
@@ -25,12 +23,12 @@ public class BartenderPlayerComponent implements AutoSyncedComponent, ServerTick
 
     private final PlayerEntity player;
     public int glowTicks = 0;
-    public int armor = 0;
+    public boolean armor = false;
     public int currentPrice = INITIAL_PRICE;
 
     public void reset() {
         this.glowTicks = 0;
-        this.armor = 0;
+        this.armor = false;
         this.currentPrice = INITIAL_PRICE;
         this.sync();
     }
@@ -43,28 +41,21 @@ public class BartenderPlayerComponent implements AutoSyncedComponent, ServerTick
         KEY.sync(this.player);
     }
 
-    public void clientTick() {
-    }
-
     public void serverTick() {
         if (this.glowTicks > 0) {
             --this.glowTicks;
-
         }
+    }
+
+    public void giveArmor() {
+        armor = true;
         this.sync();
     }
 
-    public boolean giveArmor() {
-        armor = 1;
-        this.sync();
-        return true;
-    }
 
-
-    public boolean startGlow() {
+    public void startGlow() {
         setGlowTicks(GameConstants.getInTicks(0,40));
         this.sync();
-        return true;
     }
 
 
@@ -87,15 +78,39 @@ public class BartenderPlayerComponent implements AutoSyncedComponent, ServerTick
         }
     }
 
+    @Override
+    public boolean shouldSyncWith(ServerPlayerEntity player) {
+        GameWorldComponent gameWorld = GameWorldComponent.KEY.get(player.getWorld());
+        return gameWorld.isRole(player, Noellesroles.BARTENDER);
+    }
+
+    @Override
+    public void writeSyncPacket(RegistryByteBuf buf, ServerPlayerEntity recipient){
+        buf.writeBoolean(this.glowTicks > 0);
+        buf.writeBoolean(this.armor);
+        buf.writeInt(this.currentPrice);
+    }
+
+    @Override
+    public void applySyncPacket(RegistryByteBuf buf) {
+        this.glowTicks = buf.readBoolean() ? 1 : 0;
+        this.armor = buf.readBoolean();
+        this.currentPrice = buf.readInt();
+    }
+
     public void writeToNbt(@NotNull NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
         tag.putInt("glowTicks", this.glowTicks);
-        tag.putInt("armor", this.armor);
+        tag.putBoolean("armor", this.armor);
         tag.putInt("currentPrice", this.currentPrice);
     }
 
     public void readFromNbt(@NotNull NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
         this.glowTicks = tag.contains("glowTicks") ? tag.getInt("glowTicks") : 0;
-        this.armor = tag.contains("armor") ? tag.getInt("armor") : 0;
+        if (tag.contains("armor")) {
+            this.armor = tag.getBoolean("armor");
+        } else {
+            this.armor = false;
+        }
         this.currentPrice = tag.contains("currentPrice") ? tag.getInt("currentPrice") : INITIAL_PRICE;
     }
 }

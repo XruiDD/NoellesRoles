@@ -7,11 +7,11 @@ import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.util.Identifier;
 import org.agmas.noellesroles.Noellesroles;
 import org.jetbrains.annotations.NotNull;
+import org.ladysnake.cca.api.v3.component.Component;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
-import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
 
-public class PathogenPlayerComponent implements AutoSyncedComponent {
+public class PathogenPlayerComponent implements Component {
     public static final ComponentKey<PathogenPlayerComponent> KEY = ComponentRegistry.getOrCreate(Identifier.of(Noellesroles.MOD_ID, "pathogen"), PathogenPlayerComponent.class);
     private final PlayerEntity player;
     private int baseCooldownTicks = GameConstants.getInTicks(0, 15); // default 15 seconds
@@ -22,11 +22,6 @@ public class PathogenPlayerComponent implements AutoSyncedComponent {
 
     public void reset() {
         this.baseCooldownTicks = GameConstants.getInTicks(0, 15);
-        this.sync();
-    }
-
-    public void sync() {
-        KEY.sync(this.player);
     }
 
     public int getBaseCooldownTicks() {
@@ -50,7 +45,6 @@ public class PathogenPlayerComponent implements AutoSyncedComponent {
             cooldownSeconds = 20;
         }
         this.baseCooldownTicks = GameConstants.getInTicks(0, cooldownSeconds);
-        this.sync();
     }
 
     @Override
