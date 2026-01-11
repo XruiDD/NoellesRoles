@@ -8,6 +8,7 @@ import net.minecraft.util.Identifier;
 public class ModSounds {
     public static final SoundEvent BOMB_BEEP = registerSound("item.bomb.beep");
     public static final SoundEvent BOMB_EXPLODE = registerSound("item.bomb.explode");
+    public static final SoundEvent JESTER_LAUGH = registerSound("ambient.jester_laugh");
 
     private static SoundEvent registerSound(String name) {
         Identifier id = Identifier.of(Noellesroles.MOD_ID, name);

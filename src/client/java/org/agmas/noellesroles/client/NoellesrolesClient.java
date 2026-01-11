@@ -1,15 +1,12 @@
 package org.agmas.noellesroles.client;
 
 import com.google.common.collect.Maps;
+import dev.doctor4t.wathe.api.event.*;
 import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.cca.PlayerMoodComponent;
 import dev.doctor4t.wathe.cca.PlayerPoisonComponent;
 import dev.doctor4t.wathe.client.WatheClient;
 import dev.doctor4t.wathe.entity.PlayerBodyEntity;
-import dev.doctor4t.wathe.api.event.CanSeeBodyRole;
-import dev.doctor4t.wathe.api.event.CanSeeMoney;
-import dev.doctor4t.wathe.api.event.GetInstinctHighlight;
-import dev.doctor4t.wathe.api.event.ShouldShowCohort;
 import dev.doctor4t.wathe.game.GameFunctions;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -24,6 +21,7 @@ import org.agmas.noellesroles.Noellesroles;
 import org.agmas.noellesroles.assassin.AssassinPlayerComponent;
 import org.agmas.noellesroles.bartender.BartenderPlayerComponent;
 import org.agmas.noellesroles.client.screen.AssassinScreen;
+import org.agmas.noellesroles.jester.JesterPlayerComponent;
 import org.agmas.noellesroles.packet.AbilityC2SPacket;
 import org.agmas.noellesroles.packet.VultureEatC2SPacket;
 import org.agmas.noellesroles.pathogen.InfectedPlayerComponent;
@@ -84,6 +82,14 @@ public class NoellesrolesClient implements ClientModInitializer {
             if (!GameFunctions.isPlayerAliveAndSurvival(MinecraftClient.getInstance().player)) return null;
 
             PlayerEntity localPlayer = MinecraftClient.getInstance().player;
+
+            if (gameWorldComponent.isRole(localPlayer, Noellesroles.JESTER)) {
+                JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(player);
+                if (jesterComponent.inPsychoMode && entity.getUuid() == jesterComponent.targetKiller)
+                {
+                    return GetInstinctHighlight.HighlightResult.always(Noellesroles.JESTER.color());
+                }
+            }
 
             // BARTENDER: 看到喝酒者发绿光，有护甲者发蓝光（需要视线）
             if (gameWorldComponent.isRole(localPlayer, Noellesroles.BARTENDER)) {

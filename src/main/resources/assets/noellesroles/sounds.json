@@ -23,5 +23,13 @@
             }
         ],
         "subtitle": "subtitles.noellesroles.item.bomb.explode"
+    },
+    "ambient.jester_laugh": {
+        "sounds": [
+            {
+                "name": "noellesroles:ambient/jester_laugh"
+            }
+        ],
+        "subtitle": "subtitles.noellesroles.ambient.jester_laugh"
     }
 }

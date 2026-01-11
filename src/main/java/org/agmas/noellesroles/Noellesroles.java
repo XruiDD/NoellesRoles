@@ -190,8 +190,31 @@ public class Noellesroles implements ModInitializer {
         });
 
         KillPlayer.BEFORE.register(((victim, killer, deathReason) -> {
-            if (deathReason == GameConstants.DeathReasons.FELL_OUT_OF_TRAIN) return null;
             GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(victim.getWorld());
+
+            if (gameWorldComponent.isRole(victim, JESTER)) {
+                JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(victim);
+                if (jesterComponent.inStasis) {
+                    return KillPlayer.KillResult.cancel();
+                }
+            }
+
+            if (deathReason == GameConstants.DeathReasons.FELL_OUT_OF_TRAIN) return null;
+
+            if (gameWorldComponent.isRole(victim, JESTER) &&
+                deathReason == GameConstants.DeathReasons.GUN &&
+                killer != null) {
+                Role killerRole = gameWorldComponent.getRole(killer);
+                if (killerRole != null && killerRole.isInnocent()) {
+                    JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(victim);
+                    if(!jesterComponent.inPsychoMode){
+                        jesterComponent.targetKiller = killer.getUuid();
+                        jesterComponent.enterStasis(GameConstants.getInTicks(0, 5));
+                        return KillPlayer.KillResult.cancel();
+                    }
+                }
+            }
+
             BartenderPlayerComponent bartenderPlayerComponent = BartenderPlayerComponent.KEY.get(victim);
             if (bartenderPlayerComponent.armor && deathReason != GameConstants.DeathReasons.SHOT_INNOCENT) {
                 victim.getWorld().playSound(null, victim.getBlockPos(), WatheSounds.ITEM_PSYCHO_ARMOUR, SoundCategory.MASTER, 5.0F, 1.0F);
@@ -243,6 +266,8 @@ public class Noellesroles implements ModInitializer {
             if (role.equals(JESTER)) {
                 JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(player);
                 jesterComponent.reset();
+                int totalPlayers = gameWorldComponent.getAllPlayers().size();
+                jesterComponent.psychoArmour = Math.max(1, totalPlayers / 5);
             }
             if (role.equals(CORRUPT_COP)) {
                 player.giveItemStack(WatheItems.REVOLVER.getDefaultStack());
@@ -288,8 +313,6 @@ public class Noellesroles implements ModInitializer {
                 playerShopComponent.addToBalance(50);
             }
         });
-
-        // Jester win condition - when killed by innocent, jester wins
         CheckWinCondition.EVENT.register((world, gameComponent, currentStatus) -> {
             for (UUID uuid : gameComponent.getAllWithRole(JESTER)) {
                 PlayerEntity jester = world.getPlayerByUuid(uuid);
@@ -297,6 +320,14 @@ public class Noellesroles implements ModInitializer {
                     JesterPlayerComponent component = JesterPlayerComponent.KEY.get(jester);
                     if (component.won) {
                         return CheckWinCondition.WinResult.neutralWin((ServerPlayerEntity) jester);
+                    }
+                    if (!GameFunctions.isPlayerEliminated(jester)) {
+                        if (component.inPsychoMode) {
+                            if (currentStatus == GameFunctions.WinStatus.KILLERS
+                                    || currentStatus == GameFunctions.WinStatus.PASSENGERS) {
+                                return CheckWinCondition.WinResult.block();
+                            }
+                        }
                     }
                 }
             }
@@ -358,16 +389,22 @@ public class Noellesroles implements ModInitializer {
             }
 
 
-            // Check if victim is a jester
-            if (!gameComponent.isRole(victim, JESTER)) return;
-
-            // Check if killer is an innocent
-            if (killer != null) {
-                Role killerRole = gameComponent.getRole(killer);
-                if (killerRole != null && killerRole.isInnocent()) {
-                    // Jester wins!
-                    JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(victim);
+            // 小丑复仇逻辑
+            if (killer != null && gameComponent.isRole(killer, JESTER)) {
+                JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(killer);
+                // 小丑在疯魔模式中击杀了目标击杀者（复仇成功）
+                if (jesterComponent.inPsychoMode &&
+                    jesterComponent.targetKiller != null &&
+                    victim.getUuid().equals(jesterComponent.targetKiller)) {
                     jesterComponent.won = true;
+                }
+            }
+
+            if (gameComponent.isRole(victim, JESTER)) {
+                JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(victim);
+                // 如果小丑在疯魔模式中被杀，游戏继续，不触发胜利
+                if (jesterComponent.inPsychoMode) {
+                    jesterComponent.reset();
                 }
             }
         });
@@ -461,6 +498,15 @@ public class Noellesroles implements ModInitializer {
                 return DoorInteraction.DoorInteractionResult.PASS;
             }
             PlayerEntity player = context.getPlayer();
+
+            GameWorldComponent gameWorld = GameWorldComponent.KEY.get(context.getWorld());
+            if (gameWorld.isRole(player, Noellesroles.JESTER)) {
+                JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(player);
+                if (jesterComponent.inPsychoMode) {
+                    return DoorInteraction.DoorInteractionResult.ALLOW;
+                }
+            }
+
             ItemStack handItem = context.getHandItem();
             DoorInteraction.DoorType doorType = context.getDoorType();
             if (handItem.isOf(ModItems.MASTER_KEY)) {
@@ -472,7 +518,6 @@ public class Noellesroles implements ModInitializer {
                 if (player.getItemCooldownManager().isCoolingDown(WatheItems.KEY)) {
                     return DoorInteraction.DoorInteractionResult.DENY;
                 }
-                GameWorldComponent gameWorld = GameWorldComponent.KEY.get(context.getWorld());
                 if (gameWorld.isRole(player, Noellesroles.VULTURE) || gameWorld.isRole(player, Noellesroles.PATHOGEN)){
                     player.getItemCooldownManager().set(WatheItems.KEY, 200);
                     return DoorInteraction.DoorInteractionResult.ALLOW;
