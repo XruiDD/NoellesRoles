@@ -468,7 +468,7 @@ public class Noellesroles implements ModInitializer {
                     return DoorInteraction.DoorInteractionResult.ALLOW;
                 }
             }
-            if (handItem.isOf(WatheItems.KEY)) {
+            if (handItem.isOf(WatheItems.KEY) && !context.isCorrectKey()) {
                 if (player.getItemCooldownManager().isCoolingDown(WatheItems.KEY)) {
                     return DoorInteraction.DoorInteractionResult.DENY;
                 }
