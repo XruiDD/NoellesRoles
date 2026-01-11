@@ -6,7 +6,8 @@
   "mixins": [
     "bartender.CocktailItemMixin",
     "bartender.DefenseVialApplyMixin",
-    "noisemaker.NoisemakerKillMixin"
+    "noisemaker.NoisemakerKillMixin",
+    "toxicologist.ToxicologistPoisonSyncMixin"
   ],
   "injectors": {
     "defaultRequire": 1
