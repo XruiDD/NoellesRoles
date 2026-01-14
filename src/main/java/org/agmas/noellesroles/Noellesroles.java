@@ -388,15 +388,16 @@ public class Noellesroles implements ModInitializer {
                 }
             }
 
-
-            // 小丑复仇逻辑
-            if (killer != null && gameComponent.isRole(killer, JESTER)) {
-                JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(killer);
-                // 小丑在疯魔模式中击杀了目标击杀者（复仇成功）
-                if (jesterComponent.inPsychoMode &&
-                    jesterComponent.targetKiller != null &&
-                    victim.getUuid().equals(jesterComponent.targetKiller)) {
-                    jesterComponent.won = true;
+            for (UUID uuid : gameComponent.getAllWithRole(JESTER)) {
+                PlayerEntity jester = victim.getWorld().getPlayerByUuid(uuid);
+                if (jester != null) {
+                    JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(jester);
+                    if (jesterComponent.inPsychoMode &&
+                            jesterComponent.targetKiller != null &&
+                            victim.getUuid().equals(jesterComponent.targetKiller)) {
+                        jesterComponent.won = true;
+                        break;
+                    }
                 }
             }
 

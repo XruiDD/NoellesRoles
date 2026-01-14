@@ -112,20 +112,20 @@ public class JesterPlayerComponent implements Component, AutoSyncedComponent, Se
 
     @Override
     public void writeSyncPacket(RegistryByteBuf buf, ServerPlayerEntity recipient) {
-        buf.writeBoolean(this.won);
         buf.writeBoolean(this.inStasis);
         buf.writeVarInt(this.stasisTicks);
         buf.writeVarInt(this.psychoArmour);
         buf.writeBoolean(this.inPsychoMode);
+        buf.writeUuid(this.targetKiller);
     }
 
     @Override
     public void applySyncPacket(RegistryByteBuf buf) {
-        this.won = buf.readBoolean();
         this.inStasis = buf.readBoolean();
         this.stasisTicks = buf.readVarInt();
         this.psychoArmour = buf.readVarInt();
         this.inPsychoMode = buf.readBoolean();
+        this.targetKiller = buf.readUuid();
     }
 
     @Override

@@ -85,7 +85,7 @@ public class NoellesrolesClient implements ClientModInitializer {
 
             if (gameWorldComponent.isRole(localPlayer, Noellesroles.JESTER)) {
                 JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(localPlayer);
-                if (jesterComponent.inPsychoMode && entity.getUuid() == jesterComponent.targetKiller)
+                if (jesterComponent.inPsychoMode && player.getUuid() == jesterComponent.targetKiller)
                 {
                     return GetInstinctHighlight.HighlightResult.always(Noellesroles.JESTER.color());
                 }
