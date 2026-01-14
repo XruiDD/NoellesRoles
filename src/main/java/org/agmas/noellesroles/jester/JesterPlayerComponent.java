@@ -1,6 +1,7 @@
 package org.agmas.noellesroles.jester;
 
 import dev.doctor4t.wathe.cca.PlayerPsychoComponent;
+import dev.doctor4t.wathe.game.GameFunctions;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.RegistryByteBuf;
@@ -33,6 +34,7 @@ public class JesterPlayerComponent implements Component, AutoSyncedComponent, Se
     public int stasisTicks = 0;  // 禁锢倒计时
     public int psychoArmour = 0;  // 疯魔模式盾数量
     public boolean inPsychoMode = false;  // 是否在疯魔模式中
+    public int psychoModeTicks = 0;  // 疯魔模式剩余时间（3分钟 = 3600 ticks）
     public UUID targetKiller = null;  // 目标击杀者（小丑需要复仇的对象）
 
     // 禁锢位置记录
@@ -54,6 +56,7 @@ public class JesterPlayerComponent implements Component, AutoSyncedComponent, Se
         this.inStasis = false;
         this.stasisTicks = 0;
         this.psychoArmour = 0;
+        this.psychoModeTicks = 0;
         this.targetKiller = null;
         // 如果正在疯魔模式中，停止疯魔模式
         if (this.inPsychoMode) {
@@ -99,6 +102,8 @@ public class JesterPlayerComponent implements Component, AutoSyncedComponent, Se
 
         PlayerPsychoComponent psychoComponent = PlayerPsychoComponent.KEY.get(this.player);
         if (psychoComponent.startPsycho()) {
+            // 设置疯魔模式持续3分钟（3 * 60 * 20 = 3600 ticks）
+            this.psychoModeTicks = 3600;
             psychoComponent.setPsychoTicks(Integer.MAX_VALUE);
             psychoComponent.setArmour(this.psychoArmour);
             this.inPsychoMode = true;
@@ -116,6 +121,7 @@ public class JesterPlayerComponent implements Component, AutoSyncedComponent, Se
         buf.writeVarInt(this.stasisTicks);
         buf.writeVarInt(this.psychoArmour);
         buf.writeBoolean(this.inPsychoMode);
+        buf.writeVarInt(this.psychoModeTicks);
         buf.writeUuid(this.targetKiller);
     }
 
@@ -125,6 +131,7 @@ public class JesterPlayerComponent implements Component, AutoSyncedComponent, Se
         this.stasisTicks = buf.readVarInt();
         this.psychoArmour = buf.readVarInt();
         this.inPsychoMode = buf.readBoolean();
+        this.psychoModeTicks = buf.readVarInt();
         this.targetKiller = buf.readUuid();
     }
 
@@ -155,6 +162,20 @@ public class JesterPlayerComponent implements Component, AutoSyncedComponent, Se
                 this.sync();
             }
         }
+
+        // 疯魔模式计时
+        if (this.inPsychoMode && this.psychoModeTicks > 0) {
+            this.psychoModeTicks--;
+            if (this.psychoModeTicks <= 0) {
+                if (this.player instanceof ServerPlayerEntity serverPlayer) {
+                    PlayerPsychoComponent psychoComponent = PlayerPsychoComponent.KEY.get(this.player);
+                    psychoComponent.stopPsycho();
+                    this.inPsychoMode = false;
+                    GameFunctions.killPlayer(this.player, true, null, Noellesroles.DEATH_REASON_JESTER_TIMEOUT, true);
+                    this.sync();
+                }
+            }
+        }
     }
 
     @Override
@@ -164,6 +185,7 @@ public class JesterPlayerComponent implements Component, AutoSyncedComponent, Se
         tag.putInt("stasisTicks", this.stasisTicks);
         tag.putInt("psychoArmour", this.psychoArmour);
         tag.putBoolean("inPsychoMode", this.inPsychoMode);
+        tag.putInt("psychoModeTicks", this.psychoModeTicks);
         tag.putDouble("stasisX", this.stasisX);
         tag.putDouble("stasisY", this.stasisY);
         tag.putDouble("stasisZ", this.stasisZ);
@@ -179,6 +201,7 @@ public class JesterPlayerComponent implements Component, AutoSyncedComponent, Se
         this.stasisTicks = tag.getInt("stasisTicks");
         this.psychoArmour = tag.getInt("psychoArmour");
         this.inPsychoMode = tag.getBoolean("inPsychoMode");
+        this.psychoModeTicks = tag.getInt("psychoModeTicks");
         this.stasisX = tag.getDouble("stasisX");
         this.stasisY = tag.getDouble("stasisY");
         this.stasisZ = tag.getDouble("stasisZ");

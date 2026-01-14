@@ -108,6 +108,7 @@
 
   "death_reason.noellesroles.assassinated": "身份被刺客识破",
   "death_reason.noellesroles.assassin_misfire": "刺客的误判",
+  "death_reason.noellesroles.jester_timeout": "小丑疯魔时间耗尽",
 
   "tip.bomber.bomb_warning": "你的身上有一个炸弹！%s秒后会爆炸！你必须将他传递给别人！",
 
