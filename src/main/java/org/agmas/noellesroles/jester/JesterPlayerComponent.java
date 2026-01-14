@@ -122,7 +122,9 @@ public class JesterPlayerComponent implements Component, AutoSyncedComponent, Se
         buf.writeVarInt(this.psychoArmour);
         buf.writeBoolean(this.inPsychoMode);
         buf.writeVarInt(this.psychoModeTicks);
-        buf.writeUuid(this.targetKiller);
+        if(this.inPsychoMode && this.targetKiller != null) {
+            buf.writeUuid(this.targetKiller);
+        }
     }
 
     @Override
@@ -132,7 +134,10 @@ public class JesterPlayerComponent implements Component, AutoSyncedComponent, Se
         this.psychoArmour = buf.readVarInt();
         this.inPsychoMode = buf.readBoolean();
         this.psychoModeTicks = buf.readVarInt();
-        this.targetKiller = buf.readUuid();
+        if(this.inPsychoMode && this.psychoModeTicks > 0)
+        {
+            this.targetKiller = buf.readUuid();
+        }
     }
 
     @Override

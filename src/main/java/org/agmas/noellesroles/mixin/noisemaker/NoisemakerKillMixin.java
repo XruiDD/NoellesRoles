@@ -19,8 +19,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(GameFunctions.class)
 public abstract class NoisemakerKillMixin {
 
-    @Inject(method = "killPlayer(Lnet/minecraft/entity/player/PlayerEntity;ZLnet/minecraft/entity/player/PlayerEntity;Lnet/minecraft/util/Identifier;)V", at = @At(value = "INVOKE", target = "Ldev/doctor4t/wathe/entity/PlayerBodyEntity;setHeadYaw(F)V"))
-    private static void noisemakerKill(PlayerEntity victim, boolean spawnBody, PlayerEntity killer, Identifier identifier, CallbackInfo ci, @Local PlayerBodyEntity body) {
+    @Inject(method = "killPlayer(Lnet/minecraft/entity/player/PlayerEntity;ZLnet/minecraft/entity/player/PlayerEntity;Lnet/minecraft/util/Identifier;Z)V", at = @At(value = "INVOKE", target = "Ldev/doctor4t/wathe/entity/PlayerBodyEntity;setHeadYaw(F)V"))
+    private static void noisemakerKill(PlayerEntity victim, boolean spawnBody, PlayerEntity killer, Identifier identifier,boolean force, CallbackInfo ci, @Local PlayerBodyEntity body) {
         GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(victim.getWorld());
         if (gameWorldComponent.isRole(victim, Noellesroles.NOISEMAKER)) {
            body.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, 20*60, 0));
