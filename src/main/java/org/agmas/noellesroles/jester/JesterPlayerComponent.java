@@ -1,5 +1,6 @@
 package org.agmas.noellesroles.jester;
 
+import dev.doctor4t.wathe.Wathe;
 import dev.doctor4t.wathe.cca.PlayerPsychoComponent;
 import dev.doctor4t.wathe.game.GameFunctions;
 import net.minecraft.entity.player.PlayerEntity;
@@ -18,13 +19,12 @@ import java.util.UUID;
 import org.agmas.noellesroles.ModSounds;
 import org.agmas.noellesroles.Noellesroles;
 import org.jetbrains.annotations.NotNull;
-import org.ladysnake.cca.api.v3.component.Component;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
 import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
 import org.ladysnake.cca.api.v3.component.tick.ServerTickingComponent;
 
-public class JesterPlayerComponent implements Component, AutoSyncedComponent, ServerTickingComponent {
+public class JesterPlayerComponent implements AutoSyncedComponent, ServerTickingComponent {
     public static final ComponentKey<JesterPlayerComponent> KEY =
         ComponentRegistry.getOrCreate(Identifier.of(Noellesroles.MOD_ID, "jester"), JesterPlayerComponent.class);
 
@@ -48,7 +48,7 @@ public class JesterPlayerComponent implements Component, AutoSyncedComponent, Se
 
     @Override
     public boolean shouldSyncWith(ServerPlayerEntity player) {
-        return this.player == player;
+        return player == this.player;
     }
 
     public void reset() {
@@ -113,26 +113,6 @@ public class JesterPlayerComponent implements Component, AutoSyncedComponent, Se
 
     public void sync() {
         KEY.sync(this.player);
-    }
-
-    @Override
-    public void writeSyncPacket(RegistryByteBuf buf, ServerPlayerEntity recipient) {
-        buf.writeBoolean(this.inStasis);
-        buf.writeVarInt(this.stasisTicks);
-        buf.writeVarInt(this.psychoArmour);
-        buf.writeBoolean(this.inPsychoMode);
-        buf.writeVarInt(this.psychoModeTicks);
-        buf.writeUuid(this.targetKiller == null ? new UUID(0,0): targetKiller);
-    }
-
-    @Override
-    public void applySyncPacket(RegistryByteBuf buf) {
-        this.inStasis = buf.readBoolean();
-        this.stasisTicks = buf.readVarInt();
-        this.psychoArmour = buf.readVarInt();
-        this.inPsychoMode = buf.readBoolean();
-        this.psychoModeTicks = buf.readVarInt();
-        this.targetKiller = buf.readUuid();
     }
 
     @Override
@@ -205,6 +185,8 @@ public class JesterPlayerComponent implements Component, AutoSyncedComponent, Se
         this.stasisZ = tag.getDouble("stasisZ");
         if (tag.containsUuid("targetKiller")) {
             this.targetKiller = tag.getUuid("targetKiller");
+        }else {
+            this.targetKiller = null;
         }
     }
 }
