@@ -8,6 +8,7 @@
     "assassin.AssassinHudMixin",
     "bartender.DefenseVialHandMixin",
     "coroner.CoronerHudMixin",
+    "jester.JesterHudMixin",
     "morphling.MorphlingCapeRendererMixin",
     "morphling.MorphlingElytraRendererMixin",
     "morphling.MorphlingRendererMixin",

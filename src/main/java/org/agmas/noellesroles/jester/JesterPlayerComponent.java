@@ -22,9 +22,10 @@ import org.jetbrains.annotations.NotNull;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
 import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
+import org.ladysnake.cca.api.v3.component.tick.ClientTickingComponent;
 import org.ladysnake.cca.api.v3.component.tick.ServerTickingComponent;
 
-public class JesterPlayerComponent implements AutoSyncedComponent, ServerTickingComponent {
+public class JesterPlayerComponent implements AutoSyncedComponent, ServerTickingComponent, ClientTickingComponent {
     public static final ComponentKey<JesterPlayerComponent> KEY =
         ComponentRegistry.getOrCreate(Identifier.of(Noellesroles.MOD_ID, "jester"), JesterPlayerComponent.class);
 
@@ -65,6 +66,7 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
             psychoComponent.stopPsycho();
         }
     }
+
 
     public void enterStasis(int ticks) {
         this.inStasis = true;
@@ -114,6 +116,13 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
     public void sync() {
         KEY.sync(this.player);
     }
+    @Override
+    public void clientTick() {
+        if (this.inPsychoMode && this.psychoModeTicks > 0) {
+            this.psychoModeTicks--;
+
+        }
+    }
 
     @Override
     public void serverTick() {
@@ -152,6 +161,8 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
                 this.inPsychoMode = false;
                 GameFunctions.killPlayer(this.player, true, null, Noellesroles.DEATH_REASON_JESTER_TIMEOUT, true);
                 this.sync();
+            } else if (this.psychoModeTicks % 20 == 0) {
+                this.sync();
             }
         }
     }
@@ -189,4 +200,5 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
             this.targetKiller = null;
         }
     }
+
 }
