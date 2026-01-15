@@ -122,9 +122,7 @@ public class JesterPlayerComponent implements Component, AutoSyncedComponent, Se
         buf.writeVarInt(this.psychoArmour);
         buf.writeBoolean(this.inPsychoMode);
         buf.writeVarInt(this.psychoModeTicks);
-        if(this.inPsychoMode && this.targetKiller != null) {
-            buf.writeUuid(this.targetKiller);
-        }
+        buf.writeUuid(this.targetKiller == null ? new UUID(0,0): targetKiller);
     }
 
     @Override
@@ -134,10 +132,7 @@ public class JesterPlayerComponent implements Component, AutoSyncedComponent, Se
         this.psychoArmour = buf.readVarInt();
         this.inPsychoMode = buf.readBoolean();
         this.psychoModeTicks = buf.readVarInt();
-        if(this.inPsychoMode && this.psychoModeTicks > 0)
-        {
-            this.targetKiller = buf.readUuid();
-        }
+        this.targetKiller = buf.readUuid();
     }
 
     @Override
@@ -172,13 +167,11 @@ public class JesterPlayerComponent implements Component, AutoSyncedComponent, Se
         if (this.inPsychoMode && this.psychoModeTicks > 0) {
             this.psychoModeTicks--;
             if (this.psychoModeTicks <= 0) {
-                if (this.player instanceof ServerPlayerEntity serverPlayer) {
-                    PlayerPsychoComponent psychoComponent = PlayerPsychoComponent.KEY.get(this.player);
-                    psychoComponent.stopPsycho();
-                    this.inPsychoMode = false;
-                    GameFunctions.killPlayer(this.player, true, null, Noellesroles.DEATH_REASON_JESTER_TIMEOUT, true);
-                    this.sync();
-                }
+                PlayerPsychoComponent psychoComponent = PlayerPsychoComponent.KEY.get(this.player);
+                psychoComponent.stopPsycho();
+                this.inPsychoMode = false;
+                GameFunctions.killPlayer(this.player, true, null, Noellesroles.DEATH_REASON_JESTER_TIMEOUT, true);
+                this.sync();
             }
         }
     }
