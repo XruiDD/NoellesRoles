@@ -65,6 +65,7 @@
   "announcement.win.toxicologist": "乘客胜利！",
 
   "item.noellesroles.master_key": "万能钥匙",
+  "item.noellesroles.neutral_master_key": "中立万能钥匙",
   "item.noellesroles.defense_vial": "防御药剂",
   "item.noellesroles.defense_vial.tooltip": "右键点击饮品托盘使用\n清除托盘上的所有毒药\n饮用被防御饮品的人可额外承受一击。",
 

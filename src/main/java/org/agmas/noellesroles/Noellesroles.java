@@ -242,6 +242,7 @@ public class Noellesroles implements ModInitializer {
                 VulturePlayerComponent vulturePlayerComponent = VulturePlayerComponent.KEY.get(player);
                 vulturePlayerComponent.reset();
                 vulturePlayerComponent.setBodiesRequired(gameWorldComponent.getAllPlayers().size() / 2);
+                player.giveItemStack(ModItems.NEUTRAL_MASTER_KEY.getDefaultStack());
             }
             if (role.equals(CONDUCTOR)) {
                 player.giveItemStack(ModItems.MASTER_KEY.getDefaultStack());
@@ -272,6 +273,7 @@ public class Noellesroles implements ModInitializer {
             }
             if (role.equals(CORRUPT_COP)) {
                 player.giveItemStack(WatheItems.REVOLVER.getDefaultStack());
+                player.giveItemStack(ModItems.NEUTRAL_MASTER_KEY.getDefaultStack());
             }
             if (role.equals(PATHOGEN)) {
                 PathogenPlayerComponent pathogenComp = PathogenPlayerComponent.KEY.get(player);
@@ -280,6 +282,7 @@ public class Noellesroles implements ModInitializer {
                 pathogenComp.setBaseCooldownByPlayerCount(gameWorldComponent.getAllPlayers().size());
                 // Set initial cooldown to 10 seconds
                 abilityPlayerComponent.cooldown = GameConstants.getInTicks(0, 10);
+                player.giveItemStack(ModItems.NEUTRAL_MASTER_KEY.getDefaultStack());
             }
             if (role.equals(ASSASSIN)) {
                 AssassinPlayerComponent assassinComp = AssassinPlayerComponent.KEY.get(player);
@@ -516,15 +519,15 @@ public class Noellesroles implements ModInitializer {
                     return DoorInteraction.DoorInteractionResult.ALLOW;
                 }
             }
-            if (handItem.isOf(WatheItems.KEY) && !context.isCorrectKey()) {
-                if (player.getItemCooldownManager().isCoolingDown(WatheItems.KEY)) {
+            if (handItem.isOf(ModItems.NEUTRAL_MASTER_KEY)) {
+                if (player.getItemCooldownManager().isCoolingDown(ModItems.NEUTRAL_MASTER_KEY)) {
                     return DoorInteraction.DoorInteractionResult.DENY;
                 }
                 if (gameWorld.isRole(player, Noellesroles.VULTURE) || gameWorld.isRole(player, Noellesroles.PATHOGEN)){
-                    player.getItemCooldownManager().set(WatheItems.KEY, 200);
+                    player.getItemCooldownManager().set(ModItems.NEUTRAL_MASTER_KEY, 200);
                     return DoorInteraction.DoorInteractionResult.ALLOW;
                 } else if (gameWorld.isRole(player, Noellesroles.CORRUPT_COP) && doorType == DoorInteraction.DoorType.SMALL_DOOR){
-                    player.getItemCooldownManager().set(WatheItems.KEY, 200);
+                    player.getItemCooldownManager().set(ModItems.NEUTRAL_MASTER_KEY, 200);
                     return DoorInteraction.DoorInteractionResult.ALLOW;
                 }
             }

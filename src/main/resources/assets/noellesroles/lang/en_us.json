@@ -55,6 +55,7 @@
 
 
   "item.noellesroles.master_key": "Master Key",
+  "item.noellesroles.neutral_master_key": "Neutral Master Key",
   "item.noellesroles.defense_vial": "Defense Vial",
   "item.noellesroles.defense_vial.tooltip": "Right click on drink trays to use\nClears all poison applied to trays\nProtects anyone who drinks a defensed drink one extra hit of life.",
 

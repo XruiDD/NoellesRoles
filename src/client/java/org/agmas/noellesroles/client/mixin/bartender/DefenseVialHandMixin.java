@@ -20,6 +20,9 @@ public class DefenseVialHandMixin {
         if (ret.isOf(ModItems.DEFENSE_VIAL)) {
             ret = ItemStack.EMPTY;
         }
+        if (ret.isOf(ModItems.NEUTRAL_MASTER_KEY)) {
+            ret = ItemStack.EMPTY;
+        }
         return ret;
     }
 }

@@ -15,6 +15,10 @@ public class ModItems {
             new Item(new Item.Settings().maxCount(1)),
             "master_key"
     );
+    public static final Item NEUTRAL_MASTER_KEY = register(
+            new Item(new Item.Settings().maxCount(1)),
+            "neutral_master_key"
+    );
     public static final Item DEFENSE_VIAL = register(
             new Item(new Item.Settings().maxCount(1)),
             "defense_vial"
