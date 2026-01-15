@@ -319,39 +319,92 @@ public class Noellesroles implements ModInitializer {
             }
         });
         CheckWinCondition.EVENT.register((world, gameComponent, currentStatus) -> {
-            for (UUID uuid : gameComponent.getAllWithRole(JESTER)) {
-                PlayerEntity jester = world.getPlayerByUuid(uuid);
-                if (jester != null) {
-                    JesterPlayerComponent component = JesterPlayerComponent.KEY.get(jester);
-                    if (component.won) {
-                        return CheckWinCondition.WinResult.neutralWin((ServerPlayerEntity) jester);
-                    }
-                    if (!GameFunctions.isPlayerEliminated(jester)) {
-                        if (component.inPsychoMode) {
-                            if (currentStatus == GameFunctions.WinStatus.KILLERS
-                                    || currentStatus == GameFunctions.WinStatus.PASSENGERS) {
-                                return CheckWinCondition.WinResult.block();
-                            }
-                        }
-                    }
-                }
-            }
-            return null;
-        });
-
-        // Vulture win condition - when eaten enough bodies
-        CheckWinCondition.EVENT.register((world, gameComponent, currentStatus) -> {
             for (UUID uuid : gameComponent.getAllWithRole(VULTURE)) {
                 PlayerEntity vulture = world.getPlayerByUuid(uuid);
-                if (vulture != null) {
+                if (GameFunctions.isPlayerAliveAndSurvival(vulture)) {
                     VulturePlayerComponent component = VulturePlayerComponent.KEY.get(vulture);
                     if (component.hasWon()) {
                         return CheckWinCondition.WinResult.neutralWin((ServerPlayerEntity) vulture);
                     }
                 }
             }
+
+            for (UUID uuid : gameComponent.getAllWithRole(PATHOGEN)) {
+                PlayerEntity pathogen = world.getPlayerByUuid(uuid);
+                if (GameFunctions.isPlayerAliveAndSurvival(pathogen)) {
+                    boolean allInfected = true;
+                    for (UUID playerUuid : gameComponent.getAllPlayers()) {
+                        if (playerUuid.equals(uuid)) continue;
+                        PlayerEntity player = world.getPlayerByUuid(playerUuid);
+                        if (player == null) continue;
+                        if (GameFunctions.isPlayerEliminated((ServerPlayerEntity) player)) continue;
+                        InfectedPlayerComponent infected = InfectedPlayerComponent.KEY.get(player);
+                        if (!infected.isInfected()) {
+                            allInfected = false;
+                            break;
+                        }
+                    }
+                    if (allInfected && GameFunctions.isPlayerAliveAndSurvival(pathogen)) {
+                        return CheckWinCondition.WinResult.neutralWin((ServerPlayerEntity) pathogen);
+                    }
+                }
+            }
+
+            for (UUID uuid : gameComponent.getAllWithRole(JESTER)) {
+                PlayerEntity jester = world.getPlayerByUuid(uuid);
+                if (GameFunctions.isPlayerAliveAndSurvival(jester)) {
+                    JesterPlayerComponent component = JesterPlayerComponent.KEY.get(jester);
+                    if (component.won) {
+                        return CheckWinCondition.WinResult.neutralWin((ServerPlayerEntity) jester);
+                    }
+                    if (component.inPsychoMode && (currentStatus == GameFunctions.WinStatus.KILLERS
+                            || currentStatus == GameFunctions.WinStatus.PASSENGERS)) {
+                        return CheckWinCondition.WinResult.block();
+                    }
+                }
+            }
+
+            // Find living corrupt cop
+            ServerPlayerEntity livingCorruptCop = null;
+            for (UUID uuid : gameComponent.getAllWithRole(CORRUPT_COP)) {
+                ServerPlayerEntity player = (ServerPlayerEntity) world.getPlayerByUuid(uuid);
+                if (GameFunctions.isPlayerAliveAndSurvival(player)) {
+                    livingCorruptCop = player;
+                    break;
+                }
+            }
+
+            // If no corrupt cop alive, don't interfere
+            if (livingCorruptCop == null) {
+                return null;
+            }
+
+            // Count all living players (excluding spectators/creative)
+            int aliveCount = 0;
+            boolean corruptCopIsAlive = false;
+            for (ServerPlayerEntity player : world.getPlayers()) {
+                if (gameComponent.hasAnyRole(player) && !GameFunctions.isPlayerEliminated(player)) {
+                    aliveCount++;
+                    if (player.getUuid().equals(livingCorruptCop.getUuid())) {
+                        corruptCopIsAlive = true;
+                    }
+                }
+            }
+
+            // If corrupt cop is the only one alive, they win
+            if (aliveCount == 1 && corruptCopIsAlive) {
+                return CheckWinCondition.WinResult.neutralWin(livingCorruptCop);
+            }
+
+            // Block killers and passengers from winning while corrupt cop is alive
+            if (currentStatus == GameFunctions.WinStatus.KILLERS
+                    || currentStatus == GameFunctions.WinStatus.PASSENGERS) {
+                return CheckWinCondition.WinResult.block();
+            }
+
             return null;
         });
+
         // Jester kill detection - when jester is killed by an innocent, mark as won
         KillPlayer.AFTER.register((victim, killer, deathReason) -> {
             GameWorldComponent gameComponent = GameWorldComponent.KEY.get(victim.getWorld());
@@ -420,79 +473,6 @@ public class Noellesroles implements ModInitializer {
             if (gameComponent.isRole(shooter, CORRUPT_COP)) {
                 return ShouldPunishGunShooter.PunishResult.cancel();
             }
-            return null;
-        });
-
-        // Pathogen win condition - when all living players (except pathogen) are infected
-        CheckWinCondition.EVENT.register((world, gameComponent, currentStatus) -> {
-            for (UUID uuid : gameComponent.getAllWithRole(PATHOGEN)) {
-                PlayerEntity pathogen = world.getPlayerByUuid(uuid);
-                if (pathogen != null && !GameFunctions.isPlayerEliminated((ServerPlayerEntity) pathogen)) {
-                    // Check if all living players (except pathogen) are infected
-                    boolean allInfected = true;
-                    for (UUID playerUuid : gameComponent.getAllPlayers()) {
-                        // 跳过病原体自己
-                        if (playerUuid.equals(uuid)) continue;
-
-                        PlayerEntity player = world.getPlayerByUuid(playerUuid);
-                        if (player == null) continue;
-                        if (GameFunctions.isPlayerEliminated((ServerPlayerEntity) player)) continue;
-
-                        InfectedPlayerComponent infected = InfectedPlayerComponent.KEY.get(player);
-                        if (!infected.isInfected()) {
-                            allInfected = false;
-                            break;
-                        }
-                    }
-
-                    if (allInfected && GameFunctions.isPlayerAliveAndSurvival(pathogen)) {
-                        return CheckWinCondition.WinResult.neutralWin((ServerPlayerEntity) pathogen);
-                    }
-                }
-            }
-            return null;
-        });
-
-        // Corrupt Cop win condition - block other factions and check for victory
-        CheckWinCondition.EVENT.register((world, gameComponent, currentStatus) -> {
-            // Find living corrupt cop
-            ServerPlayerEntity livingCorruptCop = null;
-            for (UUID uuid : gameComponent.getAllWithRole(CORRUPT_COP)) {
-                ServerPlayerEntity player = (ServerPlayerEntity) world.getPlayerByUuid(uuid);
-                if (player != null && !GameFunctions.isPlayerEliminated(player)) {
-                    livingCorruptCop = player;
-                    break;
-                }
-            }
-
-            // If no corrupt cop alive, don't interfere
-            if (livingCorruptCop == null) {
-                return null;
-            }
-
-            // Count all living players (excluding spectators/creative)
-            int aliveCount = 0;
-            boolean corruptCopIsAlive = false;
-            for (ServerPlayerEntity player : world.getPlayers()) {
-                if (gameComponent.hasAnyRole(player) && !GameFunctions.isPlayerEliminated(player)) {
-                    aliveCount++;
-                    if (player.getUuid().equals(livingCorruptCop.getUuid())) {
-                        corruptCopIsAlive = true;
-                    }
-                }
-            }
-
-            // If corrupt cop is the only one alive, they win
-            if (aliveCount == 1 && corruptCopIsAlive) {
-                return CheckWinCondition.WinResult.neutralWin(livingCorruptCop);
-            }
-
-            // Block killers and passengers from winning while corrupt cop is alive
-            if (currentStatus == GameFunctions.WinStatus.KILLERS
-                    || currentStatus == GameFunctions.WinStatus.PASSENGERS) {
-                return CheckWinCondition.WinResult.block();
-            }
-
             return null;
         });
 
