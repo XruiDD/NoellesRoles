@@ -434,7 +434,7 @@ public class Noellesroles implements ModInitializer {
                 }
             }
             BomberPlayerComponent bomberPlayerComponent = BomberPlayerComponent.KEY.get(victim);
-            if(bomberPlayerComponent.hasBomb() && killer == null)
+            if(bomberPlayerComponent.hasBomb())
             {
                 PlayerEntity bomber = victim.getWorld().getPlayerByUuid(bomberPlayerComponent.getBomberUuid());
                 if(bomber != null){
