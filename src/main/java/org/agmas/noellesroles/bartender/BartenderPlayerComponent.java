@@ -44,6 +44,9 @@ public class BartenderPlayerComponent implements AutoSyncedComponent, ServerTick
     public void serverTick() {
         if (this.glowTicks > 0) {
             --this.glowTicks;
+            if (glowTicks == 0) {
+                sync();
+            }
         }
     }
 
