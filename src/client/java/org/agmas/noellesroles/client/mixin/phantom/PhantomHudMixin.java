@@ -1,6 +1,7 @@
 package org.agmas.noellesroles.client.mixin.phantom;
 
 import dev.doctor4t.wathe.cca.GameWorldComponent;
+import dev.doctor4t.wathe.game.GameFunctions;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
@@ -25,6 +26,7 @@ public abstract class PhantomHudMixin {
     public void phantomHud(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
         GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(MinecraftClient.getInstance().player.getWorld());
         AbilityPlayerComponent abilityPlayerComponent = (AbilityPlayerComponent) AbilityPlayerComponent.KEY.get(MinecraftClient.getInstance().player);
+        if (!GameFunctions.isPlayerAliveAndSurvival(MinecraftClient.getInstance().player))  return;
         if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.PHANTOM)) {
             int drawY = context.getScaledWindowHeight();
 

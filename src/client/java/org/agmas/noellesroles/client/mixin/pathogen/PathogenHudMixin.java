@@ -1,6 +1,7 @@
 package org.agmas.noellesroles.client.mixin.pathogen;
 
 import dev.doctor4t.wathe.cca.GameWorldComponent;
+import dev.doctor4t.wathe.game.GameFunctions;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
@@ -23,7 +24,7 @@ public abstract class PathogenHudMixin {
     @Inject(method = "render", at = @At("TAIL"))
     public void pathogenHud(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
         if (MinecraftClient.getInstance().player == null) return;
-
+        if (!GameFunctions.isPlayerAliveAndSurvival(MinecraftClient.getInstance().player))  return;
         GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(MinecraftClient.getInstance().player.getWorld());
         AbilityPlayerComponent abilityPlayerComponent = AbilityPlayerComponent.KEY.get(MinecraftClient.getInstance().player);
 

@@ -1,6 +1,7 @@
 package org.agmas.noellesroles.client.mixin.vulture;
 
 import dev.doctor4t.wathe.cca.GameWorldComponent;
+import dev.doctor4t.wathe.game.GameFunctions;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
@@ -26,6 +27,7 @@ public abstract class VultureHudMixin {
     public void vultureHud(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
         GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(MinecraftClient.getInstance().player.getWorld());
         AbilityPlayerComponent abilityPlayerComponent = AbilityPlayerComponent.KEY.get(MinecraftClient.getInstance().player);
+        if (!GameFunctions.isPlayerAliveAndSurvival(MinecraftClient.getInstance().player))  return;
         if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.VULTURE)) {
             VulturePlayerComponent vulturePlayerComponent = VulturePlayerComponent.KEY.get(MinecraftClient.getInstance().player);
             int drawY = context.getScaledWindowHeight();
