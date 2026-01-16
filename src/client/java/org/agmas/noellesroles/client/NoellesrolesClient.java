@@ -73,7 +73,7 @@ public class NoellesrolesClient implements ClientModInitializer {
         // 注册 GetInstinctHighlight 监听器：各角色的本能高亮逻辑
         GetInstinctHighlight.EVENT.register(entity -> {
 
-            if (!(entity instanceof PlayerEntity player) || player.isSpectator()) return null;
+            if (!(entity instanceof PlayerEntity player) || player.isSpectator() || player.isInvisible()) return null;
 
             if (MinecraftClient.getInstance().player == null) return null;
 
