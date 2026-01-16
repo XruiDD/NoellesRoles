@@ -217,7 +217,7 @@ public class Noellesroles implements ModInitializer {
             }
 
             BartenderPlayerComponent bartenderPlayerComponent = BartenderPlayerComponent.KEY.get(victim);
-            if (bartenderPlayerComponent.armor && deathReason != GameConstants.DeathReasons.SHOT_INNOCENT) {
+            if (bartenderPlayerComponent.armor && deathReason != GameConstants.DeathReasons.SHOT_INNOCENT && deathReason != DEATH_REASON_ASSASSINATED) {
                 victim.getWorld().playSound(null, victim.getBlockPos(), WatheSounds.ITEM_PSYCHO_ARMOUR, SoundCategory.MASTER, 5.0F, 1.0F);
                 bartenderPlayerComponent.armor = false;
                 bartenderPlayerComponent.sync();
