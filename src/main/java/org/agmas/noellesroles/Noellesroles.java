@@ -409,10 +409,24 @@ public class Noellesroles implements ModInitializer {
         KillPlayer.AFTER.register((victim, killer, deathReason) -> {
             GameWorldComponent gameComponent = GameWorldComponent.KEY.get(victim.getWorld());
 
-            // 炸弹客击杀奖励+100金币
+            // 炸弹客击杀奖励
             if (killer != null && gameComponent.isRole(killer, BOMBER)) {
                 PlayerShopComponent.KEY.get(killer).addToBalance(100);
+            }else{
+                BomberPlayerComponent bomberPlayerComponent = BomberPlayerComponent.KEY.get(victim);
+                if(bomberPlayerComponent.hasBomb())
+                {
+                    PlayerEntity bomber = victim.getWorld().getPlayerByUuid(bomberPlayerComponent.getBomberUuid());
+                    if(bomber != null){
+                        if((deathReason == GameConstants.DeathReasons.FELL_OUT_OF_TRAIN || deathReason == GameConstants.DeathReasons.ESCAPED)){
+                            PlayerShopComponent.KEY.get(bomber).addToBalance(200);
+                        }else{
+                            PlayerShopComponent.KEY.get(bomber).addToBalance(100);
+                        }
+                    }
+                }
             }
+
 
             // 记录清道夫杀人
             if (killer != null && gameComponent.isRole(killer, SCAVENGER) && !gameComponent.isRole(victim, NOISEMAKER)) {
@@ -433,18 +447,7 @@ public class Noellesroles implements ModInitializer {
                     }
                 }
             }
-            BomberPlayerComponent bomberPlayerComponent = BomberPlayerComponent.KEY.get(victim);
-            if(bomberPlayerComponent.hasBomb())
-            {
-                PlayerEntity bomber = victim.getWorld().getPlayerByUuid(bomberPlayerComponent.getBomberUuid());
-                if(bomber != null){
-                    if((deathReason == GameConstants.DeathReasons.FELL_OUT_OF_TRAIN || deathReason == GameConstants.DeathReasons.ESCAPED)){
-                        PlayerShopComponent.KEY.get(bomber).addToBalance(200);
-                    }else{
-                        PlayerShopComponent.KEY.get(bomber).addToBalance(100);
-                    }
-                }
-            }
+
 
             for (UUID uuid : gameComponent.getAllWithRole(JESTER)) {
                 PlayerEntity jester = victim.getWorld().getPlayerByUuid(uuid);
