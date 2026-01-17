@@ -76,6 +76,9 @@
   "hud.swapper.second_player_selection": "选择第二个要交换的玩家",
 
   "tip.phantom": "使用 %s 隐身！",
+  "tip.phantom.active": "隐身中！剩余 %s 秒",
+  "tip.morphling": "打开背包进行变形！",
+  "tip.morphling.active": "变形中！剩余 %s 秒",
   "tip.recaller.place": "使用 %s 保存你的位置！",
   "tip.recaller.teleport": "使用 %s 传送！",
   "tip.vulture": "已吃掉 %s/%s 具尸体。",

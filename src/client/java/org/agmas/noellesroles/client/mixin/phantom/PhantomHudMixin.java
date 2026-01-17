@@ -7,6 +7,8 @@ import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.client.render.RenderTickCounter;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
 import org.agmas.noellesroles.AbilityPlayerComponent;
@@ -32,7 +34,13 @@ public abstract class PhantomHudMixin {
 
             Text line = Text.translatable("tip.phantom", NoellesrolesClient.abilityBind.getBoundKeyLocalizedText());
 
-            if (abilityPlayerComponent.cooldown > 0) {
+            // 检查是否处于隐身状态
+            StatusEffectInstance invisEffect = MinecraftClient.getInstance().player.getStatusEffect(StatusEffects.INVISIBILITY);
+            if (invisEffect != null) {
+                // 隐身中，显示剩余时间
+                line = Text.translatable("tip.phantom.active", invisEffect.getDuration() / 20);
+            } else if (abilityPlayerComponent.cooldown > 0) {
+                // 冷却中
                 line = Text.translatable("tip.noellesroles.cooldown", abilityPlayerComponent.cooldown/20);
             }
 

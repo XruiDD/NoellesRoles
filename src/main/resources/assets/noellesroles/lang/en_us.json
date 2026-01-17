@@ -62,6 +62,9 @@
   "death_reason.noellesroles.voodoo": "voodoo magic.",
 
   "tip.phantom": "Use %s to go invisible!",
+  "tip.phantom.active": "Invisible! %ss remaining",
+  "tip.morphling": "Open inventory to morph!",
+  "tip.morphling.active": "Morphed! %ss remaining",
   "tip.recaller.place": "Use %s to save your location!",
   "tip.recaller.teleport": "Use %s to teleport!",
   "tip.vulture": "%s/%s bodies eaten.",

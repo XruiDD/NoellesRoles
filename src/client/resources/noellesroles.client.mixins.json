@@ -13,6 +13,7 @@
     "morphling.MorphlingElytraRendererMixin",
     "morphling.MorphlingRendererMixin",
     "morphling.MorphlingRoleNameRendererMixin",
+    "morphling.MorphlingHudMixin",
     "morphling.MorphlingScreenMixin",
     "pathogen.PathogenHudMixin",
     "phantom.PhantomHudMixin",
