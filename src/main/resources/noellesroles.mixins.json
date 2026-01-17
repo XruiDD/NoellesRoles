@@ -7,7 +7,9 @@
     "bartender.CocktailItemMixin",
     "bartender.DefenseVialApplyMixin",
     "noisemaker.NoisemakerKillMixin",
-    "toxicologist.ToxicologistPoisonSyncMixin"
+    "toxicologist.ToxicologistPoisonSyncMixin",
+    "scavenger.ScavengerKnifeSoundMixin",
+    "scavenger.ScavengerKnifeStabSoundMixin"
   ],
   "injectors": {
     "defaultRequire": 1

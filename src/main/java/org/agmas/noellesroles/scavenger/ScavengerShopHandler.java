@@ -33,7 +33,7 @@ public class ScavengerShopHandler {
                 ItemStack resetCDItem = new ItemStack(Items.CLOCK);
                 resetCDItem.set(net.minecraft.component.DataComponentTypes.CUSTOM_NAME,
                         Text.translatable("item.noellesroles.scavenger_reset_knife_cd"));
-                context.addEntry(1, new ShopEntry(resetCDItem, 125, ShopEntry.Type.WEAPON) {
+                context.addEntry(1, new ShopEntry(resetCDItem, 150, ShopEntry.Type.WEAPON) {
                     @Override
                     public boolean onBuy(PlayerEntity buyPlayer) {
                         buyPlayer.getItemCooldownManager().set(WatheItems.KNIFE, 0);
