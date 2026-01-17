@@ -50,7 +50,7 @@ public class RecallerPlayerComponent implements AutoSyncedComponent {
 
 
     public void teleport() {
-        player.refreshPositionAfterTeleport(x,y,z);
+        player.teleport(x,y,z,true);
         placed = false;
         this.sync();
     }

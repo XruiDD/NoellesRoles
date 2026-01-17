@@ -592,19 +592,25 @@ public class Noellesroles implements ModInitializer {
                                 Vec3d swappedPos1 = player1.getPos();
                                 Vec3d swappedPos2 = player2.getPos();
 
-                                if (!context.player().getWorld().isSpaceEmpty(player1)) return;
-                                if (!context.player().getWorld().isSpaceEmpty(player2)) return;
+//                                if (!context.player().getWorld().isSpaceEmpty(player1)) return;
+//                                if (!context.player().getWorld().isSpaceEmpty(player2)) return;
 
                                 if(player1.isSleeping()){
                                     player1.wakeUp();
                                 }
-
                                 if(player2.isSleeping()){
                                     player2.wakeUp();
                                 }
 
-                                player1.refreshPositionAndAngles(swappedPos2.x, swappedPos2.y, swappedPos2.z, player2.getYaw(), player2.getPitch());
-                                player2.refreshPositionAndAngles(swappedPos1.x, swappedPos1.y, swappedPos1.z, player1.getYaw(), player1.getPitch());
+                                if (player1.hasVehicle()) {
+                                    player1.stopRiding();
+                                }
+                                if (player2.hasVehicle()) {
+                                    player2.stopRiding();
+                                }
+
+                                player1.teleport(swappedPos2.x, swappedPos2.y, swappedPos2.z, true);
+                                player2.teleport(swappedPos1.x, swappedPos1.y, swappedPos1.z, true);
                             }
                         }
                     }
@@ -614,7 +620,6 @@ public class Noellesroles implements ModInitializer {
                 abilityPlayerComponent.sync();
             }
         });
-
         ServerPlayNetworking.registerGlobalReceiver(Noellesroles.ABILITY_PACKET, (payload, context) -> {
             AbilityPlayerComponent abilityPlayerComponent = (AbilityPlayerComponent) AbilityPlayerComponent.KEY.get(context.player());
             GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(context.player().getWorld());
