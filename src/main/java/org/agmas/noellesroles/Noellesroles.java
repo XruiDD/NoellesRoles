@@ -409,12 +409,13 @@ public class Noellesroles implements ModInitializer {
         KillPlayer.AFTER.register((victim, killer, deathReason) -> {
             GameWorldComponent gameComponent = GameWorldComponent.KEY.get(victim.getWorld());
 
+            BomberPlayerComponent bomberPlayerComponent = BomberPlayerComponent.KEY.get(victim);
+            boolean hasBomb = bomberPlayerComponent.hasBomb();
             // 炸弹客击杀奖励
             if (killer != null && gameComponent.isRole(killer, BOMBER)) {
                 PlayerShopComponent.KEY.get(killer).addToBalance(100);
             }else{
-                BomberPlayerComponent bomberPlayerComponent = BomberPlayerComponent.KEY.get(victim);
-                if(bomberPlayerComponent.hasBomb())
+                if(hasBomb)
                 {
                     PlayerEntity bomber = victim.getWorld().getPlayerByUuid(bomberPlayerComponent.getBomberUuid());
                     if(bomber != null){
@@ -469,6 +470,7 @@ public class Noellesroles implements ModInitializer {
                     jesterComponent.reset();
                 }
             }
+            bomberPlayerComponent.reset();
         });
 
         ShouldPunishGunShooter.EVENT.register((shooter, victim) -> {
