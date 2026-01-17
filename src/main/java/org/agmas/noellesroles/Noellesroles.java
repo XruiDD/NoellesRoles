@@ -454,8 +454,7 @@ public class Noellesroles implements ModInitializer {
                 PlayerEntity jester = victim.getWorld().getPlayerByUuid(uuid);
                 if (jester != null) {
                     JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(jester);
-                    if (jesterComponent.inPsychoMode &&
-                            jesterComponent.targetKiller != null &&
+                    if (jesterComponent.targetKiller != null &&
                             victim.getUuid().equals(jesterComponent.targetKiller)) {
                         jesterComponent.won = true;
                         break;

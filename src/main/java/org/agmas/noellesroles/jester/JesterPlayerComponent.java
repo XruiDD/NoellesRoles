@@ -65,6 +65,7 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
             PlayerPsychoComponent psychoComponent = PlayerPsychoComponent.KEY.get(this.player);
             psychoComponent.stopPsycho();
         }
+        this.sync();
     }
 
 
@@ -156,11 +157,8 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
         if (this.inPsychoMode && this.psychoModeTicks > 0) {
             this.psychoModeTicks--;
             if (this.psychoModeTicks <= 0) {
-                PlayerPsychoComponent psychoComponent = PlayerPsychoComponent.KEY.get(this.player);
-                psychoComponent.stopPsycho();
-                this.inPsychoMode = false;
                 GameFunctions.killPlayer(this.player, true, null, Noellesroles.DEATH_REASON_JESTER_TIMEOUT, true);
-                this.sync();
+                this.reset();
             } else if (this.psychoModeTicks % 20 == 0) {
                 this.sync();
             }
