@@ -22,12 +22,11 @@ import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.particle.ParticleTypes;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.TypeFilter;
 import net.minecraft.util.math.Vec3d;
@@ -588,12 +587,6 @@ public class Noellesroles implements ModInitializer {
                                 if(player2 == null)
                                     return;
 
-                                Vec3d swappedPos1 = player1.getPos();
-                                Vec3d swappedPos2 = player2.getPos();
-
-//                                if (!context.player().getWorld().isSpaceEmpty(player1)) return;
-//                                if (!context.player().getWorld().isSpaceEmpty(player2)) return;
-
                                 if(player1.isSleeping()){
                                     player1.wakeUp();
                                 }
@@ -608,15 +601,44 @@ public class Noellesroles implements ModInitializer {
                                     player2.stopRiding();
                                 }
 
-                                player1.teleport(swappedPos2.x, swappedPos2.y, swappedPos2.z, true);
-                                player2.teleport(swappedPos1.x, swappedPos1.y, swappedPos1.z, true);
+                                Vec3d swappedPos1 = player1.getPos();
+                                Vec3d swappedPos2 = player2.getPos();
+                                var x1 = swappedPos1.x;
+                                var y1 = swappedPos1.y;
+                                var z1 = swappedPos1.z;
+                                var yaw1 = player1.getYaw();
+                                var pitch1 = player1.getPitch();
+                                var world1 = (ServerWorld) player1.getWorld();
+                                var x2 = swappedPos2.x;
+                                var y2 = swappedPos2.y;
+                                var z2 = swappedPos2.z;
+                                var yaw2 = player2.getYaw();
+                                var pitch2 = player2.getPitch();
+                                var world2 = (ServerWorld) player2.getWorld();
+
+//                                if (!context.player().getWorld().isSpaceEmpty(player1)) return;
+//                                if (!context.player().getWorld().isSpaceEmpty(player2)) return;
+
+                                Set<PositionFlag> movementFlags = EnumSet.noneOf(PositionFlag.class);
+                                if (player1.teleport(world2, x2, y2, z2, movementFlags, yaw2, pitch2)) {
+                                    AbilityPlayerComponent abilityPlayerComponent = AbilityPlayerComponent.KEY.get(context.player());
+                                    abilityPlayerComponent.cooldown = GameConstants.getInTicks(1, 0);
+                                    abilityPlayerComponent.sync();
+                                    if (!player1.isFallFlying()) {
+                                        player1.setVelocity(player1.getVelocity().multiply(1.0, 0.0, 1.0));
+                                        player1.setOnGround(true);
+                                    }
+                                    if (player2.teleport(world1, x1, y1, z1, movementFlags, yaw1, pitch1)) {
+                                        if (!player2.isFallFlying()) {
+                                            player2.setVelocity(player1.getVelocity().multiply(1.0, 0.0, 1.0));
+                                            player2.setOnGround(true);
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
                 }
-                AbilityPlayerComponent abilityPlayerComponent = (AbilityPlayerComponent) AbilityPlayerComponent.KEY.get(context.player());
-                abilityPlayerComponent.cooldown = GameConstants.getInTicks(1, 0);
-                abilityPlayerComponent.sync();
             }
         });
         ServerPlayNetworking.registerGlobalReceiver(Noellesroles.ABILITY_PACKET, (payload, context) -> {
