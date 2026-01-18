@@ -18,6 +18,7 @@
     "pathogen.PathogenHudMixin",
     "phantom.PhantomHudMixin",
     "recaller.RecallerHudMixin",
+    "reporter.ReporterHudMixin",
     "scavenger.ScavengerBodyHideMixin",
     "swapper.SwapperScreenMixin",
     "voodoo.VoodoScreenMixin",

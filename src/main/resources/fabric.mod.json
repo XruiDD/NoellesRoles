@@ -43,7 +43,8 @@
       "noellesroles:bomber",
       "noellesroles:assassin",
       "noellesroles:scavenger",
-      "noellesroles:corrupt_cop"
+      "noellesroles:corrupt_cop",
+      "noellesroles:reporter"
     ]
   },
   "mixins": [

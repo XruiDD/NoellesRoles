@@ -4,7 +4,7 @@
   "announcement.win.morphling": "杀手胜利！",
 
   "announcement.goals.awesome_binglus": "你有超多便条，随便写吧",
-  "announcement.role.awesome_binglus": "记者",
+  "announcement.role.awesome_binglus": "超级宾格鲁斯",
   "announcement.win.awesome_binglus": "乘客胜利！",
 
   "announcement.goals.conductor": "使用万能钥匙打开列车上的所有门！",
@@ -162,5 +162,12 @@
   "item.noellesroles.corrupt_cop_crowbar.tooltip": "黑警时刻专用撬棍\n可以打开所有门",
 
   "subtitles.noellesroles.ambient.corrupt_cop_moment": "黑警时刻BGM",
-  "subtitles.noellesroles.ambient.corrupt_cop_execution": "处决音效"
+  "subtitles.noellesroles.ambient.corrupt_cop_execution": "处决音效",
+
+  "announcement.goals.reporter": "标记一名玩家，即可透视他！",
+  "announcement.role.reporter": "记者",
+  "announcement.win.reporter": "乘客胜利！",
+  "tip.reporter.target": "目标: %s 按 [%s] 以标记他",
+  "tip.reporter.no_target": "你需要指向一个目标以标记他",
+  "tip.reporter.marked": "已标记: %s"
 }

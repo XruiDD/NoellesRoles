@@ -12,13 +12,22 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.block.BedBlock;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.enums.BedPart;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.projectile.ProjectileUtil;
 import net.minecraft.text.Text;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.hit.EntityHitResult;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.World;
 import org.agmas.noellesroles.Noellesroles;
 import org.agmas.noellesroles.assassin.AssassinPlayerComponent;
 import org.agmas.noellesroles.bartender.BartenderPlayerComponent;
@@ -29,8 +38,10 @@ import org.agmas.noellesroles.jester.JesterPlayerComponent;
 import org.agmas.noellesroles.packet.AbilityC2SPacket;
 import org.agmas.noellesroles.packet.VultureEatC2SPacket;
 import org.agmas.noellesroles.packet.CorruptCopMomentS2CPacket;
+import org.agmas.noellesroles.packet.ReporterMarkC2SPacket;
 import org.agmas.noellesroles.pathogen.InfectedPlayerComponent;
 import org.agmas.noellesroles.client.corruptcop.CorruptCopMomentMusicManager;
+import org.agmas.noellesroles.reporter.ReporterPlayerComponent;
 import org.lwjgl.glfw.GLFW;
 
 import java.awt.*;
@@ -42,6 +53,8 @@ public class NoellesrolesClient implements ClientModInitializer {
     public static KeyBinding abilityBind;
     public static PlayerBodyEntity targetBody;
     public static PlayerEntity pathogenNearestTarget;
+    public static PlayerEntity crosshairTarget;
+    public static double crosshairTargetDistance;
 
     public static Map<UUID, UUID> SHUFFLED_PLAYER_ENTRIES_CACHE = Maps.newHashMap();
 
@@ -152,6 +165,15 @@ public class NoellesrolesClient implements ClientModInitializer {
                 }
                 return GetInstinctHighlight.HighlightResult.withKeybind(Color.BLUE.getRGB());
             }
+
+            // REPORTER: 被标记的目标始终高亮显示（透视效果）
+            if (gameWorldComponent.isRole(localPlayer, Noellesroles.REPORTER)) {
+                ReporterPlayerComponent reporterComp = ReporterPlayerComponent.KEY.get(localPlayer);
+                if (reporterComp.isMarkedTarget(player.getUuid())) {
+                    // 被标记的目标 - 使用记者颜色透视
+                    return GetInstinctHighlight.HighlightResult.always(Noellesroles.REPORTER.color());
+                }
+            }
             return null;
         });
         // 注册 GetInstinctHighlight 监听器：秃鹫的本能高亮逻辑
@@ -252,6 +274,28 @@ public class NoellesrolesClient implements ClientModInitializer {
                 } else {
                     pathogenNearestTarget = null;
                 }
+
+                crosshairTarget = null;
+                crosshairTargetDistance = 0;
+                PlayerEntity localPlayer = MinecraftClient.getInstance().player;
+                double maxDistance = 10.0; // 最大检测距离
+                var eyePos = localPlayer.getEyePos();
+                var hitResult = ProjectileUtil.getCollision(
+                        localPlayer,
+                        entity -> entity instanceof PlayerEntity player && GameFunctions.isPlayerAliveAndSurvival(player),
+                        maxDistance
+                );
+
+                if (hitResult instanceof EntityHitResult entityHitResult&& entityHitResult.getEntity() instanceof PlayerEntity targetPlayer) {
+                    crosshairTarget = targetPlayer;
+                    crosshairTargetDistance = eyePos.distanceTo(entityHitResult.getPos());
+                } else if (hitResult instanceof BlockHitResult blockHitResult){
+                    Optional<PlayerEntity> sleepingPlayer = findSleepingPlayerOnBed(localPlayer.getWorld(), blockHitResult);
+                    if (sleepingPlayer.isPresent() && sleepingPlayer.get() != localPlayer) {
+                        crosshairTarget = sleepingPlayer.get();
+                        crosshairTargetDistance = eyePos.distanceTo(blockHitResult.getPos());
+                    }
+                }
             }
 
             if (abilityBind.wasPressed()) {
@@ -277,6 +321,15 @@ public class NoellesrolesClient implements ClientModInitializer {
                         ClientPlayNetworking.send(new VultureEatC2SPacket(targetBody.getUuid()));
                         return;
                     }
+
+                    // 记者角色按G发送标记数据包
+                    if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.REPORTER)) {
+                        if (crosshairTarget != null && crosshairTargetDistance <= 3.0) {
+                            ClientPlayNetworking.send(new ReporterMarkC2SPacket(crosshairTarget.getUuid()));
+                        }
+                        return;
+                    }
+
                     ClientPlayNetworking.send(new AbilityC2SPacket());
                 });
             }
@@ -286,5 +339,37 @@ public class NoellesrolesClient implements ClientModInitializer {
                 JesterTimeRenderer.tick();
             }
         });
+    }
+
+    /**
+     * 检测床方块上是否有睡觉的玩家
+     * @return 睡觉的玩家，如果没有则返回 Optional.empty()
+     */
+    public static Optional<PlayerEntity> findSleepingPlayerOnBed(World world, BlockHitResult blockHitResult) {
+        BlockPos blockPos = blockHitResult.getBlockPos();
+        BlockState state = world.getBlockState(blockPos);
+
+        if (!(state.getBlock() instanceof BedBlock)) {
+            return Optional.empty();
+        }
+
+        BedPart part = state.get(BedBlock.PART);
+        Direction facing = state.get(BedBlock.FACING);
+        BlockPos headPos = (part == BedPart.HEAD) ? blockPos : blockPos.offset(facing);
+
+        for (PlayerEntity player : world.getPlayers()) {
+            if (!player.isSleeping()) {
+                continue;
+            }
+            Optional<BlockPos> sleepingPosOpt = player.getSleepingPosition();
+            if (sleepingPosOpt.isEmpty()) {
+                continue;
+            }
+            BlockPos sleepingPos = sleepingPosOpt.get();
+            if (sleepingPos.equals(headPos) || sleepingPos.equals(blockPos)) {
+                return Optional.of(player);
+            }
+        }
+        return Optional.empty();
     }
 }

@@ -51,6 +51,8 @@ import org.agmas.noellesroles.scavenger.ScavengerPlayerComponent;
 import org.agmas.noellesroles.scavenger.ScavengerShopHandler;
 import org.agmas.noellesroles.corruptcop.CorruptCopPlayerComponent;
 import org.agmas.noellesroles.packet.CorruptCopMomentS2CPacket;
+import org.agmas.noellesroles.packet.ReporterMarkC2SPacket;
+import org.agmas.noellesroles.reporter.ReporterPlayerComponent;
 
 import java.awt.*;
 import java.util.*;
@@ -83,6 +85,7 @@ public class Noellesroles implements ModInitializer {
     public static Identifier BOMBER_ID = Identifier.of(MOD_ID, "bomber");
     public static Identifier ASSASSIN_ID = Identifier.of(MOD_ID, "assassin");
     public static Identifier SCAVENGER_ID = Identifier.of(MOD_ID, "scavenger");
+    public static Identifier REPORTER_ID = Identifier.of(MOD_ID, "reporter");
     // 炸弹死亡原因
     public static Identifier DEATH_REASON_BOMB = Identifier.of(MOD_ID, "bomb");
     // 刺客死亡原因
@@ -113,6 +116,8 @@ public class Noellesroles implements ModInitializer {
     public static Role CORONER =WatheRoles.registerRole(new Role(CORONER_ID, new Color(122, 122, 122).getRGB(),true,false,Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(),false));
     public static Role RECALLER = WatheRoles.registerRole(new Role(RECALLER_ID, new Color(158, 255, 255).getRGB(),true,false,Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(),false));
     public static Role TOXICOLOGIST = WatheRoles.registerRole(new Role(TOXICOLOGIST_ID, new Color(184, 41, 90).getRGB(), true, false, Role.MoodType.REAL, GameConstants.getInTicks(0, 10), false));
+    // 记者角色 - 无辜者阵营，可以标记一个玩家并透视他
+    public static Role REPORTER = WatheRoles.registerRole(new Role(REPORTER_ID, new Color(210, 180, 100).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
 
 
     // 小丑角色 - 中立阵营，被无辜者杀死时获胜
@@ -128,6 +133,7 @@ public class Noellesroles implements ModInitializer {
     public static final CustomPayload.Id<AbilityC2SPacket> ABILITY_PACKET = AbilityC2SPacket.ID;
     public static final CustomPayload.Id<VultureEatC2SPacket> VULTURE_PACKET = VultureEatC2SPacket.ID;
     public static final CustomPayload.Id<AssassinGuessRoleC2SPacket> ASSASSIN_GUESS_ROLE_PACKET = AssassinGuessRoleC2SPacket.ID;
+    public static final CustomPayload.Id<ReporterMarkC2SPacket> REPORTER_MARK_PACKET = ReporterMarkC2SPacket.ID;
     public static final ArrayList<Role> VANNILA_ROLES = new ArrayList<>();
     public static final ArrayList<Identifier> VANNILA_ROLE_IDS = new ArrayList<>();
 
@@ -149,6 +155,7 @@ public class Noellesroles implements ModInitializer {
         PayloadTypeRegistry.playC2S().register(SwapperC2SPacket.ID, SwapperC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(VultureEatC2SPacket.ID, VultureEatC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(AssassinGuessRoleC2SPacket.ID, AssassinGuessRoleC2SPacket.CODEC);
+        PayloadTypeRegistry.playC2S().register(ReporterMarkC2SPacket.ID, ReporterMarkC2SPacket.CODEC);
         // 注册S2C数据包
         PayloadTypeRegistry.playS2C().register(CorruptCopMomentS2CPacket.ID, CorruptCopMomentS2CPacket.CODEC);
 
@@ -168,6 +175,7 @@ public class Noellesroles implements ModInitializer {
 
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             GameWorldComponent.KEY.get(server.getOverworld()).setRoleEnabled(THE_INSANE_DAMNED_PARANOID_KILLER_OF_DOOM_DEATH_DESTRUCTION_AND_WAFFLES, false);
+            GameWorldComponent.KEY.get(server.getOverworld()).setRoleEnabled(AWESOME_BINGLUS, false);
         });
 
         // Master key should drop on death
@@ -299,6 +307,12 @@ public class Noellesroles implements ModInitializer {
                 assassinComp.setCooldown(GameConstants.getInTicks(0, 60));
                 // 刺客没有开局道具，只依靠猜测技能
             }
+            if (role.equals(REPORTER)) {
+                ReporterPlayerComponent reporterComp = ReporterPlayerComponent.KEY.get(player);
+                reporterComp.reset();
+                // 记者开局冷却30秒
+                abilityPlayerComponent.cooldown = GameConstants.getInTicks(0, 30);
+            }
         });
         ResetPlayer.EVENT.register(player -> {
             BartenderPlayerComponent.KEY.get(player).reset();
@@ -313,6 +327,7 @@ public class Noellesroles implements ModInitializer {
             AssassinPlayerComponent.KEY.get(player).reset();
             ScavengerPlayerComponent.KEY.get(player).reset();
             CorruptCopPlayerComponent.KEY.get(player).reset();
+            ReporterPlayerComponent.KEY.get(player).reset();
         });
 
         // Bartender and Recaller get +50 coins when completing tasks
@@ -811,6 +826,38 @@ public class Noellesroles implements ModInitializer {
 
             // 消耗猜测次数，设置冷却
             assassinComp.useGuess();
+        });
+
+        // 记者标记目标
+        ServerPlayNetworking.registerGlobalReceiver(Noellesroles.REPORTER_MARK_PACKET, (payload, context) -> {
+            ServerPlayerEntity reporter = context.player();
+            GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(reporter.getWorld());
+            AbilityPlayerComponent abilityPlayerComponent = AbilityPlayerComponent.KEY.get(reporter);
+
+            // 验证角色和状态
+            if (!gameWorldComponent.isRole(reporter, REPORTER)) return;
+            if (!GameFunctions.isPlayerAliveAndSurvival(reporter)) return;
+            if (abilityPlayerComponent.cooldown > 0) return;
+
+            // 验证目标
+            if (payload.targetPlayer() == null) return;
+            PlayerEntity target = reporter.getWorld().getPlayerByUuid(payload.targetPlayer());
+            if (target == null) return;
+            if (target.equals(reporter)) return;
+            if (!GameFunctions.isPlayerAliveAndSurvival(target)) return;
+
+            // 验证距离（3格内）
+            double distance = reporter.squaredDistanceTo(target);
+            if (distance > 9.0) return; // 3^2 = 9
+
+            // 验证视线
+            if (!reporter.canSee(target)) return;
+
+            // 设置标记
+            ReporterPlayerComponent reporterComp = ReporterPlayerComponent.KEY.get(reporter);
+            reporterComp.setMarkedTarget(target.getUuid());
+            // 设置冷却30秒
+            abilityPlayerComponent.setCooldown(GameConstants.getInTicks(0, 30));
         });
     }
 

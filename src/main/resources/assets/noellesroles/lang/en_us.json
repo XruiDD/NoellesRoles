@@ -141,5 +141,12 @@
   "item.noellesroles.corrupt_cop_crowbar.tooltip": "Corrupt Cop Moment exclusive\nCan open all doors",
 
   "subtitles.noellesroles.ambient.corrupt_cop_moment": "Corrupt Cop Moment BGM",
-  "subtitles.noellesroles.ambient.corrupt_cop_execution": "Execution Sound"
+  "subtitles.noellesroles.ambient.corrupt_cop_execution": "Execution Sound",
+
+  "announcement.goals.reporter": "Mark a player to see them through walls!",
+  "announcement.role.reporter": "Reporter",
+  "announcement.win.reporter": "Passengers Win!",
+  "tip.reporter.target": "Target: %s [%s]",
+  "tip.reporter.no_target": "No target in crosshair",
+  "tip.reporter.marked": "Marked: %s"
 }
