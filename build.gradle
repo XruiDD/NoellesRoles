@@ -43,6 +43,10 @@ repositories {
     }
     maven { url = 'https://maven.maxhenkel.de/releases' }
     maven {
+        url "https://maven.uuid.gg/releases"
+        name "Datasync"
+    }
+    maven {
         name = "Modrinth"
         url = "https://api.modrinth.com/maven"
         content {
@@ -64,6 +68,7 @@ dependencies {
     modImplementation "org.ladysnake.cardinal-components-api:cardinal-components-world:${project.cca_version}"
     modImplementation "org.ladysnake.cardinal-components-api:cardinal-components-scoreboard:${project.cca_version}"
     modImplementation "dev.isxander:yet-another-config-lib:${project.yacl_version}"
+    modImplementation "dev.doctor4t:ratatouille:${project.ratatouille_version}"
 
     implementation "de.maxhenkel.voicechat:voicechat-api:${voicechat_api_version}"
 

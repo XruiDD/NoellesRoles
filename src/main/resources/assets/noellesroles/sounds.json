@@ -31,5 +31,22 @@
             }
         ],
         "subtitle": "subtitles.noellesroles.ambient.jester_laugh"
+    },
+    "music.corrupt_cop_moment": {
+        "sounds": [
+            {
+                "name": "noellesroles:ambient/corrupt_cop_moment",
+                "stream": true
+            }
+        ],
+        "subtitle": "subtitles.noellesroles.ambient.corrupt_cop_moment"
+    },
+    "ambient.corrupt_cop_execution": {
+        "sounds": [
+            {
+                "name": "noellesroles:ambient/corrupt_cop_execution"
+            }
+        ],
+        "subtitle": "subtitles.noellesroles.ambient.corrupt_cop_execution"
     }
 }

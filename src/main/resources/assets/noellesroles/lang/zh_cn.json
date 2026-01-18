@@ -150,5 +150,17 @@
   "item.noellesroles.scavenger_reset_knife_cd.tooltip": "花费100金币\n立即重置刀的冷却时间",
 
   "tip.scavenger.knife_cd_reset": "刀的冷却已重置！",
-  "tip.scavenger.not_enough_money": "需要100金币才能重置刀的冷却！"
+  "tip.scavenger.not_enough_money": "需要100金币才能重置刀的冷却！",
+
+  "tip.corrupt_cop.moment_triggered": "黑警时刻已触发！枪械冷却减少，撬棍已获得！",
+  "tip.corrupt_cop.moment_ended": "黑警时刻结束。",
+
+  "title.noellesroles.corrupt_cop_moment": "黑警处决时刻",
+  "subtitle.noellesroles.corrupt_cop_moment": "黑警已经清理了足够的人，他向剩下的人发起了巴巴博弈",
+
+  "item.noellesroles.corrupt_cop_crowbar": "黑警撬棍",
+  "item.noellesroles.corrupt_cop_crowbar.tooltip": "黑警时刻专用撬棍\n可以打开所有门",
+
+  "subtitles.noellesroles.ambient.corrupt_cop_moment": "黑警时刻BGM",
+  "subtitles.noellesroles.ambient.corrupt_cop_execution": "处决音效"
 }

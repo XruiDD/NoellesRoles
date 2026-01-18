@@ -9,7 +9,8 @@
     "noisemaker.NoisemakerKillMixin",
     "toxicologist.ToxicologistPoisonSyncMixin",
     "scavenger.ScavengerKnifeSoundMixin",
-    "scavenger.ScavengerKnifeStabSoundMixin"
+    "scavenger.ScavengerKnifeStabSoundMixin",
+    "corruptcop.CorruptCopGunCooldownMixin"
   ],
   "injectors": {
     "defaultRequire": 1

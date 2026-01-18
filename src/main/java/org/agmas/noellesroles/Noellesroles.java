@@ -1,6 +1,5 @@
 package org.agmas.noellesroles;
 
-import dev.doctor4t.wathe.Wathe;
 import dev.doctor4t.wathe.api.Role;
 import dev.doctor4t.wathe.api.RoleAppearanceCondition;
 import dev.doctor4t.wathe.api.WatheRoles;
@@ -50,6 +49,8 @@ import org.agmas.noellesroles.bomber.BomberShopHandler;
 import org.agmas.noellesroles.assassin.AssassinPlayerComponent;
 import org.agmas.noellesroles.scavenger.ScavengerPlayerComponent;
 import org.agmas.noellesroles.scavenger.ScavengerShopHandler;
+import org.agmas.noellesroles.corruptcop.CorruptCopPlayerComponent;
+import org.agmas.noellesroles.packet.CorruptCopMomentS2CPacket;
 
 import java.awt.*;
 import java.util.*;
@@ -148,6 +149,8 @@ public class Noellesroles implements ModInitializer {
         PayloadTypeRegistry.playC2S().register(SwapperC2SPacket.ID, SwapperC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(VultureEatC2SPacket.ID, VultureEatC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(AssassinGuessRoleC2SPacket.ID, AssassinGuessRoleC2SPacket.CODEC);
+        // 注册S2C数据包
+        PayloadTypeRegistry.playS2C().register(CorruptCopMomentS2CPacket.ID, CorruptCopMomentS2CPacket.CODEC);
 
         registerEvents();
 
@@ -274,6 +277,9 @@ public class Noellesroles implements ModInitializer {
             if (role.equals(CORRUPT_COP)) {
                 player.giveItemStack(WatheItems.REVOLVER.getDefaultStack());
                 player.giveItemStack(ModItems.NEUTRAL_MASTER_KEY.getDefaultStack());
+                // 初始化黑警时刻组件
+                CorruptCopPlayerComponent corruptCopComp = CorruptCopPlayerComponent.KEY.get(player);
+                corruptCopComp.initializeForGame(gameWorldComponent.getAllPlayers().size());
             }
             if (role.equals(PATHOGEN)) {
                 PathogenPlayerComponent pathogenComp = PathogenPlayerComponent.KEY.get(player);
@@ -306,6 +312,7 @@ public class Noellesroles implements ModInitializer {
             BomberPlayerComponent.KEY.get(player).reset();
             AssassinPlayerComponent.KEY.get(player).reset();
             ScavengerPlayerComponent.KEY.get(player).reset();
+            CorruptCopPlayerComponent.KEY.get(player).reset();
         });
 
         // Bartender and Recaller get +50 coins when completing tasks
@@ -468,6 +475,39 @@ public class Noellesroles implements ModInitializer {
                     jesterComponent.reset();
                 }
             }
+
+            // 黑警击杀处理和黑警时刻检查
+            if (killer != null && gameComponent.isRole(killer, CORRUPT_COP)) {
+                CorruptCopPlayerComponent corruptCopComp = CorruptCopPlayerComponent.KEY.get(killer);
+                if (corruptCopComp.isCorruptCopMomentActive()) {
+                    corruptCopComp.onKill();
+                }
+            }
+
+            // 黑警被杀时结束黑警时刻
+            if (gameComponent.isRole(victim, CORRUPT_COP)) {
+                CorruptCopPlayerComponent corruptCopComp = CorruptCopPlayerComponent.KEY.get(victim);
+                corruptCopComp.endCorruptCopMoment();
+            }
+
+            // 检查是否应该触发黑警时刻
+            if (victim.getWorld() instanceof ServerWorld serverWorld) {
+                for (UUID uuid : gameComponent.getAllWithRole(CORRUPT_COP)) {
+                    PlayerEntity corruptCop = serverWorld.getPlayerByUuid(uuid);
+                    if (GameFunctions.isPlayerAliveAndSurvival(corruptCop)) {
+                        CorruptCopPlayerComponent corruptCopComp = CorruptCopPlayerComponent.KEY.get(corruptCop);
+                        // 计算当前存活人数
+                        int aliveCount = 0;
+                        for (ServerPlayerEntity p : serverWorld.getPlayers()) {
+                            if (gameComponent.hasAnyRole(p) && !GameFunctions.isPlayerEliminated(p)) {
+                                aliveCount++;
+                            }
+                        }
+                        corruptCopComp.checkAndTriggerMoment(aliveCount);
+                    }
+                }
+            }
+
             bomberPlayerComponent.reset();
         });
 

@@ -17,16 +17,20 @@ import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.MathHelper;
 import org.agmas.noellesroles.Noellesroles;
 import org.agmas.noellesroles.assassin.AssassinPlayerComponent;
 import org.agmas.noellesroles.bartender.BartenderPlayerComponent;
 import org.agmas.noellesroles.client.gui.JesterTimeRenderer;
 import org.agmas.noellesroles.client.screen.AssassinScreen;
+import org.agmas.noellesroles.corruptcop.CorruptCopPlayerComponent;
 import org.agmas.noellesroles.jester.JesterPlayerComponent;
 import org.agmas.noellesroles.packet.AbilityC2SPacket;
 import org.agmas.noellesroles.packet.VultureEatC2SPacket;
+import org.agmas.noellesroles.packet.CorruptCopMomentS2CPacket;
 import org.agmas.noellesroles.pathogen.InfectedPlayerComponent;
+import org.agmas.noellesroles.client.corruptcop.CorruptCopMomentMusicManager;
 import org.lwjgl.glfw.GLFW;
 
 import java.awt.*;
@@ -45,6 +49,28 @@ public class NoellesrolesClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         abilityBind = KeyBindingHelper.registerKeyBinding(new KeyBinding("key." + Noellesroles.MOD_ID + ".ability", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_G, "category.wathe.keybinds"));
+
+        // 注册黑警时刻BGM到AmbienceUtil
+        CorruptCopMomentMusicManager.register();
+
+        // 注册黑警时刻S2C数据包接收器
+        ClientPlayNetworking.registerGlobalReceiver(CorruptCopMomentS2CPacket.ID, (payload, context) -> {
+            context.client().execute(() -> {
+                if (payload.start()) {
+                    CorruptCopMomentMusicManager.startMoment();
+
+                    // 显示黑警时刻标题 (5秒 = 100 ticks)
+                    MinecraftClient client = context.client();
+                    if (client.inGameHud != null) {
+                        client.inGameHud.setTitle(Text.translatable("title.noellesroles.corrupt_cop_moment"));
+                        client.inGameHud.setSubtitle(Text.translatable("subtitle.noellesroles.corrupt_cop_moment"));
+                        client.inGameHud.setTitleTicks(10, 100, 10); // fadeIn, stay, fadeOut
+                    }
+                } else {
+                    CorruptCopMomentMusicManager.stopMoment();
+                }
+            });
+        });
 
         CanSeeMoney.EVENT.register(player -> {
             if (player.isSpectator()) return null;
@@ -84,6 +110,13 @@ public class NoellesrolesClient implements ClientModInitializer {
             if (!GameFunctions.isPlayerAliveAndSurvival(MinecraftClient.getInstance().player)) return null;
 
             PlayerEntity localPlayer = MinecraftClient.getInstance().player;
+
+            if (gameWorldComponent.isRole(localPlayer, Noellesroles.CORRUPT_COP)) {
+                var comp = CorruptCopPlayerComponent.KEY.get(localPlayer);
+                if (comp.canSeePlayersThroughWalls()){
+                    return GetInstinctHighlight.HighlightResult.always(Noellesroles.CORRUPT_COP.color());
+                }
+            }
 
             if (gameWorldComponent.isRole(localPlayer, Noellesroles.JESTER)) {
                 JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(localPlayer);

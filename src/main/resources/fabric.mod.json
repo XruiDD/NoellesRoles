@@ -42,7 +42,8 @@
       "noellesroles:pathogen",
       "noellesroles:bomber",
       "noellesroles:assassin",
-      "noellesroles:scavenger"
+      "noellesroles:scavenger",
+      "noellesroles:corrupt_cop"
     ]
   },
   "mixins": [

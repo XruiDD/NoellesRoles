@@ -129,5 +129,17 @@
   "item.noellesroles.scavenger_reset_knife_cd.tooltip": "Costs 100 coins\nInstantly resets your knife cooldown",
 
   "tip.scavenger.knife_cd_reset": "Knife cooldown reset!",
-  "tip.scavenger.not_enough_money": "Need 100 coins to reset knife CD!"
+  "tip.scavenger.not_enough_money": "Need 100 coins to reset knife CD!",
+
+  "tip.corrupt_cop.moment_triggered": "Corrupt Cop Moment activated! Gun cooldown reduced, crowbar obtained!",
+  "tip.corrupt_cop.moment_ended": "Corrupt Cop Moment ended.",
+
+  "title.noellesroles.corrupt_cop_moment": "Corrupt Cop Execution Moment",
+  "subtitle.noellesroles.corrupt_cop_moment": "The Corrupt Cop has cleared enough people. He initiates the final gambit against the survivors.",
+
+  "item.noellesroles.corrupt_cop_crowbar": "Corrupt Cop Crowbar",
+  "item.noellesroles.corrupt_cop_crowbar.tooltip": "Corrupt Cop Moment exclusive\nCan open all doors",
+
+  "subtitles.noellesroles.ambient.corrupt_cop_moment": "Corrupt Cop Moment BGM",
+  "subtitles.noellesroles.ambient.corrupt_cop_execution": "Execution Sound"
 }
