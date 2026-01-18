@@ -169,5 +169,11 @@
   "announcement.win.reporter": "乘客胜利！",
   "tip.reporter.target": "目标: %s 按 [%s] 以标记他",
   "tip.reporter.no_target": "你需要指向一个目标以标记他",
-  "tip.reporter.marked": "已标记: %s"
+  "tip.reporter.marked": "已标记: %s",
+
+  "announcement.goals.serial_killer": "追踪并击杀你的目标！可获得额外金钱奖励！",
+  "announcement.role.serial_killer": "连环杀手",
+  "announcement.win.serial_killer": "杀手胜利！",
+  "tip.serial_killer.target": "目标: %s",
+  "tip.serial_killer.no_target": "暂无目标"
 }

@@ -42,6 +42,7 @@ import org.agmas.noellesroles.packet.ReporterMarkC2SPacket;
 import org.agmas.noellesroles.pathogen.InfectedPlayerComponent;
 import org.agmas.noellesroles.client.corruptcop.CorruptCopMomentMusicManager;
 import org.agmas.noellesroles.reporter.ReporterPlayerComponent;
+import org.agmas.noellesroles.serialkiller.SerialKillerPlayerComponent;
 import org.lwjgl.glfw.GLFW;
 
 import java.awt.*;
@@ -172,6 +173,15 @@ public class NoellesrolesClient implements ClientModInitializer {
                 if (reporterComp.isMarkedTarget(player.getUuid())) {
                     // 被标记的目标 - 使用记者颜色透视
                     return GetInstinctHighlight.HighlightResult.always(Noellesroles.REPORTER.color());
+                }
+            }
+
+            // SERIAL_KILLER: 当前目标始终高亮显示（透视效果）
+            if (gameWorldComponent.isRole(localPlayer, Noellesroles.SERIAL_KILLER)) {
+                SerialKillerPlayerComponent serialKillerComp = SerialKillerPlayerComponent.KEY.get(localPlayer);
+                if (serialKillerComp.isCurrentTarget(player.getUuid())) {
+                    // 当前目标 - 使用连环杀手颜色透视
+                    return GetInstinctHighlight.HighlightResult.always(Noellesroles.SERIAL_KILLER.color());
                 }
             }
             return null;

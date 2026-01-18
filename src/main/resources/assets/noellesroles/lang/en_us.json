@@ -148,5 +148,11 @@
   "announcement.win.reporter": "Passengers Win!",
   "tip.reporter.target": "Target: %s [%s]",
   "tip.reporter.no_target": "No target in crosshair",
-  "tip.reporter.marked": "Marked: %s"
+  "tip.reporter.marked": "Marked: %s",
+
+  "announcement.goals.serial_killer": "Hunt and kill your target! Target automatically changes on death. Extra money for kills on your target!",
+  "announcement.role.serial_killer": "Serial Killer",
+  "announcement.win.serial_killer": "Killers Win!",
+  "tip.serial_killer.target": "Target: %s",
+  "tip.serial_killer.no_target": "No target"
 }

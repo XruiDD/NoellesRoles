@@ -53,6 +53,7 @@ import org.agmas.noellesroles.corruptcop.CorruptCopPlayerComponent;
 import org.agmas.noellesroles.packet.CorruptCopMomentS2CPacket;
 import org.agmas.noellesroles.packet.ReporterMarkC2SPacket;
 import org.agmas.noellesroles.reporter.ReporterPlayerComponent;
+import org.agmas.noellesroles.serialkiller.SerialKillerPlayerComponent;
 
 import java.awt.*;
 import java.util.*;
@@ -86,6 +87,7 @@ public class Noellesroles implements ModInitializer {
     public static Identifier ASSASSIN_ID = Identifier.of(MOD_ID, "assassin");
     public static Identifier SCAVENGER_ID = Identifier.of(MOD_ID, "scavenger");
     public static Identifier REPORTER_ID = Identifier.of(MOD_ID, "reporter");
+    public static Identifier SERIAL_KILLER_ID = Identifier.of(MOD_ID, "serial_killer");
     // 炸弹死亡原因
     public static Identifier DEATH_REASON_BOMB = Identifier.of(MOD_ID, "bomb");
     // 刺客死亡原因
@@ -103,6 +105,8 @@ public class Noellesroles implements ModInitializer {
     public static Role ASSASSIN = WatheRoles.registerRole(new Role(ASSASSIN_ID, new Color(139, 0, 0).getRGB(), false, true, Role.MoodType.FAKE, Integer.MAX_VALUE, true));
     // 清道夫角色 - 杀手阵营，杀人后尸体对其他人不可见（秃鹫和中立除外），杀人奖励+50金币，只能买刀，可以花100金币重置刀CD
     public static Role SCAVENGER = WatheRoles.registerRole(new Role(SCAVENGER_ID, new Color(101, 67, 33).getRGB(), false, true, Role.MoodType.FAKE, Integer.MAX_VALUE, true));
+    // 连环杀手角色 - 杀手阵营，开局随机选择一个非杀手阵营的人为透视目标，目标死后自动更换，杀掉目标后获得额外金钱奖励
+    public static Role SERIAL_KILLER = WatheRoles.registerRole(new Role(SERIAL_KILLER_ID, new Color(102, 34, 34).getRGB(), false, true, Role.MoodType.FAKE, Integer.MAX_VALUE, true));
 
 
     public static HashMap<Role, RoleAnnouncementTexts.RoleAnnouncementText> roleRoleAnnouncementTextHashMap = new HashMap<>();
@@ -313,6 +317,12 @@ public class Noellesroles implements ModInitializer {
                 // 记者开局冷却30秒
                 abilityPlayerComponent.cooldown = GameConstants.getInTicks(0, 30);
             }
+            if (role.equals(SERIAL_KILLER)) {
+                SerialKillerPlayerComponent serialKillerComp = SerialKillerPlayerComponent.KEY.get(player);
+                serialKillerComp.reset();
+                // 初始化透视目标
+                serialKillerComp.initializeTarget(gameWorldComponent);
+            }
         });
         ResetPlayer.EVENT.register(player -> {
             BartenderPlayerComponent.KEY.get(player).reset();
@@ -328,6 +338,7 @@ public class Noellesroles implements ModInitializer {
             ScavengerPlayerComponent.KEY.get(player).reset();
             CorruptCopPlayerComponent.KEY.get(player).reset();
             ReporterPlayerComponent.KEY.get(player).reset();
+            SerialKillerPlayerComponent.KEY.get(player).reset();
         });
 
         // Bartender and Recaller get +50 coins when completing tasks
@@ -519,6 +530,26 @@ public class Noellesroles implements ModInitializer {
                             }
                         }
                         corruptCopComp.checkAndTriggerMoment(aliveCount);
+                    }
+                }
+            }
+
+            // 连环杀手处理：击杀目标奖励和目标更换
+            if (victim.getWorld() instanceof ServerWorld serverWorld) {
+                for (UUID uuid : gameComponent.getAllWithRole(SERIAL_KILLER)) {
+                    PlayerEntity serialKiller = serverWorld.getPlayerByUuid(uuid);
+                    if (serialKiller != null && GameFunctions.isPlayerAliveAndSurvival(serialKiller)) {
+                        SerialKillerPlayerComponent serialKillerComp = SerialKillerPlayerComponent.KEY.get(serialKiller);
+
+                        // 如果被杀者是连环杀手的目标
+                        if (serialKillerComp.isCurrentTarget(victim.getUuid())) {
+                            // 如果是连环杀手亲自击杀的，给予额外金钱奖励
+                            if (killer != null && killer.getUuid().equals(serialKiller.getUuid())) {
+                                PlayerShopComponent.KEY.get(killer).addToBalance(SerialKillerPlayerComponent.getBonusMoney());
+                            }
+                            // 目标死亡，自动更换新目标
+                            serialKillerComp.onTargetDeath(gameComponent);
+                        }
                     }
                 }
             }
