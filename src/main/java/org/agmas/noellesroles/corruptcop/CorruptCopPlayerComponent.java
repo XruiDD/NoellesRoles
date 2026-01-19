@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
@@ -46,7 +47,6 @@ public class CorruptCopPlayerComponent implements Component, ClientTickingCompon
     private static final int VISION_ON_DURATION = 10 * 20;  // 10秒 = 200 ticks
     private static final int VISION_CYCLE_TOTAL = VISION_OFF_DURATION + VISION_ON_DURATION; // 600 ticks
 
-    // 原本的枪冷却时间（用于恢复）
     private static final int MOMENT_GUN_COOLDOWN = GameConstants.getInTicks(0, 2); // 2秒
 
     public CorruptCopPlayerComponent(PlayerEntity player) {
@@ -65,8 +65,8 @@ public class CorruptCopPlayerComponent implements Component, ClientTickingCompon
      * @param totalPlayers 总玩家数
      */
     public void initializeForGame(int totalPlayers) {
-        // n = 玩家数 / 6，最低触发条件是12人局（n=2）
-        this.triggerThreshold = totalPlayers / 6;
+        // n = 玩家数 / 5，最低触发条件是10人局（n=2）
+        this.triggerThreshold = totalPlayers / 5;
         this.corruptCopMomentActive = false;
     }
 
@@ -110,10 +110,8 @@ public class CorruptCopPlayerComponent implements Component, ClientTickingCompon
                 .formatted(Formatting.DARK_RED, Formatting.BOLD), false);
 
         // 向所有玩家广播黑警时刻开始
-        GameWorldComponent gameComponent = GameWorldComponent.KEY.get(serverWorld);
-        for (UUID playerUuid : gameComponent.getAllPlayers()) {
-            PlayerEntity p = serverWorld.getPlayerByUuid(playerUuid);
-            if (p instanceof ServerPlayerEntity serverPlayer) {
+        for (var player : player.getWorld().getPlayers()) {
+            if (player instanceof ServerPlayerEntity serverPlayer) {
                 // 发送BGM播放包
                 ServerPlayNetworking.send(serverPlayer, new CorruptCopMomentS2CPacket(true));
             }
@@ -131,10 +129,8 @@ public class CorruptCopPlayerComponent implements Component, ClientTickingCompon
         if (!(player.getWorld() instanceof ServerWorld serverWorld)) return;
 
         // 向所有玩家发送停止BGM的包
-        GameWorldComponent gameComponent = GameWorldComponent.KEY.get(serverWorld);
-        for (UUID playerUuid : gameComponent.getAllPlayers()) {
-            PlayerEntity p = serverWorld.getPlayerByUuid(playerUuid);
-            if (p instanceof ServerPlayerEntity serverPlayer) {
+        for (var player : player.getWorld().getPlayers()) {
+            if (player instanceof ServerPlayerEntity serverPlayer) {
                 ServerPlayNetworking.send(serverPlayer, new CorruptCopMomentS2CPacket(false));
             }
         }

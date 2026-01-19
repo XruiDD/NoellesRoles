@@ -538,7 +538,7 @@ public class Noellesroles implements ModInitializer {
             if (victim.getWorld() instanceof ServerWorld serverWorld) {
                 for (UUID uuid : gameComponent.getAllWithRole(SERIAL_KILLER)) {
                     PlayerEntity serialKiller = serverWorld.getPlayerByUuid(uuid);
-                    if (serialKiller != null && GameFunctions.isPlayerAliveAndSurvival(serialKiller)) {
+                    if (GameFunctions.isPlayerAliveAndSurvival(serialKiller)) {
                         SerialKillerPlayerComponent serialKillerComp = SerialKillerPlayerComponent.KEY.get(serialKiller);
 
                         // 如果被杀者是连环杀手的目标
