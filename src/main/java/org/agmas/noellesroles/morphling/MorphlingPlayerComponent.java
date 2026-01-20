@@ -67,7 +67,11 @@ public class MorphlingPlayerComponent implements AutoSyncedComponent, ServerTick
             if (--this.morphTicks == 0) {
                 this.stopMorph();
             }
+            if (this.morphTicks %20 == 0) {
+                this.sync();
+            }
         }
+
         if (this.morphTicks < 0) {
             if (++this.morphTicks % 20 == 0) {
                 this.sync();
