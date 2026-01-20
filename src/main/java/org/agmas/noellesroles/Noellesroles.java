@@ -823,15 +823,7 @@ public class Noellesroles implements ModInitializer {
             // 判断猜测是否正确
             boolean guessedCorrectly = targetRole.identifier().equals(payload.guessedRole());
 
-            // 播放枪响音效（对所有玩家可见）
-            assassin.getWorld().playSound(
-                null,  // 所有人都能听到
-                assassin.getX(), assassin.getY(), assassin.getZ(),
-                WatheSounds.ITEM_REVOLVER_SHOOT,
-                SoundCategory.PLAYERS,
-                2.0F,  // 音量
-                1.0F   // 音调
-            );
+
 
             // 执行结果
             if (guessedCorrectly) {
@@ -840,6 +832,16 @@ public class Noellesroles implements ModInitializer {
                     net.minecraft.text.Text.translatable("tip.assassin.guess_correct", target.getName())
                         .formatted(net.minecraft.util.Formatting.GREEN, net.minecraft.util.Formatting.BOLD),
                     true
+                );
+
+                // 播放枪响音效（对所有玩家可见）
+                assassin.getWorld().playSound(
+                        null,  // 所有人都能听到
+                        target.getX(), target.getY(), target.getZ(),
+                        WatheSounds.ITEM_REVOLVER_SHOOT,
+                        SoundCategory.PLAYERS,
+                        2.0F,  // 音量
+                        1.0F   // 音调
                 );
 
                 // 猜对：杀死目标
@@ -852,6 +854,15 @@ public class Noellesroles implements ModInitializer {
                     true
                 );
 
+                // 播放枪响音效（对所有玩家可见）
+                assassin.getWorld().playSound(
+                        null,  // 所有人都能听到
+                        assassin.getX(), assassin.getY(), assassin.getZ(),
+                        WatheSounds.ITEM_REVOLVER_SHOOT,
+                        SoundCategory.PLAYERS,
+                        2.0F,  // 音量
+                        1.0F   // 音调
+                );
                 // 猜错：自己死亡
                 GameFunctions.killPlayer(assassin, true, null, DEATH_REASON_ASSASSIN_MISFIRE);
             }
