@@ -13,14 +13,10 @@ import java.util.UUID;
  * 黑警时刻S2C数据包
  * 用于通知客户端播放/停止黑警时刻BGM
  */
-public record CorruptCopMomentS2CPacket(boolean start) implements CustomPayload {
+public record CorruptCopMomentS2CPacket(boolean start,int soundIndex) implements CustomPayload {
     public static final Identifier PAYLOAD_ID = Identifier.of(Noellesroles.MOD_ID, "corrupt_cop_moment");
     public static final CustomPayload.Id<CorruptCopMomentS2CPacket> ID = new CustomPayload.Id<>(PAYLOAD_ID);
     public static final PacketCodec<RegistryByteBuf, CorruptCopMomentS2CPacket> CODEC;
-
-    public CorruptCopMomentS2CPacket(boolean start) {
-        this.start = start;
-    }
 
     @Override
     public CustomPayload.Id<? extends CustomPayload> getId() {
@@ -29,10 +25,11 @@ public record CorruptCopMomentS2CPacket(boolean start) implements CustomPayload 
 
     public void write(PacketByteBuf buf) {
         buf.writeBoolean(this.start);
+        buf.writeInt(this.soundIndex);
     }
 
     public static CorruptCopMomentS2CPacket read(PacketByteBuf buf) {
-        return new CorruptCopMomentS2CPacket(buf.readBoolean());
+        return new CorruptCopMomentS2CPacket(buf.readBoolean(), buf.readInt());
     }
 
     @Override

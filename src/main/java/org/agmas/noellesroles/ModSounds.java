@@ -10,7 +10,8 @@ public class ModSounds {
     public static final SoundEvent BOMB_EXPLODE = registerSound("item.bomb.explode");
     public static final SoundEvent JESTER_LAUGH = registerSound("ambient.jester_laugh");
     // 黑警时刻相关音效
-    public static final SoundEvent CORRUPT_COP_MOMENT_BGM = registerSound("music.corrupt_cop_moment");
+    public static final SoundEvent CORRUPT_COP_MOMENT_1 = registerSound("music.corrupt_cop_moment_1");
+    public static final SoundEvent CORRUPT_COP_MOMENT_2 = registerSound("music.corrupt_cop_moment_2");
     public static final SoundEvent CORRUPT_COP_EXECUTION = registerSound("ambient.corrupt_cop_execution");
 
     private static SoundEvent registerSound(String name) {

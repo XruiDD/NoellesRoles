@@ -14,17 +14,26 @@ import org.agmas.noellesroles.corruptcop.CorruptCopPlayerComponent;
  */
 public class CorruptCopMomentMusicManager {
     private static boolean corruptCopMomentActive = false;
+    private static int soundIndex = 0;
 
     /**
      * 注册黑警时刻BGM到AmbienceUtil
      * 在客户端初始化时调用
      */
     public static void register() {
+
         AmbienceUtil.registerBackgroundAmbience(new BackgroundAmbience(
-                ModSounds.CORRUPT_COP_MOMENT_BGM,
-                player -> corruptCopMomentActive,
-                20
+                ModSounds.CORRUPT_COP_MOMENT_1,
+                player -> corruptCopMomentActive && soundIndex == 1,
+                40
         ));
+
+        AmbienceUtil.registerBackgroundAmbience(new BackgroundAmbience(
+                ModSounds.CORRUPT_COP_MOMENT_2,
+                player -> corruptCopMomentActive && soundIndex == 2,
+                40
+        ));
+
     }
 
     /**
@@ -40,7 +49,8 @@ public class CorruptCopMomentMusicManager {
     /**
      * 开始黑警时刻
      */
-    public static void startMoment() {
+    public static void startMoment(int soundIndex) {
+        CorruptCopMomentMusicManager.soundIndex = soundIndex;
         setMomentActive(true);
     }
 

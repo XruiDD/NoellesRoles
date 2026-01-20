@@ -7,7 +7,6 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
@@ -18,12 +17,12 @@ import org.agmas.noellesroles.ModSounds;
 import org.agmas.noellesroles.Noellesroles;
 import org.agmas.noellesroles.packet.CorruptCopMomentS2CPacket;
 import org.jetbrains.annotations.NotNull;
-import org.ladysnake.cca.api.v3.component.Component;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
 import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
 import org.ladysnake.cca.api.v3.component.tick.ClientTickingComponent;
 
+import java.util.Random;
 import java.util.UUID;
 
 /**
@@ -119,7 +118,8 @@ public class CorruptCopPlayerComponent implements AutoSyncedComponent, ClientTic
         for (var player : player.getWorld().getPlayers()) {
             if (player instanceof ServerPlayerEntity serverPlayer) {
                 // 发送BGM播放包
-                ServerPlayNetworking.send(serverPlayer, new CorruptCopMomentS2CPacket(true));
+                var radom = new Random();
+                ServerPlayNetworking.send(serverPlayer, new CorruptCopMomentS2CPacket(true, radom.nextInt(2) + 1));
             }
         }
         this.sync();
@@ -138,7 +138,7 @@ public class CorruptCopPlayerComponent implements AutoSyncedComponent, ClientTic
         // 向所有玩家发送停止BGM的包
         for (var player : player.getWorld().getPlayers()) {
             if (player instanceof ServerPlayerEntity serverPlayer) {
-                ServerPlayNetworking.send(serverPlayer, new CorruptCopMomentS2CPacket(false));
+                ServerPlayNetworking.send(serverPlayer, new CorruptCopMomentS2CPacket(false, 0));
             }
         }
         this.sync();

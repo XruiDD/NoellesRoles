@@ -71,7 +71,7 @@ public class NoellesrolesClient implements ClientModInitializer {
         ClientPlayNetworking.registerGlobalReceiver(CorruptCopMomentS2CPacket.ID, (payload, context) -> {
             context.client().execute(() -> {
                 if (payload.start()) {
-                    CorruptCopMomentMusicManager.startMoment();
+                    CorruptCopMomentMusicManager.startMoment(payload.soundIndex());
 
                     // 显示黑警时刻标题 (5秒 = 100 ticks)
                     MinecraftClient client = context.client();

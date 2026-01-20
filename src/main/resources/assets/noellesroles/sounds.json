@@ -32,21 +32,35 @@
         ],
         "subtitle": "subtitles.noellesroles.ambient.jester_laugh"
     },
-    "music.corrupt_cop_moment": {
+    "ambient.corrupt_cop_execution": {
         "sounds": [
             {
-                "name": "noellesroles:ambient/corrupt_cop_moment",
-                "stream": true
+                "name": "noellesroles:ambient/manba_out"
+            },
+            {
+                "name": "noellesroles:ambient/kemiao"
+            }
+        ],
+        "subtitle": "subtitles.noellesroles.ambient.corrupt_cop_execution"
+    },
+    "music.corrupt_cop_moment_1": {
+        "sounds": [
+            {
+                "name": "noellesroles:ambient/boyi",
+                "stream": true,
+                "volume": 0.7
             }
         ],
         "subtitle": "subtitles.noellesroles.ambient.corrupt_cop_moment"
     },
-    "ambient.corrupt_cop_execution": {
+    "music.corrupt_cop_moment_2": {
         "sounds": [
             {
-                "name": "noellesroles:ambient/corrupt_cop_execution"
+                "name": "noellesroles:ambient/donk",
+                "stream": true,
+                "volume": 0.8
             }
         ],
-        "subtitle": "subtitles.noellesroles.ambient.corrupt_cop_execution"
+        "subtitle": "subtitles.noellesroles.ambient.corrupt_cop_moment"
     }
 }
