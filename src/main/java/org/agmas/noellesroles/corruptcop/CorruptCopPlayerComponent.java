@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import org.ladysnake.cca.api.v3.component.Component;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
+import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
 import org.ladysnake.cca.api.v3.component.tick.ClientTickingComponent;
 
 import java.util.UUID;
@@ -29,7 +30,7 @@ import java.util.UUID;
  * 黑警玩家组件
  * 管理黑警时刻状态
  */
-public class CorruptCopPlayerComponent implements Component, ClientTickingComponent {
+public class CorruptCopPlayerComponent implements AutoSyncedComponent, ClientTickingComponent {
     public static final ComponentKey<CorruptCopPlayerComponent> KEY = ComponentRegistry.getOrCreate(
             Identifier.of(Noellesroles.MOD_ID, "corrupt_cop"), CorruptCopPlayerComponent.class);
 
@@ -58,8 +59,12 @@ public class CorruptCopPlayerComponent implements Component, ClientTickingCompon
         this.corruptCopMomentActive = false;
         this.triggerThreshold = 0;
         this.visionCycleTimer = 0;
+        this.sync();
     }
 
+    public void sync() {
+        KEY.sync(this.player);
+    }
     /**
      * 在游戏开始时初始化
      * @param totalPlayers 总玩家数
@@ -68,6 +73,7 @@ public class CorruptCopPlayerComponent implements Component, ClientTickingCompon
         // n = 玩家数 / 5，最低触发条件是10人局（n=2）
         this.triggerThreshold = totalPlayers / 5;
         this.corruptCopMomentActive = false;
+        this.sync();
     }
 
     /**
@@ -116,6 +122,7 @@ public class CorruptCopPlayerComponent implements Component, ClientTickingCompon
                 ServerPlayNetworking.send(serverPlayer, new CorruptCopMomentS2CPacket(true));
             }
         }
+        this.sync();
     }
 
     /**
@@ -126,7 +133,7 @@ public class CorruptCopPlayerComponent implements Component, ClientTickingCompon
 
         this.corruptCopMomentActive = false;
 
-        if (!(player.getWorld() instanceof ServerWorld serverWorld)) return;
+        if (!(player.getWorld() instanceof ServerWorld)) return;
 
         // 向所有玩家发送停止BGM的包
         for (var player : player.getWorld().getPlayers()) {
@@ -134,6 +141,7 @@ public class CorruptCopPlayerComponent implements Component, ClientTickingCompon
                 ServerPlayNetworking.send(serverPlayer, new CorruptCopMomentS2CPacket(false));
             }
         }
+        this.sync();
     }
 
     /**
