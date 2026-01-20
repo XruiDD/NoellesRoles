@@ -207,6 +207,14 @@ public class Noellesroles implements ModInitializer {
         KillPlayer.BEFORE.register(((victim, killer, deathReason) -> {
             GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(victim.getWorld());
 
+            // 黑警被杀时结束黑警时刻
+            if (gameWorldComponent.isRole(victim, CORRUPT_COP)) {
+                CorruptCopPlayerComponent corruptCopComp = CorruptCopPlayerComponent.KEY.get(victim);
+                if(corruptCopComp.isCorruptCopMomentActive() && deathReason == DEATH_REASON_ASSASSINATED){
+                    return KillPlayer.KillResult.cancel();
+                }
+            }
+
             if (gameWorldComponent.isRole(victim, JESTER)) {
                 JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(victim);
                 if (jesterComponent.inStasis) {
