@@ -442,6 +442,27 @@ public class Noellesroles implements ModInitializer {
             GameWorldComponent gameComponent = GameWorldComponent.KEY.get(victim.getWorld());
 
             BomberPlayerComponent bomberPlayerComponent = BomberPlayerComponent.KEY.get(victim);
+
+            // 连环杀手处理：击杀目标奖励和目标更换
+            if (victim.getWorld() instanceof ServerWorld serverWorld) {
+                for (UUID uuid : gameComponent.getAllWithRole(SERIAL_KILLER)) {
+                    PlayerEntity serialKiller = serverWorld.getPlayerByUuid(uuid);
+                    if (GameFunctions.isPlayerAliveAndSurvival(serialKiller)) {
+                        SerialKillerPlayerComponent serialKillerComp = SerialKillerPlayerComponent.KEY.get(serialKiller);
+
+                        // 如果被杀者是连环杀手的目标
+                        if (serialKillerComp.isCurrentTarget(victim.getUuid())) {
+                            // 如果是连环杀手亲自击杀的，给予额外金钱奖励
+                            if (killer != null && killer.getUuid().equals(serialKiller.getUuid())) {
+                                PlayerShopComponent.KEY.get(killer).addToBalance(SerialKillerPlayerComponent.getBonusMoney());
+                            }
+                            // 目标死亡，自动更换新目标
+                            serialKillerComp.onTargetDeath(gameComponent);
+                        }
+                    }
+                }
+            }
+
             boolean hasBomb = bomberPlayerComponent.hasBomb();
             // 炸弹客击杀奖励
             if (killer != null && gameComponent.isRole(killer, BOMBER)) {
@@ -530,26 +551,6 @@ public class Noellesroles implements ModInitializer {
                             }
                         }
                         corruptCopComp.checkAndTriggerMoment(aliveCount);
-                    }
-                }
-            }
-
-            // 连环杀手处理：击杀目标奖励和目标更换
-            if (victim.getWorld() instanceof ServerWorld serverWorld) {
-                for (UUID uuid : gameComponent.getAllWithRole(SERIAL_KILLER)) {
-                    PlayerEntity serialKiller = serverWorld.getPlayerByUuid(uuid);
-                    if (GameFunctions.isPlayerAliveAndSurvival(serialKiller)) {
-                        SerialKillerPlayerComponent serialKillerComp = SerialKillerPlayerComponent.KEY.get(serialKiller);
-
-                        // 如果被杀者是连环杀手的目标
-                        if (serialKillerComp.isCurrentTarget(victim.getUuid())) {
-                            // 如果是连环杀手亲自击杀的，给予额外金钱奖励
-                            if (killer != null && killer.getUuid().equals(serialKiller.getUuid())) {
-                                PlayerShopComponent.KEY.get(killer).addToBalance(SerialKillerPlayerComponent.getBonusMoney());
-                            }
-                            // 目标死亡，自动更换新目标
-                            serialKillerComp.onTargetDeath(gameComponent);
-                        }
                     }
                 }
             }

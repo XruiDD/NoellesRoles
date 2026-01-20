@@ -103,7 +103,7 @@ public class SerialKillerPlayerComponent implements AutoSyncedComponent {
 
             // 检查是否为非杀手阵营
             var role = gameWorldComponent.getRole(targetPlayer);
-            if (role == null) continue;
+            if (role == null || role == Noellesroles.UNDERCOVER) continue;
 
             // 排除杀手阵营角色
             if (role.canUseKiller()) continue;
