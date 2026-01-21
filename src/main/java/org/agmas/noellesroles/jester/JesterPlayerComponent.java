@@ -82,20 +82,22 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
 
         // 播放全服声音
         if (player.getWorld() instanceof ServerWorld serverWorld) {
+
             RegistryEntry<net.minecraft.sound.SoundEvent> soundEntry = RegistryEntry.of(ModSounds.JESTER_LAUGH);
-            PlaySoundS2CPacket packet = new PlaySoundS2CPacket(
-                soundEntry,
-                SoundCategory.MASTER,
-                player.getX(),
-                player.getY(),
-                player.getZ(),
-                2.0F,  // volume
-                1.0F,  // pitch
-                serverWorld.random.nextLong()
-            );
+
+            var seed = serverWorld.random.nextLong();
 
             for (ServerPlayerEntity serverPlayer : serverWorld.getServer().getPlayerManager().getPlayerList()) {
-                serverPlayer.networkHandler.sendPacket(packet);
+                serverPlayer.networkHandler.sendPacket(new PlaySoundS2CPacket(
+                        soundEntry,
+                        SoundCategory.MASTER,
+                        serverPlayer.getX(),
+                        serverPlayer.getY(),
+                        serverPlayer.getZ(),
+                        2.0F,
+                        1.0F,
+                        seed
+                ));
             }
         }
     }
