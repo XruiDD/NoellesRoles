@@ -6,6 +6,7 @@ import dev.doctor4t.wathe.index.WatheItems;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.packet.s2c.play.PlaySoundS2CPacket;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -150,15 +151,9 @@ public class CorruptCopPlayerComponent implements AutoSyncedComponent, ClientTic
     public void onKill() {
         if (!corruptCopMomentActive) return;
         if (!(player.getWorld() instanceof ServerWorld serverWorld)) return;
-        // 播放处决音效（全场）
-        GameWorldComponent gameComponent = GameWorldComponent.KEY.get(serverWorld);
-        for (UUID playerUuid : gameComponent.getAllPlayers()) {
-            PlayerEntity p = serverWorld.getPlayerByUuid(playerUuid);
-            if (p instanceof ServerPlayerEntity serverPlayer) {
-                serverWorld.playSound(null, serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ(),
-                        ModSounds.CORRUPT_COP_EXECUTION, SoundCategory.MASTER, 1.0F, 1.0F);
-            }
-        }
+
+        serverWorld.playSound(null, this.player.getX(), this.player.getY(), this.player.getZ(),
+                ModSounds.CORRUPT_COP_EXECUTION, SoundCategory.MASTER, 1.0F, 1.0F);
     }
 
     /**
