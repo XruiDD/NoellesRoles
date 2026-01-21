@@ -7,6 +7,7 @@ import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
+import net.minecraft.client.network.PlayerListEntry;
 import net.minecraft.client.render.entity.PlayerEntityRenderer;
 import net.minecraft.client.util.SkinTextures;
 import net.minecraft.util.Identifier;
@@ -19,49 +20,82 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.UUID;
 
 @Mixin(PlayerEntityRenderer.class)
 public abstract class MorphlingRendererMixin {
-
 
     @Shadow public abstract Identifier getTexture(AbstractClientPlayerEntity abstractClientPlayerEntity);
 
     @Inject(method = "getTexture(Lnet/minecraft/client/network/AbstractClientPlayerEntity;)Lnet/minecraft/util/Identifier;", at = @At("HEAD"), cancellable = true)
     void b(AbstractClientPlayerEntity abstractClientPlayerEntity, CallbackInfoReturnable<Identifier> cir) {
         if (WatheClient.moodComponent != null) {
-            if ((ConfigWorldComponent.KEY.get(abstractClientPlayerEntity.getWorld())).insaneSeesMorphs && WatheClient.moodComponent.isLowerThanDepressed() && NoellesrolesClient.SHUFFLED_PLAYER_ENTRIES_CACHE.containsKey(abstractClientPlayerEntity.getUuid())) {
-                cir.setReturnValue(WatheClient.PLAYER_ENTRIES_CACHE.get(NoellesrolesClient.SHUFFLED_PLAYER_ENTRIES_CACHE.get(abstractClientPlayerEntity.getUuid())).getSkinTextures().texture());
-                cir.cancel();
+            if ((ConfigWorldComponent.KEY.get(abstractClientPlayerEntity.getWorld())).insaneSeesMorphs
+                    && WatheClient.moodComponent.isLowerThanDepressed()
+                    && NoellesrolesClient.SHUFFLED_PLAYER_ENTRIES_CACHE.containsKey(abstractClientPlayerEntity.getUuid())) {
+
+                UUID targetUuid = NoellesrolesClient.SHUFFLED_PLAYER_ENTRIES_CACHE.get(abstractClientPlayerEntity.getUuid());
+                if (targetUuid != null) {
+                    PlayerListEntry entry = WatheClient.PLAYER_ENTRIES_CACHE.get(targetUuid);
+                    if (entry != null) {
+                        cir.setReturnValue(entry.getSkinTextures().texture());
+                        cir.cancel();
+                        return;
+                    }
+                }
             }
         }
-        if ((MorphlingPlayerComponent.KEY.get(abstractClientPlayerEntity)).getMorphTicks() > 0 ) {
-            if (abstractClientPlayerEntity.getEntityWorld().getPlayerByUuid((MorphlingPlayerComponent.KEY.get(abstractClientPlayerEntity)).disguise) != null) {
-                cir.setReturnValue(getTexture((AbstractClientPlayerEntity) abstractClientPlayerEntity.getEntityWorld().getPlayerByUuid((MorphlingPlayerComponent.KEY.get(abstractClientPlayerEntity)).disguise)));
-                cir.cancel();
+        var morphComponent = MorphlingPlayerComponent.KEY.get(abstractClientPlayerEntity);
+        if (morphComponent.getMorphTicks() > 0) {
+            UUID disguiseUuid = morphComponent.disguise;
+            AbstractClientPlayerEntity disguiseEntity = (AbstractClientPlayerEntity) abstractClientPlayerEntity.getEntityWorld().getPlayerByUuid(disguiseUuid);
+            if (disguiseEntity != null) {
+                if (disguiseEntity != abstractClientPlayerEntity) {
+                    cir.setReturnValue(getTexture(disguiseEntity));
+                    cir.cancel();
+                    return;
+                }
             } else {
-                Log.info(LogCategory.GENERAL, "Morphling disguise is null!!!");
+                Log.info(LogCategory.GENERAL, "Morphling disguise entity not found (null) for UUID: " + disguiseUuid);
             }
-            if (MorphlingPlayerComponent.KEY.get(abstractClientPlayerEntity).disguise.equals(MinecraftClient.getInstance().player.getUuid())) {
-                cir.setReturnValue(getTexture(MinecraftClient.getInstance().player));
-                cir.cancel();
+            MinecraftClient client = MinecraftClient.getInstance();
+            if (client.player != null && disguiseUuid.equals(client.player.getUuid())) {
+                if (abstractClientPlayerEntity != client.player) {
+                    cir.setReturnValue(getTexture(client.player));
+                    cir.cancel();
+                }
             }
         }
     }
+
     @WrapOperation(method = "renderArm", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/AbstractClientPlayerEntity;getSkinTextures()Lnet/minecraft/client/util/SkinTextures;"))
     SkinTextures b(AbstractClientPlayerEntity instance, Operation<SkinTextures> original) {
         if (WatheClient.moodComponent != null) {
-            if ((ConfigWorldComponent.KEY.get(instance.getWorld())).insaneSeesMorphs && WatheClient.moodComponent.isLowerThanDepressed() && NoellesrolesClient.SHUFFLED_PLAYER_ENTRIES_CACHE.containsKey(instance.getUuid())) {
-                return WatheClient.PLAYER_ENTRIES_CACHE.get(NoellesrolesClient.SHUFFLED_PLAYER_ENTRIES_CACHE.get(instance.getUuid())).getSkinTextures();
+            if ((ConfigWorldComponent.KEY.get(instance.getWorld())).insaneSeesMorphs
+                    && WatheClient.moodComponent.isLowerThanDepressed()
+                    && NoellesrolesClient.SHUFFLED_PLAYER_ENTRIES_CACHE.containsKey(instance.getUuid())) {
+
+                UUID targetUuid = NoellesrolesClient.SHUFFLED_PLAYER_ENTRIES_CACHE.get(instance.getUuid());
+                if (targetUuid != null) {
+                    // 【修复 NPE】：同上，检查 entry 是否为 null
+                    PlayerListEntry entry = WatheClient.PLAYER_ENTRIES_CACHE.get(targetUuid);
+                    if (entry != null) {
+                        return entry.getSkinTextures();
+                    }
+                }
             }
         }
-        if ((MorphlingPlayerComponent.KEY.get(instance)).getMorphTicks() > 0) {
-            if (instance.getEntityWorld().getPlayerByUuid((MorphlingPlayerComponent.KEY.get(instance)).disguise) != null) {
-                return ((AbstractClientPlayerEntity) instance.getEntityWorld().getPlayerByUuid((MorphlingPlayerComponent.KEY.get(instance)).disguise)).getSkinTextures();
+        var morphComponent = MorphlingPlayerComponent.KEY.get(instance);
+        if (morphComponent.getMorphTicks() > 0) {
+            UUID disguiseUuid = morphComponent.disguise;
+            AbstractClientPlayerEntity disguiseEntity = (AbstractClientPlayerEntity) instance.getEntityWorld().getPlayerByUuid(disguiseUuid);
+
+            if (disguiseEntity != null) {
+                return disguiseEntity.getSkinTextures();
             } else {
-                Log.info(LogCategory.GENERAL, "Morphling disguise is null!!!");
+                Log.info(LogCategory.GENERAL, "Morphling disguise entity is null in renderArm");
             }
         }
         return original.call(instance);
     }
-
 }
