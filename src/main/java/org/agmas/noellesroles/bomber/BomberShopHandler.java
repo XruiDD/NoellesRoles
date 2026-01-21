@@ -24,11 +24,9 @@ public class BomberShopHandler {
                     entry.stack().isOf(WatheItems.REVOLVER) ||
                     entry.stack().isOf(WatheItems.POISON_VIAL) ||
                     entry.stack().isOf(WatheItems.SCORPION) ||
-                    entry.stack().isOf(WatheItems.PSYCHO_MODE) ||
-                    entry.stack().isOf(WatheItems.GRENADE)
+                    entry.stack().isOf(WatheItems.PSYCHO_MODE)
                 );
-                context.addEntry(0, new ShopEntry(WatheItems.GRENADE.getDefaultStack(), 300, ShopEntry.Type.WEAPON));
-                context.addEntry(0, new ShopEntry(ModItems.TIMED_BOMB.getDefaultStack(), 150, ShopEntry.Type.WEAPON));
+                context.addEntry(0, new ShopEntry(ModItems.TIMED_BOMB.getDefaultStack(), 100, ShopEntry.Type.WEAPON));
             }
         });
     }

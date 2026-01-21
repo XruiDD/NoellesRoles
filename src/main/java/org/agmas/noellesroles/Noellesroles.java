@@ -449,8 +449,6 @@ public class Noellesroles implements ModInitializer {
         KillPlayer.AFTER.register((victim, killer, deathReason) -> {
             GameWorldComponent gameComponent = GameWorldComponent.KEY.get(victim.getWorld());
 
-            BomberPlayerComponent bomberPlayerComponent = BomberPlayerComponent.KEY.get(victim);
-
             // 连环杀手处理：击杀目标奖励和目标更换
             if (victim.getWorld() instanceof ServerWorld serverWorld) {
                 for (UUID uuid : gameComponent.getAllWithRole(SERIAL_KILLER)) {
@@ -471,20 +469,17 @@ public class Noellesroles implements ModInitializer {
                 }
             }
 
-            boolean hasBomb = bomberPlayerComponent.hasBomb();
+            BomberPlayerComponent bomberPlayerComponent = BomberPlayerComponent.KEY.get(victim);
             // 炸弹客击杀奖励
-            if (killer != null && gameComponent.isRole(killer, BOMBER)) {
-                PlayerShopComponent.KEY.get(killer).addToBalance(100);
-            }else{
-                if(hasBomb)
-                {
-                    PlayerEntity bomber = victim.getWorld().getPlayerByUuid(bomberPlayerComponent.getBomberUuid());
-                    if(bomber != null){
-                        if((deathReason == GameConstants.DeathReasons.FELL_OUT_OF_TRAIN || deathReason == GameConstants.DeathReasons.ESCAPED)){
-                            PlayerShopComponent.KEY.get(bomber).addToBalance(200);
-                        }else{
-                            PlayerShopComponent.KEY.get(bomber).addToBalance(100);
-                        }
+            if (killer != null && gameComponent.isRole(killer, BOMBER) && deathReason == DEATH_REASON_BOMB) {
+                PlayerShopComponent.KEY.get(killer).addToBalance(50);
+            }else if(bomberPlayerComponent.hasBomb()){
+                PlayerEntity bomber = victim.getWorld().getPlayerByUuid(bomberPlayerComponent.getBomberUuid());
+                if(GameFunctions.isPlayerAliveAndSurvival(bomber)){
+                    if((deathReason == GameConstants.DeathReasons.FELL_OUT_OF_TRAIN || deathReason == GameConstants.DeathReasons.ESCAPED)){
+                        PlayerShopComponent.KEY.get(bomber).addToBalance(150);
+                    }else{
+                        PlayerShopComponent.KEY.get(bomber).addToBalance(100);
                     }
                 }
             }
