@@ -29,6 +29,7 @@
 
   "announcement.goals.noisemaker": "Alert players of your location upon death.",
   "announcement.role.noisemaker": "Noisemaker",
+  "noellesroles.noisemaker.death_scream": "§cA piercing scream echoes from afar...",
 
   "announcement.goals.voodoo": "Choose another player to go down with you.",
   "announcement.role.voodoo": "Voodoo",
