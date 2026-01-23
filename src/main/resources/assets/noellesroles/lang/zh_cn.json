@@ -100,6 +100,8 @@
   "announcement.win.pathogen": "病原体胜利！",
   "game.win.pathogen": "感染已经扩散到了每一个角落……",
   "tip.pathogen.infect": "按 %s 键以感染 %s",
+  "tip.pathogen.compass": "%s %s米%s",
+  "tip.pathogen.no_target": "你的视距范围内没有目标了",
 
   "announcement.goals.bomber": "在玩家身上放置炸弹！你无法购买一般的武器。",
   "announcement.role.bomber": "炸弹客",

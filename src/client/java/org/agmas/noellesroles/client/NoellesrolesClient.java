@@ -54,6 +54,9 @@ public class NoellesrolesClient implements ClientModInitializer {
     public static KeyBinding abilityBind;
     public static PlayerBodyEntity targetBody;
     public static PlayerEntity pathogenNearestTarget;
+    public static double pathogenNearestTargetDistance;
+    public static String pathogenTargetDirection;
+    public static String pathogenTargetVertical; // 垂直位置提示
     public static PlayerEntity crosshairTarget;
     public static double crosshairTargetDistance;
 
@@ -157,14 +160,13 @@ public class NoellesrolesClient implements ClientModInitializer {
                 }
             }
 
-            // PATHOGEN: 已感染绿色，最近未感染目标显示按键提示（需要视线）
+            // PATHOGEN: 只有已感染的玩家显示绿色高亮（不再透视未感染玩家）
             if (gameWorldComponent.isRole(localPlayer, Noellesroles.PATHOGEN)) {
                 InfectedPlayerComponent infected = InfectedPlayerComponent.KEY.get(player);
                 if (infected.isInfected()) {
                     // Already infected - green
                     return GetInstinctHighlight.HighlightResult.always(Noellesroles.PATHOGEN.color());
                 }
-                return GetInstinctHighlight.HighlightResult.withKeybind(Color.BLUE.getRGB());
             }
 
             // REPORTER: 被标记的目标始终高亮显示（透视效果）
@@ -260,9 +262,12 @@ public class NoellesrolesClient implements ClientModInitializer {
                 GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(MinecraftClient.getInstance().player.getWorld());
                 if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.PATHOGEN)) {
                     pathogenNearestTarget = null;
-                    double nearestDistance = 9.0; // 3^2 = 9
+                    pathogenNearestTargetDistance = Double.MAX_VALUE;
+                    pathogenTargetDirection = "";
+                    pathogenTargetVertical = "";
                     PlayerEntity localPlayer = MinecraftClient.getInstance().player;
 
+                    // 找到最近的未感染玩家（不限距离，用于指南针指向）
                     for (PlayerEntity player : localPlayer.getWorld().getPlayers()) {
                         if (player.equals(localPlayer)) continue;
                         if (player.isSpectator() || player.isCreative()) continue;
@@ -273,16 +278,65 @@ public class NoellesrolesClient implements ClientModInitializer {
                         if (infected.isInfected()) continue;
 
                         double distance = localPlayer.squaredDistanceTo(player);
-                        if (distance < nearestDistance) {
-                            // 检查视线（不能隔墙感染）
-                            if (localPlayer.canSee(player)) {
-                                nearestDistance = distance;
-                                pathogenNearestTarget = player;
-                            }
+                        if (distance < pathogenNearestTargetDistance) {
+                            pathogenNearestTargetDistance = distance;
+                            pathogenNearestTarget = player;
+                        }
+                    }
+
+                    // 计算方向
+                    if (pathogenNearestTarget != null) {
+                        pathogenNearestTargetDistance = Math.sqrt(pathogenNearestTargetDistance);
+
+                        // 计算从玩家指向目标的方向
+                        double dx = pathogenNearestTarget.getX() - localPlayer.getX();
+                        double dy = pathogenNearestTarget.getY() - localPlayer.getY();
+                        double dz = pathogenNearestTarget.getZ() - localPlayer.getZ();
+
+                        // 计算目标相对于玩家视角的角度
+                        double targetAngle = Math.toDegrees(Math.atan2(-dx, dz));
+                        double playerYaw = localPlayer.getYaw() % 360;
+                        if (playerYaw < 0) playerYaw += 360;
+                        if (targetAngle < 0) targetAngle += 360;
+
+                        // 计算相对角度（目标相对于玩家面朝方向）
+                        double relativeAngle = targetAngle - playerYaw;
+                        if (relativeAngle < -180) relativeAngle += 360;
+                        if (relativeAngle > 180) relativeAngle -= 360;
+
+                        // 根据相对角度确定方向箭头
+                        if (relativeAngle >= -22.5 && relativeAngle < 22.5) {
+                            pathogenTargetDirection = "↑"; // 前方
+                        } else if (relativeAngle >= 22.5 && relativeAngle < 67.5) {
+                            pathogenTargetDirection = "↗"; // 右前方
+                        } else if (relativeAngle >= 67.5 && relativeAngle < 112.5) {
+                            pathogenTargetDirection = "→"; // 右方
+                        } else if (relativeAngle >= 112.5 && relativeAngle < 157.5) {
+                            pathogenTargetDirection = "↘"; // 右后方
+                        } else if (relativeAngle >= 157.5 || relativeAngle < -157.5) {
+                            pathogenTargetDirection = "↓"; // 后方
+                        } else if (relativeAngle >= -157.5 && relativeAngle < -112.5) {
+                            pathogenTargetDirection = "↙"; // 左后方
+                        } else if (relativeAngle >= -112.5 && relativeAngle < -67.5) {
+                            pathogenTargetDirection = "←"; // 左方
+                        } else {
+                            pathogenTargetDirection = "↖"; // 左前方
+                        }
+
+                        // 计算垂直位置提示（高度差超过2格才提示）
+                        if (dy > 2) {
+                            pathogenTargetVertical = "↑"; // 上方
+                        } else if (dy < -2) {
+                            pathogenTargetVertical = "↓"; // 下方
+                        } else {
+                            pathogenTargetVertical = ""; // 同一高度
                         }
                     }
                 } else {
                     pathogenNearestTarget = null;
+                    pathogenNearestTargetDistance = 0;
+                    pathogenTargetDirection = "";
+                    pathogenTargetVertical = "";
                 }
 
                 crosshairTarget = null;
