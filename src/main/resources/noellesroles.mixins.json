@@ -10,7 +10,8 @@
     "toxicologist.ToxicologistPoisonSyncMixin",
     "scavenger.ScavengerKnifeSoundMixin",
     "scavenger.ScavengerKnifeStabSoundMixin",
-    "corruptcop.CorruptCopGunCooldownMixin"
+    "corruptcop.CorruptCopGunCooldownMixin",
+    "bomber.BomberGrenadeCooldownMixin"
   ],
   "injectors": {
     "defaultRequire": 1
