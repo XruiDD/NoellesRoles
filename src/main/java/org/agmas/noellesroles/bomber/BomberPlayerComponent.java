@@ -96,7 +96,7 @@ public class BomberPlayerComponent implements ServerTickingComponent {
      * @param target 目标玩家
      */
     public void transferBomb(PlayerEntity target) {
-        if (!hasBomb || !isBeeping || transferCooldown > 0) {
+        if (!hasBomb || !isBeeping || transferCooldown > 0 || KEY.get(player).hasBomb) {
             return;
         }
 
@@ -267,8 +267,8 @@ public class BomberPlayerComponent implements ServerTickingComponent {
         return transferCooldown;
     }
 
-    public boolean canTransfer() {
-        return hasBomb && isBeeping && transferCooldown <= 0;
+    public boolean canTransfer(PlayerEntity player) {
+        return hasBomb && isBeeping && transferCooldown <= 0 && !KEY.get(player).hasBomb;
     }
 
     @Override

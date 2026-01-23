@@ -56,7 +56,7 @@ public class TimedBombItem extends Item {
 
                     // 这确保即使是炸弹客拿到炸弹后也能正常传递
                     if (userComponent.isBeeping()) {
-                        if(userComponent.canTransfer()){
+                        if(userComponent.canTransfer(target)){
                             userComponent.transferBomb(target);
                             return TypedActionResult.success(itemStack);
                         }
