@@ -49,6 +49,7 @@ import org.agmas.noellesroles.bomber.BomberShopHandler;
 import org.agmas.noellesroles.assassin.AssassinPlayerComponent;
 import org.agmas.noellesroles.scavenger.ScavengerPlayerComponent;
 import org.agmas.noellesroles.scavenger.ScavengerShopHandler;
+import org.agmas.noellesroles.timekeeper.TimekeeperShopHandler;
 import org.agmas.noellesroles.corruptcop.CorruptCopPlayerComponent;
 import org.agmas.noellesroles.packet.CorruptCopMomentS2CPacket;
 import org.agmas.noellesroles.packet.ReporterMarkC2SPacket;
@@ -168,6 +169,7 @@ public class Noellesroles implements ModInitializer {
         BartenderShopHandler.register();
         BomberShopHandler.register();
         ScavengerShopHandler.register();
+        TimekeeperShopHandler.register();
 
         registerPackets();
         //NoellesRolesEntities.init();
@@ -353,7 +355,7 @@ public class Noellesroles implements ModInitializer {
         TaskComplete.EVENT.register((player, taskType) -> {
             GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(player.getWorld());
             Role role = gameWorldComponent.getRole(player);
-            if (role != null && (role.equals(BARTENDER) || role.equals(RECALLER))) {
+            if (role != null && (role.equals(BARTENDER) || role.equals(RECALLER) || role.equals(TIMEKEEPER))) {
                 PlayerShopComponent playerShopComponent = PlayerShopComponent.KEY.get(player);
                 playerShopComponent.addToBalance(50);
             }

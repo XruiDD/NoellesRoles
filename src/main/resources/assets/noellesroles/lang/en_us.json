@@ -154,5 +154,8 @@
   "announcement.role.serial_killer": "Serial Killer",
   "announcement.win.serial_killer": "Killers Win!",
   "tip.serial_killer.target": "Target: %s",
-  "tip.serial_killer.no_target": "No target"
+  "tip.serial_killer.no_target": "No target",
+
+  "item.noellesroles.timekeeper_reduce_time": "Reduce Game Time",
+  "item.noellesroles.timekeeper_reduce_time.tooltip": "Costs 100 coins\nReduces game time by 30 seconds"
 }

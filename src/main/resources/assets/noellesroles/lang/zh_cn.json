@@ -175,5 +175,8 @@
   "announcement.role.serial_killer": "连环杀手",
   "announcement.win.serial_killer": "杀手胜利！",
   "tip.serial_killer.target": "目标: %s",
-  "tip.serial_killer.no_target": "暂无目标"
+  "tip.serial_killer.no_target": "暂无目标",
+
+  "item.noellesroles.timekeeper_reduce_time": "减少游戏时间",
+  "item.noellesroles.timekeeper_reduce_time.tooltip": "花费100金币\n减少30秒游戏时间"
 }
