@@ -191,5 +191,9 @@
   "tip.serial_killer.no_target": "暂无目标",
 
   "item.noellesroles.timekeeper_reduce_time": "减少游戏时间",
-  "item.noellesroles.timekeeper_reduce_time.tooltip": "花费100金币\n减少30秒游戏时间"
+  "item.noellesroles.timekeeper_reduce_time.tooltip": "花费100金币\n减少30秒游戏时间",
+
+  "announcement.goals.attendant": "查阅你的乘客登记表，了解每个房间的乘客！",
+  "announcement.role.attendant": "乘务员",
+  "announcement.win.attendant": "乘客胜利！"
 }

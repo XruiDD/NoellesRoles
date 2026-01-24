@@ -56,6 +56,11 @@ import org.agmas.noellesroles.packet.ReporterMarkC2SPacket;
 import org.agmas.noellesroles.professor.IronManPlayerComponent;
 import org.agmas.noellesroles.reporter.ReporterPlayerComponent;
 import org.agmas.noellesroles.serialkiller.SerialKillerPlayerComponent;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.WrittenBookContentComponent;
+import net.minecraft.item.Items;
+import net.minecraft.text.RawFilteredPair;
+import net.minecraft.text.Text;
 
 import java.awt.*;
 import java.util.*;
@@ -91,6 +96,7 @@ public class Noellesroles implements ModInitializer {
     public static Identifier REPORTER_ID = Identifier.of(MOD_ID, "reporter");
     public static Identifier SERIAL_KILLER_ID = Identifier.of(MOD_ID, "serial_killer");
     public static Identifier PROFESSOR_ID = Identifier.of(MOD_ID, "professor");
+    public static Identifier ATTENDANT_ID = Identifier.of(MOD_ID, "attendant");
     // 炸弹死亡原因
     public static Identifier DEATH_REASON_BOMB = Identifier.of(MOD_ID, "bomb");
     // 刺客死亡原因
@@ -127,6 +133,8 @@ public class Noellesroles implements ModInitializer {
     public static Role REPORTER = WatheRoles.registerRole(new Role(REPORTER_ID, new Color(210, 180, 100).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
     // 教授角色 - 无辜者阵营，开局自带铁人药剂，可以保护其他玩家
     public static Role PROFESSOR = WatheRoles.registerRole(new Role(PROFESSOR_ID, new Color(70, 130, 180).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
+    // 乘务员角色 - 无辜者阵营，开局获得一本书记录所有房间的乘客
+    public static Role ATTENDANT = WatheRoles.registerRole(new Role(ATTENDANT_ID, new Color(100, 149, 237).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
 
 
     // 小丑角色 - 中立阵营，被无辜者杀死时获胜
@@ -322,6 +330,58 @@ public class Noellesroles implements ModInitializer {
                 // Professor starts with 1 Iron Man Vial
                 player.giveItemStack(ModItems.IRON_MAN_VIAL.getDefaultStack());
                 player.getItemCooldownManager().set(ModItems.IRON_MAN_VIAL, 20 * 60 * 3);
+            }
+            if (role.equals(ATTENDANT)) {
+                // 乘务员开局获得一本房间信息书
+                ItemStack book = new ItemStack(Items.WRITTEN_BOOK);
+
+                // 构建书籍内容
+                List<RawFilteredPair<Text>> pages = new ArrayList<>();
+                HashMap<Integer, GameWorldComponent.RoomData> rooms = gameWorldComponent.getRooms();
+                HashMap<UUID, com.mojang.authlib.GameProfile> profiles = gameWorldComponent.getGameProfiles();
+
+                // 第一页：标题页
+                StringBuilder titlePage = new StringBuilder();
+                titlePage.append("§l§0乘客房间登记表§r\n\n");
+                titlePage.append("§8本登记表记录了\n所有乘客的房间分配§r\n\n");
+                titlePage.append("§8共 ").append(rooms.size()).append(" 个房间§r");
+                pages.add(RawFilteredPair.of(Text.literal(titlePage.toString())));
+
+                if (!rooms.isEmpty()) {
+                    // 按房间索引排序
+                    List<GameWorldComponent.RoomData> sortedRooms = new ArrayList<>(rooms.values());
+                    sortedRooms.sort((a, b) -> Integer.compare(a.getIndex(), b.getIndex()));
+
+                    for (GameWorldComponent.RoomData room : sortedRooms) {
+                        StringBuilder pageContent = new StringBuilder();
+                        pageContent.append("§l§1【").append(room.getName()).append("】§r\n\n");
+
+                        List<UUID> roomPlayers = room.getPlayers();
+                        if (roomPlayers.isEmpty()) {
+                            pageContent.append("§8无乘客§r");
+                        } else {
+                            for (UUID playerUuid : roomPlayers) {
+                                com.mojang.authlib.GameProfile profile = profiles.get(playerUuid);
+                                String playerName = profile != null ? profile.getName() : "未知";
+                                pageContent.append("§0• ").append(playerName).append("§r\n");
+                            }
+                        }
+
+                        pages.add(RawFilteredPair.of(Text.literal(pageContent.toString())));
+                    }
+                }
+
+                // 设置书籍组件
+                WrittenBookContentComponent bookContent = new WrittenBookContentComponent(
+                    RawFilteredPair.of("乘客登记表"),
+                    "乘务员",
+                    0,
+                    pages,
+                    true
+                );
+                book.set(DataComponentTypes.WRITTEN_BOOK_CONTENT, bookContent);
+
+                player.giveItemStack(book);
             }
         });
         ResetPlayer.EVENT.register(player -> {

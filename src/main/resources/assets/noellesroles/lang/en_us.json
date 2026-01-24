@@ -158,5 +158,9 @@
   "tip.serial_killer.no_target": "No target",
 
   "item.noellesroles.timekeeper_reduce_time": "Reduce Game Time",
-  "item.noellesroles.timekeeper_reduce_time.tooltip": "Costs 100 coins\nReduces game time by 30 seconds"
+  "item.noellesroles.timekeeper_reduce_time.tooltip": "Costs 100 coins\nReduces game time by 30 seconds",
+
+  "announcement.goals.attendant": "Check your passenger manifest to see who's in each room!",
+  "announcement.role.attendant": "Attendant",
+  "announcement.win.attendant": "Passengers Win!"
 }
