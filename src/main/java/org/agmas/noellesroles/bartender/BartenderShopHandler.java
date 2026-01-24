@@ -13,7 +13,7 @@ public class BartenderShopHandler {
             GameWorldComponent gameWorld = GameWorldComponent.KEY.get(player.getWorld());
             if (gameWorld.isRole(player, Noellesroles.BARTENDER)) {
                 context.clearEntries();
-                context.addEntry(new ShopEntry(ModItems.FINE_DRINK.getDefaultStack(), 50, ShopEntry.Type.POISON));
+                context.addEntry(new ShopEntry(ModItems.FINE_DRINK.getDefaultStack(), 75, ShopEntry.Type.POISON));
             }
         });
     }

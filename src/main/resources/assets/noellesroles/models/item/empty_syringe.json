@@ -1,7 +1,7 @@
 {
   "parent": "item/generated",
   "textures": {
-    "layer0": "noellesroles:item/empty_syinge"
+    "layer0": "noellesroles:item/empty_syringe"
   },
   "display": {
     "thirdperson_righthand": {
