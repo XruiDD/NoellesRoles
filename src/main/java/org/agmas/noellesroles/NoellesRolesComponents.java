@@ -8,6 +8,7 @@ import org.agmas.noellesroles.jester.JesterPlayerComponent;
 import org.agmas.noellesroles.pathogen.InfectedPlayerComponent;
 import org.agmas.noellesroles.pathogen.PathogenPlayerComponent;
 import org.agmas.noellesroles.bomber.BomberPlayerComponent;
+import org.agmas.noellesroles.professor.IronManPlayerComponent;
 import org.agmas.noellesroles.recaller.RecallerPlayerComponent;
 import org.agmas.noellesroles.voodoo.VoodooPlayerComponent;
 import org.agmas.noellesroles.morphling.MorphlingPlayerComponent;
@@ -43,6 +44,7 @@ public class NoellesRolesComponents implements EntityComponentInitializer, World
         registry.beginRegistration(PlayerEntity.class, CorruptCopPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(CorruptCopPlayerComponent::new);
         registry.beginRegistration(PlayerEntity.class, ReporterPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(ReporterPlayerComponent::new);
         registry.beginRegistration(PlayerEntity.class, SerialKillerPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(SerialKillerPlayerComponent::new);
+        registry.beginRegistration(PlayerEntity.class, IronManPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(IronManPlayerComponent::new);
     }
 
     @Override

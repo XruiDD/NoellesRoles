@@ -45,7 +45,8 @@
       "noellesroles:scavenger",
       "noellesroles:corrupt_cop",
       "noellesroles:reporter",
-      "noellesroles:serial_killer"
+      "noellesroles:serial_killer",
+      "noellesroles:iron_man"
     ]
   },
   "mixins": [

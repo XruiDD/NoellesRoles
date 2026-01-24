@@ -40,6 +40,7 @@ import org.agmas.noellesroles.packet.VultureEatC2SPacket;
 import org.agmas.noellesroles.packet.CorruptCopMomentS2CPacket;
 import org.agmas.noellesroles.packet.ReporterMarkC2SPacket;
 import org.agmas.noellesroles.pathogen.InfectedPlayerComponent;
+import org.agmas.noellesroles.professor.IronManPlayerComponent;
 import org.agmas.noellesroles.client.corruptcop.CorruptCopMomentMusicManager;
 import org.agmas.noellesroles.reporter.ReporterPlayerComponent;
 import org.agmas.noellesroles.serialkiller.SerialKillerPlayerComponent;
@@ -143,12 +144,21 @@ public class NoellesrolesClient implements ClientModInitializer {
                 }
             }
 
-            // BARTENDER: 看到喝酒者发绿光，有护甲者发蓝光（需要视线）
+            // BARTENDER: 看到喝酒者发绿光（需要视线）
             if (gameWorldComponent.isRole(localPlayer, Noellesroles.BARTENDER)) {
                 if (localPlayer.canSee(player)) {
                     BartenderPlayerComponent comp = BartenderPlayerComponent.KEY.get(player);
                     if (comp.glowTicks > 0) return GetInstinctHighlight.HighlightResult.always(Color.GREEN.getRGB());
-                    if (comp.armor) return  GetInstinctHighlight.HighlightResult.always(Color.BLUE.getRGB());
+                }
+            }
+
+            // PROFESSOR: 看到有铁人buff的人发蓝光（需要视线）
+            if (gameWorldComponent.isRole(localPlayer, Noellesroles.PROFESSOR)) {
+                if (localPlayer.canSee(player)) {
+                    IronManPlayerComponent comp = IronManPlayerComponent.KEY.get(player);
+                    if (comp.hasBuff()) {
+                        return GetInstinctHighlight.HighlightResult.always(Color.BLUE.getRGB());
+                    }
                 }
             }
 

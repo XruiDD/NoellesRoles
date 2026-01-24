@@ -16,7 +16,7 @@
   "announcement.win.the_insane_damned_paranoid_killer": "杀手胜利！",
 
 
-  "announcement.goals.bartender": "透过墙壁看见喝酒和中毒的玩家！",
+  "announcement.goals.bartender": "购买上等佳酿，恢复心情值！可以看出喝酒的玩家。",
   "announcement.role.bartender": "酒保",
   "announcement.win.bartender": "乘客胜利！",
 
@@ -70,6 +70,12 @@
   "item.noellesroles.defense_vial": "防御药剂",
   "item.noellesroles.defense_vial.tooltip": "右键点击饮品托盘使用\n清除托盘上的所有毒药\n饮用被防御饮品的人可额外承受一击。",
 
+  "item.noellesroles.fine_drink": "上等佳酿",
+  "item.noellesroles.fine_drink.tooltip": "饮用后恢复满心情值\n可放入餐盘供他人取用",
+
+  "item.noellesroles.iron_man_vial": "铁人药剂",
+  "item.noellesroles.iron_man_vial.tooltip": "对3格内的玩家使用\n使目标获得护甲buff\n可抵御一次致命伤害",
+
   "death_reason.noellesroles.voodoo": "巫毒魔法。",
 
 
@@ -85,6 +91,10 @@
   "tip.vulture": "已吃掉 %s/%s 具尸体。",
   "tip.recaller.not_enough_money": "传送需要 100\uE781。",
   "tip.noellesroles.cooldown": "技能将在 %s秒后可用",
+
+  "announcement.goals.professor": "使用铁人药剂保护其他玩家！",
+  "announcement.role.professor": "教授",
+  "announcement.win.professor": "乘客胜利！",
 
   "announcement.goals.jester": "被无辜者杀死即可获胜！",
   "announcement.role.jester": "小丑",

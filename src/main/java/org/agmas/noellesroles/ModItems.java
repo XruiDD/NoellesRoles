@@ -1,7 +1,9 @@
 package org.agmas.noellesroles;
 
 import net.minecraft.item.Item;
+import org.agmas.noellesroles.bartender.FineDrinkItem;
 import org.agmas.noellesroles.bomber.TimedBombItem;
+import org.agmas.noellesroles.professor.IronManVialItem;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
@@ -30,6 +32,14 @@ public class ModItems {
     public static final Item TIMED_BOMB = register(
             new TimedBombItem(new Item.Settings().maxCount(1)),
             "timed_bomb"
+    );
+    public static final Item FINE_DRINK = register(
+            new FineDrinkItem(new Item.Settings().maxCount(1)),
+            "fine_drink"
+    );
+    public static final Item IRON_MAN_VIAL = register(
+            new IronManVialItem(new Item.Settings().maxCount(1)),
+            "iron_man_vial"
     );
     public static Item register(Item item, String id) {
         // Create the identifier for the item.

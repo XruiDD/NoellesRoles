@@ -53,6 +53,7 @@ import org.agmas.noellesroles.timekeeper.TimekeeperShopHandler;
 import org.agmas.noellesroles.corruptcop.CorruptCopPlayerComponent;
 import org.agmas.noellesroles.packet.CorruptCopMomentS2CPacket;
 import org.agmas.noellesroles.packet.ReporterMarkC2SPacket;
+import org.agmas.noellesroles.professor.IronManPlayerComponent;
 import org.agmas.noellesroles.reporter.ReporterPlayerComponent;
 import org.agmas.noellesroles.serialkiller.SerialKillerPlayerComponent;
 
@@ -89,6 +90,7 @@ public class Noellesroles implements ModInitializer {
     public static Identifier SCAVENGER_ID = Identifier.of(MOD_ID, "scavenger");
     public static Identifier REPORTER_ID = Identifier.of(MOD_ID, "reporter");
     public static Identifier SERIAL_KILLER_ID = Identifier.of(MOD_ID, "serial_killer");
+    public static Identifier PROFESSOR_ID = Identifier.of(MOD_ID, "professor");
     // 炸弹死亡原因
     public static Identifier DEATH_REASON_BOMB = Identifier.of(MOD_ID, "bomb");
     // 刺客死亡原因
@@ -123,6 +125,8 @@ public class Noellesroles implements ModInitializer {
     public static Role TOXICOLOGIST = WatheRoles.registerRole(new Role(TOXICOLOGIST_ID, new Color(184, 41, 90).getRGB(), true, false, Role.MoodType.REAL, GameConstants.getInTicks(0, 10), false));
     // 记者角色 - 无辜者阵营，可以标记一个玩家并透视他
     public static Role REPORTER = WatheRoles.registerRole(new Role(REPORTER_ID, new Color(210, 180, 100).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
+    // 教授角色 - 无辜者阵营，开局自带铁人药剂，可以保护其他玩家
+    public static Role PROFESSOR = WatheRoles.registerRole(new Role(PROFESSOR_ID, new Color(70, 130, 180).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
 
 
     // 小丑角色 - 中立阵营，被无辜者杀死时获胜
@@ -187,25 +191,6 @@ public class Noellesroles implements ModInitializer {
         // Master key should drop on death
         ShouldDropOnDeath.EVENT.register((stack, victim) -> stack.isOf(ModItems.MASTER_KEY));
 
-        // Bartender defense vial - convert poison to armor
-        PlayerPoisoned.BEFORE.register((player, ticks, poisoner) -> {
-            if (poisoner == null) return null;
-            GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(player.getWorld());
-
-            // If poisoner is a bartender, cancel the poison and give armor instead
-            if (gameWorldComponent.isRole(poisoner, Noellesroles.BARTENDER)) {
-                if (player.getWorld().getPlayerByUuid(poisoner) == null) return null;
-
-                BartenderPlayerComponent bartenderPlayerComponent = BartenderPlayerComponent.KEY.get(player);
-                bartenderPlayerComponent.giveArmor();
-
-                // Cancel the poisoning
-                return PlayerPoisoned.PoisonResult.cancel();
-            }
-
-            return null;
-        });
-
         KillPlayer.BEFORE.register(((victim, killer, deathReason) -> {
             GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(victim.getWorld());
 
@@ -240,11 +225,11 @@ public class Noellesroles implements ModInitializer {
                 }
             }
 
-            BartenderPlayerComponent bartenderPlayerComponent = BartenderPlayerComponent.KEY.get(victim);
-            if (bartenderPlayerComponent.armor && deathReason != GameConstants.DeathReasons.SHOT_INNOCENT && deathReason != DEATH_REASON_ASSASSINATED) {
+            // Iron Man buff protection (from Professor)
+            IronManPlayerComponent ironManComp = IronManPlayerComponent.KEY.get(victim);
+            if (ironManComp.hasBuff() && deathReason != GameConstants.DeathReasons.SHOT_INNOCENT && deathReason != DEATH_REASON_ASSASSINATED) {
                 victim.getWorld().playSound(null, victim.getBlockPos(), WatheSounds.ITEM_PSYCHO_ARMOUR, SoundCategory.MASTER, 5.0F, 1.0F);
-                bartenderPlayerComponent.armor = false;
-                bartenderPlayerComponent.sync();
+                ironManComp.removeBuff();
                 return KillPlayer.KillResult.cancel();
             }
             return null;
@@ -333,6 +318,11 @@ public class Noellesroles implements ModInitializer {
                 // 初始化透视目标
                 serialKillerComp.initializeTarget(gameWorldComponent);
             }
+            if (role.equals(PROFESSOR)) {
+                // Professor starts with 1 Iron Man Vial
+                player.giveItemStack(ModItems.IRON_MAN_VIAL.getDefaultStack());
+                player.getItemCooldownManager().set(ModItems.IRON_MAN_VIAL, 20 * 60 * 3);
+            }
         });
         ResetPlayer.EVENT.register(player -> {
             BartenderPlayerComponent.KEY.get(player).reset();
@@ -349,6 +339,7 @@ public class Noellesroles implements ModInitializer {
             CorruptCopPlayerComponent.KEY.get(player).reset();
             ReporterPlayerComponent.KEY.get(player).reset();
             SerialKillerPlayerComponent.KEY.get(player).reset();
+            IronManPlayerComponent.KEY.get(player).reset();
         });
 
         // Bartender and Recaller get +50 coins when completing tasks
