@@ -1,4 +1,4 @@
-package org.agmas.noellesroles.bartender;
+package org.agmas.noellesroles.item;
 
 import dev.doctor4t.wathe.cca.PlayerMoodComponent;
 import dev.doctor4t.wathe.item.CocktailItem;

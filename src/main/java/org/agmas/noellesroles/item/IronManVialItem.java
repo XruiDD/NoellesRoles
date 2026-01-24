@@ -1,6 +1,5 @@
-package org.agmas.noellesroles.professor;
+package org.agmas.noellesroles.item;
 
-import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.game.GameFunctions;
 import dev.doctor4t.wathe.index.WatheSounds;
 import net.minecraft.entity.LivingEntity;
@@ -11,7 +10,7 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.world.World;
-import org.agmas.noellesroles.Noellesroles;
+import org.agmas.noellesroles.professor.IronManPlayerComponent;
 
 public class IronManVialItem extends Item {
     // 5分钟冷却 = 5 * 60 * 20 ticks
