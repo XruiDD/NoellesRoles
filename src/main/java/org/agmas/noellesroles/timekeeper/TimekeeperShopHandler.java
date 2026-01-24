@@ -30,7 +30,7 @@ public class TimekeeperShopHandler {
                 reduceTimeItem.set(DataComponentTypes.CUSTOM_NAME,
                         Text.translatable("item.noellesroles.timekeeper_reduce_time"));
 
-                context.addEntry(1, new ShopEntry(reduceTimeItem, PRICE, ShopEntry.Type.TOOL) {
+                context.addEntry(0, new ShopEntry(reduceTimeItem, PRICE, ShopEntry.Type.TOOL) {
                     @Override
                     public boolean onBuy(PlayerEntity buyPlayer) {
                         // 减少游戏时间

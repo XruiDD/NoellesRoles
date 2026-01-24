@@ -74,8 +74,8 @@ public class NoellesrolesClient implements ClientModInitializer {
         // 注册解毒剂冷却模型谓词
         ModelPredicateProviderRegistry.register(ModItems.ANTIDOTE, Identifier.of(Noellesroles.MOD_ID, "cooldown"),
                 (stack, world, entity, seed) -> {
-                    if (entity == null) return 0.0f;
-                    return entity.getItemCooldownManager().isCoolingDown(stack) ? 1.0f : 0.0f;
+                    if (!(entity instanceof PlayerEntity player)) return 0.0f;
+                    return player.getItemCooldownManager().isCoolingDown(stack.getItem()) ? 1.0f : 0.0f;
                 });
 
         // 注册黑警时刻BGM到AmbienceUtil
