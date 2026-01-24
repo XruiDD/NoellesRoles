@@ -28,6 +28,8 @@ import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.Identifier;
+import com.mojang.authlib.GameProfile;
+import net.minecraft.client.network.PlayerListEntry;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import org.agmas.noellesroles.ModItems;
@@ -455,5 +457,18 @@ public class NoellesrolesClient implements ClientModInitializer {
             }
         }
         return Optional.empty();
+    }
+
+    /**
+     * 获取玩家皮肤纹理
+     * 优先从模组缓存(PlayerListEntry)获取，如果失效则从客户端皮肤服务(SkinProvider)获取
+     */
+    public static Identifier getPlayerTexture(GameProfile profile) {
+        PlayerListEntry entry = WatheClient.PLAYER_ENTRIES_CACHE.get(profile.getId());
+        if (entry != null) {
+            return entry.getSkinTextures().texture();
+        }
+
+        return MinecraftClient.getInstance().getSkinProvider().getSkinTextures(profile).texture();
     }
 }

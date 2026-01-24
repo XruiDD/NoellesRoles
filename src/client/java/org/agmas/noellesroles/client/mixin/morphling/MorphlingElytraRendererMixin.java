@@ -30,7 +30,10 @@ public class MorphlingElytraRendererMixin {
                 NoellesrolesClient.SHUFFLED_PLAYER_ENTRIES_CACHE.containsKey(instance.getUuid())) {
 
                 UUID shuffledUuid = NoellesrolesClient.SHUFFLED_PLAYER_ENTRIES_CACHE.get(instance.getUuid());
-                return WatheClient.PLAYER_ENTRIES_CACHE.get(shuffledUuid).getSkinTextures();
+                var entry = WatheClient.PLAYER_ENTRIES_CACHE.get(shuffledUuid);
+                if (entry != null) {
+                    return entry.getSkinTextures();
+                }
             }
         }
 
