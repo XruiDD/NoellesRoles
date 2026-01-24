@@ -162,5 +162,12 @@
 
   "announcement.goals.attendant": "Check your passenger manifest to see who's in each room!",
   "announcement.role.attendant": "Attendant",
-  "announcement.win.attendant": "Passengers Win!"
+  "announcement.win.attendant": "Passengers Win!",
+
+  "announcement.goals.toxicologist": "You can see who is poisoned.",
+  "announcement.role.toxicologist": "Toxicologist",
+  "announcement.win.toxicologist": "Passengers Win!",
+
+  "item.noellesroles.antidote": "Antidote",
+  "item.noellesroles.antidote.tooltip": "Use on a poisoned player to cure them\nRequires 1.5s charge time\n5 minute cooldown after use"
 }

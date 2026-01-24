@@ -195,5 +195,8 @@
 
   "announcement.goals.attendant": "查阅你的乘客登记表，了解每个房间的乘客！",
   "announcement.role.attendant": "乘务员",
-  "announcement.win.attendant": "乘客胜利！"
+  "announcement.win.attendant": "乘客胜利！",
+
+  "item.noellesroles.antidote": "解毒剂",
+  "item.noellesroles.antidote.tooltip": "对中毒的玩家使用以解毒\n需要1.5秒蓄力时间\n使用后5分钟冷却"
 }

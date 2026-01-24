@@ -1,6 +1,7 @@
 package org.agmas.noellesroles;
 
 import net.minecraft.item.Item;
+import org.agmas.noellesroles.item.AntidoteItem;
 import org.agmas.noellesroles.item.FineDrinkItem;
 import org.agmas.noellesroles.item.TimedBombItem;
 import org.agmas.noellesroles.item.IronManVialItem;
@@ -39,6 +40,10 @@ public class ModItems {
     public static final Item IRON_MAN_VIAL = register(
             new IronManVialItem(new Item.Settings().maxCount(1)),
             "iron_man_vial"
+    );
+    public static final Item ANTIDOTE = register(
+            new AntidoteItem(new Item.Settings().maxCount(1)),
+            "antidote"
     );
 
     public static Item register(Item item, String id) {

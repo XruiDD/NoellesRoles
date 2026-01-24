@@ -320,6 +320,11 @@ public class Noellesroles implements ModInitializer {
                 // 记者开局冷却30秒
                 abilityPlayerComponent.cooldown = GameConstants.getInTicks(0, 30);
             }
+            if (role.equals(TOXICOLOGIST)) {
+                // 毒理学家开局获得解毒剂，2分钟冷却
+                player.giveItemStack(ModItems.ANTIDOTE.getDefaultStack());
+                player.getItemCooldownManager().set(ModItems.ANTIDOTE, org.agmas.noellesroles.item.AntidoteItem.INITIAL_COOLDOWN_TICKS);
+            }
             if (role.equals(SERIAL_KILLER)) {
                 SerialKillerPlayerComponent serialKillerComp = SerialKillerPlayerComponent.KEY.get(player);
                 serialKillerComp.reset();
