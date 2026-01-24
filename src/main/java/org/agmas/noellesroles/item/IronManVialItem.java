@@ -56,6 +56,6 @@ public class IronManVialItem extends Item {
         // Set cooldown (5 minutes)
         user.getItemCooldownManager().set(this, COOLDOWN_TICKS);
 
-        return ActionResult.SUCCESS;
+        return ActionResult.CONSUME;
     }
 }

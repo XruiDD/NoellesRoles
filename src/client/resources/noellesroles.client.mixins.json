@@ -4,9 +4,7 @@
   "package": "org.agmas.noellesroles.client.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "NeutralLockpickHandMixin",
     "assassin.AssassinHudMixin",
-    "bartender.DefenseVialHandMixin",
     "coroner.CoronerHudMixin",
     "jester.JesterHudMixin",
     "morphling.MorphlingCapeRendererMixin",

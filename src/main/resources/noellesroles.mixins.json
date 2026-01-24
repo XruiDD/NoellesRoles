@@ -11,7 +11,9 @@
     "scavenger.ScavengerKnifeSoundMixin",
     "scavenger.ScavengerKnifeStabSoundMixin",
     "corruptcop.CorruptCopGunCooldownMixin",
-    "bomber.BomberGrenadeCooldownMixin"
+    "bomber.BomberGrenadeCooldownMixin",
+    "equipment.EntityTrackerEntryMixin",
+    "equipment.EntityTrackerMixin"
   ],
   "injectors": {
     "defaultRequire": 1
