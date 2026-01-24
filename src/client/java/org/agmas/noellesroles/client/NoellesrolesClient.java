@@ -183,7 +183,7 @@ public class NoellesrolesClient implements ClientModInitializer {
             // PATHOGEN: 只有已感染的玩家显示绿色高亮（不再透视未感染玩家）
             if (gameWorldComponent.isRole(localPlayer, Noellesroles.PATHOGEN)) {
                 InfectedPlayerComponent infected = InfectedPlayerComponent.KEY.get(player);
-                if (infected.isInfected()) {
+                if (infected.isInfected() && localPlayer.canSee(player)) {
                     // Already infected - green
                     return GetInstinctHighlight.HighlightResult.always(Noellesroles.PATHOGEN.color());
                 }
