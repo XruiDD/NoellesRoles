@@ -33,7 +33,7 @@ public class ScavengerBodyHideMixin {
         if (localPlayer == null || localPlayer.getWorld() == null) return;
 
         // 旁观者和创造模式始终可以看到所有尸体
-        if (WatheClient.isPlayerSpectatingOrCreative()) {
+        if (WatheClient.canSeeSpectatorInformation()) {
             return;
         }
 
