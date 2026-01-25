@@ -9,6 +9,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.agmas.noellesroles.Noellesroles;
 import org.jetbrains.annotations.NotNull;
@@ -65,7 +66,7 @@ public class InfectedPlayerComponent implements AutoSyncedComponent, ServerTicki
         if (sneezeSoundDelay > 0) {
             sneezeSoundDelay--;
 
-            // 延迟结束，在被感染者当前位置播放打喷嚏音效
+            // 延迟结束，在被感染者当前位置播放打喷嚏音效并发送actionbar提醒
             if (sneezeSoundDelay == 0) {
                 if (player.getWorld() instanceof ServerWorld serverWorld) {
                     serverWorld.playSound(
@@ -76,6 +77,11 @@ public class InfectedPlayerComponent implements AutoSyncedComponent, ServerTicki
                         2.0F,
                         0.8F
                     );
+
+                    // 发送actionbar消息提醒玩家生病了
+                    if (player instanceof ServerPlayerEntity serverPlayer) {
+                        serverPlayer.sendMessage(Text.translatable("noellesroles.infected.notification"), true);
+                    }
                 }
             }
         }

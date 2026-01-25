@@ -198,5 +198,7 @@
   "announcement.win.attendant": "乘客胜利！",
 
   "item.noellesroles.antidote": "解毒剂",
-  "item.noellesroles.antidote.tooltip": "对中毒的玩家使用以解毒\n需要1.5秒蓄力时间\n使用后5分钟冷却"
+  "item.noellesroles.antidote.tooltip": "对中毒的玩家使用以解毒\n需要1.5秒蓄力时间\n使用后5分钟冷却",
+
+  "noellesroles.infected.notification": "你感觉身体不太舒服..."
 }

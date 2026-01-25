@@ -169,5 +169,7 @@
   "announcement.win.toxicologist": "Passengers Win!",
 
   "item.noellesroles.antidote": "Antidote",
-  "item.noellesroles.antidote.tooltip": "Use on a poisoned player to cure them\nRequires 1.5s charge time\n5 minute cooldown after use"
+  "item.noellesroles.antidote.tooltip": "Use on a poisoned player to cure them\nRequires 1.5s charge time\n5 minute cooldown after use",
+
+  "noellesroles.infected.notification": "You don't feel so good..."
 }
