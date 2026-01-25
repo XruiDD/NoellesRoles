@@ -200,5 +200,15 @@
   "item.noellesroles.antidote": "解毒剂",
   "item.noellesroles.antidote.tooltip": "对中毒的玩家使用以解毒\n需要1.5秒蓄力时间\n使用后5分钟冷却",
 
-  "noellesroles.infected.notification": "你感觉身体不太舒服..."
+  "noellesroles.infected.notification": "你感觉身体不太舒服...",
+
+  "announcement.goals.taotie": "吞噬所有玩家，或在饕餮时刻存活2分钟即可获胜！",
+  "announcement.role.taotie": "饕餮",
+  "announcement.win.taotie": "饕餮胜利！",
+  "game.win.taotie": "饥饿...永无止境的饥饿终于得到了满足。",
+  "tip.taotie.swallow": "按 %s 吞噬 %s",
+  "tip.taotie.swallowed_count": "肚子里: %s人",
+  "tip.taotie.moment_active": "饕餮时刻！剩余 %s 秒",
+  "title.noellesroles.taotie_moment": "饕餮时刻",
+  "tip.noellesroles.taotie_moment_countdown": "你必须找出并杀掉饕餮！剩余时间: %s秒"
 }

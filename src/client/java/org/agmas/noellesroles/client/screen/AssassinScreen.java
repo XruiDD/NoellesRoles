@@ -17,6 +17,7 @@ import org.agmas.noellesroles.Noellesroles;
 import org.agmas.noellesroles.assassin.AssassinPlayerComponent;
 import org.agmas.noellesroles.client.AssassinRoleWidget;
 import org.agmas.noellesroles.client.AssassinTargetWidget;
+import org.agmas.noellesroles.taotie.SwallowedPlayerComponent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +41,7 @@ public class AssassinScreen extends Screen {
 
         // 基础检查
         if (!gameWorld.isRole(player, Noellesroles.ASSASSIN) ||
-                !GameFunctions.isPlayerAliveAndSurvival(player)) {
+                !GameFunctions.isPlayerAliveAndSurvival(player) || SwallowedPlayerComponent.isPlayerSwallowed(MinecraftClient.getInstance().player)) {
             this.close();
             return;
         }

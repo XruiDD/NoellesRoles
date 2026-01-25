@@ -17,6 +17,8 @@ import org.agmas.noellesroles.scavenger.ScavengerPlayerComponent;
 import org.agmas.noellesroles.corruptcop.CorruptCopPlayerComponent;
 import org.agmas.noellesroles.reporter.ReporterPlayerComponent;
 import org.agmas.noellesroles.serialkiller.SerialKillerPlayerComponent;
+import org.agmas.noellesroles.taotie.TaotiePlayerComponent;
+import org.agmas.noellesroles.taotie.SwallowedPlayerComponent;
 import org.jetbrains.annotations.NotNull;
 import org.ladysnake.cca.api.v3.entity.EntityComponentFactoryRegistry;
 import org.ladysnake.cca.api.v3.entity.EntityComponentInitializer;
@@ -45,6 +47,8 @@ public class NoellesRolesComponents implements EntityComponentInitializer, World
         registry.beginRegistration(PlayerEntity.class, ReporterPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(ReporterPlayerComponent::new);
         registry.beginRegistration(PlayerEntity.class, SerialKillerPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(SerialKillerPlayerComponent::new);
         registry.beginRegistration(PlayerEntity.class, IronManPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(IronManPlayerComponent::new);
+        registry.beginRegistration(PlayerEntity.class, TaotiePlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(TaotiePlayerComponent::new);
+        registry.beginRegistration(PlayerEntity.class, SwallowedPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(SwallowedPlayerComponent::new);
     }
 
     @Override

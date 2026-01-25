@@ -17,10 +17,11 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import org.agmas.noellesroles.ModSounds;
 import org.agmas.noellesroles.Noellesroles;
+import org.agmas.noellesroles.taotie.SwallowedPlayerComponent;
+import org.agmas.noellesroles.taotie.TaotiePlayerComponent;
 import org.jetbrains.annotations.NotNull;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
-import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
 import org.ladysnake.cca.api.v3.component.tick.ServerTickingComponent;
 
 
@@ -107,7 +108,7 @@ public class BomberPlayerComponent implements ServerTickingComponent {
         }
 
         // 检查目标是否存活
-        if (!GameFunctions.isPlayerAliveAndSurvival(target)) {
+        if (!GameFunctions.isPlayerAliveAndSurvival(target) || SwallowedPlayerComponent.isPlayerSwallowed(target)) {
             return;
         }
 
@@ -232,11 +233,27 @@ public class BomberPlayerComponent implements ServerTickingComponent {
                 player.getX(), player.getY() + 0.5, player.getZ(),
                 100, 0, 0, 0, 1.0);
 
-        // 杀死携带炸弹的玩家
-        if (GameFunctions.isPlayerAliveAndSurvival(player)) {
-            // 获取炸弹客玩家
-            PlayerEntity bomber = bomberUuid != null ? player.getWorld().getPlayerByUuid(bomberUuid) : null;
-            GameFunctions.killPlayer(player, true, bomber, Noellesroles.DEATH_REASON_BOMB);
+        // 获取炸弹客玩家
+        PlayerEntity bomber = bomberUuid != null ? player.getWorld().getPlayerByUuid(bomberUuid) : null;
+
+        // 检查持有者是否被饕餮吞噬
+        SwallowedPlayerComponent swallowedComp = SwallowedPlayerComponent.KEY.get(player);
+        if (swallowedComp.isSwallowed()) {
+            // 炸弹在肚子里爆炸，杀死饕餮而非持有者
+            UUID taotieUuid = swallowedComp.getSwallowedBy();
+            if (taotieUuid != null) {
+                PlayerEntity taotie = serverWorld.getPlayerByUuid(taotieUuid);
+                if (taotie != null && GameFunctions.isPlayerAliveAndSurvival(taotie)) {
+                    TaotiePlayerComponent taotieComp = TaotiePlayerComponent.KEY.get(taotie);
+                    taotieComp.releaseAllPlayers(taotie.getPos());
+                    GameFunctions.killPlayer(taotie, true, bomber, Noellesroles.DEATH_REASON_BOMB);
+                }
+            }
+        } else {
+            // 普通情况：杀死携带炸弹的玩家
+            if (GameFunctions.isPlayerAliveAndSurvival(player)) {
+                GameFunctions.killPlayer(player, true, bomber, Noellesroles.DEATH_REASON_BOMB);
+            }
         }
 
         // 重置状态

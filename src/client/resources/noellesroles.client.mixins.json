@@ -20,6 +20,8 @@
     "scavenger.ScavengerBodyHideMixin",
     "scavenger.ScavengerInstantKnifeMixin",
     "swapper.SwapperScreenMixin",
+    "taotie.TaotieHudMixin",
+    "taotie.SpectatorHudMixin",
     "voodoo.VoodoScreenMixin",
     "vulture.VultureHudMixin"
   ],

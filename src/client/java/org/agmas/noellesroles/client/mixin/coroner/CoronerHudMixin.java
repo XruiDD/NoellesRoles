@@ -19,6 +19,7 @@ import net.minecraft.util.hit.HitResult;
 import org.agmas.noellesroles.AbilityPlayerComponent;
 import org.agmas.noellesroles.Noellesroles;
 import org.agmas.noellesroles.client.NoellesrolesClient;
+import org.agmas.noellesroles.taotie.SwallowedPlayerComponent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -43,15 +44,15 @@ public abstract class CoronerHudMixin {
     private static void renderCoronerHud(TextRenderer renderer, ClientPlayerEntity player, DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
         GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(player.getWorld());
         if (NoellesrolesClient.targetBody != null) {
-            boolean isVulture = gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.VULTURE);
-            boolean isCoroner = gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.CORONER);
+            boolean isVulture = gameWorldComponent.isRole(player, Noellesroles.VULTURE);
+            boolean isCoroner = gameWorldComponent.isRole(player, Noellesroles.CORONER);
             if (isVulture || isCoroner) {
                 context.getMatrices().push();
                 context.getMatrices().translate((float) context.getScaledWindowWidth() / 2.0F, (float) context.getScaledWindowHeight() / 2.0F + 6.0F, 0.0F);
                 context.getMatrices().scale(0.6F, 0.6F, 1.0F);
                 if(isCoroner){
-                    PlayerMoodComponent moodComponent = PlayerMoodComponent.KEY.get(MinecraftClient.getInstance().player);
-                    if (moodComponent.isLowerThanMid() && WatheClient.isPlayerAliveAndInSurvival()) {
+                    PlayerMoodComponent moodComponent = PlayerMoodComponent.KEY.get(player);
+                    if (moodComponent.isLowerThanMid() && WatheClient.isPlayerAliveAndInSurvival() && !SwallowedPlayerComponent.isPlayerSwallowed(player)) {
                         Text name = Text.translatable("hud.coroner.sanity_requirements");
                         context.drawTextWithShadow(renderer, name, -renderer.getWidth(name) / 2, 32, Colors.YELLOW);
                         context.getMatrices().pop();
@@ -61,26 +62,13 @@ public abstract class CoronerHudMixin {
                 // 秃鹫专属提示
                 if (isVulture) {
                     AbilityPlayerComponent abilityPlayerComponent = AbilityPlayerComponent.KEY.get(player);
-                    if (abilityPlayerComponent.getCooldown() <= 0 && WatheClient.isPlayerAliveAndInSurvival()) {
+                    if (abilityPlayerComponent.getCooldown() <= 0 && WatheClient.isPlayerAliveAndInSurvival() && !SwallowedPlayerComponent.isPlayerSwallowed(MinecraftClient.getInstance().player)) {
                         Text eatPrompt = Text.translatable("hud.vulture.eat", NoellesrolesClient.abilityBind.getBoundKeyLocalizedText()).withColor(Colors.RED);
                         context.drawTextWithShadow(renderer, eatPrompt, -renderer.getWidth(eatPrompt) / 2, 32, Colors.WHITE);
                     }
                 }
                 context.getMatrices().pop();
             }
-        }
-    }
-
-    /**
-     * 射线检测尸体实体，将结果存储到 NoellesrolesClient.targetBody
-     */
-    @Inject(method = "renderHud", at = @At(value = "INVOKE", target = "Ldev/doctor4t/wathe/game/GameFunctions;isPlayerSpectatingOrCreative(Lnet/minecraft/entity/player/PlayerEntity;)Z"))
-    private static void detectTargetBody(TextRenderer renderer, ClientPlayerEntity player, DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
-        float range = GameFunctions.isPlayerSpectatingOrCreative(player) ? 8.0F : 2.0F;
-        HitResult line = ProjectileUtil.getCollision(player, (entity) -> entity instanceof PlayerBodyEntity, range);
-        NoellesrolesClient.targetBody = null;
-        if (line instanceof EntityHitResult ehr && ehr.getEntity() instanceof PlayerBodyEntity playerBodyEntity) {
-            NoellesrolesClient.targetBody = playerBodyEntity;
         }
     }
 }

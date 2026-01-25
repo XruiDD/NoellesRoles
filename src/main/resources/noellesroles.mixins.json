@@ -13,7 +13,8 @@
     "corruptcop.CorruptCopGunCooldownMixin",
     "bomber.BomberGrenadeCooldownMixin",
     "equipment.EntityTrackerEntryMixin",
-    "equipment.EntityTrackerMixin"
+    "equipment.EntityTrackerMixin",
+    "taotie.SpectatorTeleportMixin"
   ],
   "injectors": {
     "defaultRequire": 1

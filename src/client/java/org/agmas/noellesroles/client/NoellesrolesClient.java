@@ -25,6 +25,7 @@ import net.minecraft.entity.projectile.ProjectileUtil;
 import net.minecraft.text.Text;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.EntityHitResult;
+import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.Identifier;
@@ -46,6 +47,9 @@ import org.agmas.noellesroles.packet.CorruptCopMomentS2CPacket;
 import org.agmas.noellesroles.packet.ReporterMarkC2SPacket;
 import org.agmas.noellesroles.pathogen.InfectedPlayerComponent;
 import org.agmas.noellesroles.professor.IronManPlayerComponent;
+import org.agmas.noellesroles.taotie.SwallowedPlayerComponent;
+import org.agmas.noellesroles.taotie.TaotiePlayerComponent;
+import org.agmas.noellesroles.packet.TaotieSwallowC2SPacket;
 import org.agmas.noellesroles.client.corruptcop.CorruptCopMomentMusicManager;
 import org.agmas.noellesroles.reporter.ReporterPlayerComponent;
 import org.agmas.noellesroles.serialkiller.SerialKillerPlayerComponent;
@@ -103,7 +107,7 @@ public class NoellesrolesClient implements ClientModInitializer {
         });
 
         CanSeeMoney.EVENT.register(player -> {
-            if (player.isSpectator()) return null;
+            if (!GameFunctions.isPlayerAliveAndSurvival(player)) return null;
             GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(
                     player.getWorld()
             );
@@ -120,7 +124,7 @@ public class NoellesrolesClient implements ClientModInitializer {
                 if (component.isRole(playerEntity, Noellesroles.CORONER)) {
                     // 验尸官需要 50% 以上的理智值才能查看尸体信息
                     PlayerMoodComponent moodComponent = PlayerMoodComponent.KEY.get(playerEntity);
-                    return !moodComponent.isLowerThanMid() || !WatheClient.isPlayerAliveAndInSurvival();
+                    return !moodComponent.isLowerThanMid() || !WatheClient.isPlayerAliveAndInSurvival() || SwallowedPlayerComponent.isPlayerSwallowed(MinecraftClient.getInstance().player);
                 }
             }
             return false;
@@ -281,6 +285,12 @@ public class NoellesrolesClient implements ClientModInitializer {
 
             // 更新病原体最近目标
             if (MinecraftClient.getInstance().player != null) {
+                float range = GameFunctions.isPlayerSpectatingOrCreative(MinecraftClient.getInstance().player) ? 8.0F : 2.0F;
+                HitResult line = ProjectileUtil.getCollision(MinecraftClient.getInstance().player, (entity) -> entity instanceof PlayerBodyEntity, range);
+                NoellesrolesClient.targetBody = null;
+                if (line instanceof EntityHitResult ehr && ehr.getEntity() instanceof PlayerBodyEntity playerBodyEntity) {
+                    NoellesrolesClient.targetBody = playerBodyEntity;
+                }
                 GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(MinecraftClient.getInstance().player.getWorld());
                 if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.PATHOGEN)) {
                     pathogenNearestTarget = null;
@@ -368,7 +378,7 @@ public class NoellesrolesClient implements ClientModInitializer {
                 var eyePos = localPlayer.getEyePos();
                 var hitResult = ProjectileUtil.getCollision(
                         localPlayer,
-                        entity -> entity instanceof PlayerEntity player && GameFunctions.isPlayerAliveAndSurvival(player),
+                        entity -> entity instanceof PlayerEntity player && GameFunctions.isPlayerAliveAndSurvival(player) && !player.isSpectator(),
                         maxDistance
                 );
 
@@ -391,7 +401,7 @@ public class NoellesrolesClient implements ClientModInitializer {
 
                     // 刺客角色按G打开刺客界面
                     if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.ASSASSIN)) {
-                        if (GameFunctions.isPlayerAliveAndSurvival(MinecraftClient.getInstance().player)) {
+                        if (GameFunctions.isPlayerAliveAndSurvival(MinecraftClient.getInstance().player) && !SwallowedPlayerComponent.isPlayerSwallowed(MinecraftClient.getInstance().player)) {
                             AssassinPlayerComponent assassinComp = AssassinPlayerComponent.KEY.get(MinecraftClient.getInstance().player);
                             // 检查是否可以使用技能（不在冷却中且有剩余次数）
                             if (assassinComp.canGuess()) {
@@ -412,6 +422,17 @@ public class NoellesrolesClient implements ClientModInitializer {
                     if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.REPORTER)) {
                         if (crosshairTarget != null && crosshairTargetDistance <= 3.0) {
                             ClientPlayNetworking.send(new ReporterMarkC2SPacket(crosshairTarget.getUuid()));
+                        }
+                        return;
+                    }
+
+                    // 饕餮角色按G吞噬准星目标
+                    if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.TAOTIE)) {
+                        if (crosshairTarget != null && crosshairTargetDistance <= 3.0) {
+                            TaotiePlayerComponent taotieComp = TaotiePlayerComponent.KEY.get(MinecraftClient.getInstance().player);
+                            if (taotieComp.getSwallowCooldown() <= 0) {
+                                ClientPlayNetworking.send(new TaotieSwallowC2SPacket(crosshairTarget.getUuid()));
+                            }
                         }
                         return;
                     }

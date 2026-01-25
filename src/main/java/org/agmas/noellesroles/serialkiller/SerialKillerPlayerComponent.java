@@ -9,6 +9,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import org.agmas.noellesroles.Noellesroles;
+import org.agmas.noellesroles.taotie.SwallowedPlayerComponent;
 import org.jetbrains.annotations.NotNull;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
@@ -99,7 +100,8 @@ public class SerialKillerPlayerComponent implements AutoSyncedComponent {
 
             PlayerEntity targetPlayer = serverWorld.getPlayerByUuid(playerUuid);
             if (targetPlayer == null) continue;
-            if (!GameFunctions.isPlayerAliveAndSurvival(targetPlayer)) continue;
+            if (!GameFunctions.isPlayerAliveAndSurvival(targetPlayer) || SwallowedPlayerComponent.isPlayerSwallowed(targetPlayer)) continue;
+
 
             // 检查是否为非杀手阵营
             var role = gameWorldComponent.getRole(targetPlayer);
