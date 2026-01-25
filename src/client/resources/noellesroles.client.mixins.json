@@ -18,6 +18,7 @@
     "recaller.RecallerHudMixin",
     "reporter.ReporterHudMixin",
     "scavenger.ScavengerBodyHideMixin",
+    "scavenger.ScavengerInstantKnifeMixin",
     "swapper.SwapperScreenMixin",
     "voodoo.VoodoScreenMixin",
     "vulture.VultureHudMixin"
