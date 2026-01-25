@@ -53,14 +53,17 @@ public class AssassinScreen extends Screen {
 
             // 获取目标列表
             List<UUID> alivePlayers = gameWorld.getAllAlivePlayers();
-            List<AbstractClientPlayerEntity> targets = new ArrayList<>(MinecraftClient.getInstance().world.getPlayers());
+            List<AbstractClientPlayerEntity> targets = null;
+            if (MinecraftClient.getInstance().world != null) {
+                targets = new ArrayList<>(MinecraftClient.getInstance().world.getPlayers());
+            }
 
-            targets.removeIf(p -> {
-                if (p.getUuid().equals(player.getUuid())) return true;
-                if (!alivePlayers.contains(p.getUuid())) return true;
-                if (gameWorld.isRole(p, WatheRoles.VIGILANTE)) return true;
-                return false;
-            });
+            if (targets != null) {
+                targets.removeIf(p -> {
+                    if (p.getUuid().equals(player.getUuid())) return true;
+                    return !alivePlayers.contains(p.getUuid());
+                });
+            }
 
             // 动态网格布局：每行最多 6 个人
             int columns = 6;
