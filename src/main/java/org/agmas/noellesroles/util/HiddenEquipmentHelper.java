@@ -11,6 +11,7 @@ import net.minecraft.network.packet.s2c.play.EntityEquipmentUpdateS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.agmas.noellesroles.ModItems;
 import org.agmas.noellesroles.Noellesroles;
+import org.agmas.noellesroles.bomber.BomberPlayerComponent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +37,7 @@ public final class HiddenEquipmentHelper {
 
         if (stack.isOf(ModItems.TIMED_BOMB)) {
             GameWorldComponent gameWorld = GameWorldComponent.KEY.get(holder.getWorld());
-            return gameWorld.isRole(holder, Noellesroles.BOMBER);
+            return gameWorld.isRole(holder, Noellesroles.BOMBER) && !BomberPlayerComponent.KEY.get(holder).hasBomb();
         }
 
         return false;
