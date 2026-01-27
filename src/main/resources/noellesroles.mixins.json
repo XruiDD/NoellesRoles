@@ -14,7 +14,9 @@
     "bomber.BomberGrenadeCooldownMixin",
     "equipment.EntityTrackerEntryMixin",
     "equipment.EntityTrackerMixin",
-    "taotie.SpectatorTeleportMixin"
+    "taotie.SpectatorTeleportMixin",
+    "taotie.SwallowedPlayerEntityMixin",
+    "taotie.SwallowedPlayerSpectatorMixin"
   ],
   "injectors": {
     "defaultRequire": 1

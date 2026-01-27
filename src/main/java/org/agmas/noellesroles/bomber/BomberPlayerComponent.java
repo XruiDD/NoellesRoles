@@ -244,8 +244,6 @@ public class BomberPlayerComponent implements ServerTickingComponent {
             if (taotieUuid != null) {
                 PlayerEntity taotie = serverWorld.getPlayerByUuid(taotieUuid);
                 if (taotie != null && GameFunctions.isPlayerAliveAndSurvival(taotie)) {
-                    TaotiePlayerComponent taotieComp = TaotiePlayerComponent.KEY.get(taotie);
-                    taotieComp.releaseAllPlayers(taotie.getPos());
                     GameFunctions.killPlayer(taotie, true, bomber, Noellesroles.DEATH_REASON_BOMB);
                 }
             }

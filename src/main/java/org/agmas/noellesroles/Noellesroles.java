@@ -407,9 +407,7 @@ public class Noellesroles implements ModInitializer {
             }
             if (role.equals(TAOTIE)) {
                 TaotiePlayerComponent taotieComp = TaotiePlayerComponent.KEY.get(player);
-                taotieComp.reset();
                 taotieComp.initializeForGame(gameWorldComponent.getAllPlayers().size());
-                // 开局冷却1分钟
                 taotieComp.setSwallowCooldown(GameConstants.getInTicks(1, 0));
                 player.giveItemStack(ModItems.NEUTRAL_MASTER_KEY.getDefaultStack());
             }
@@ -432,6 +430,7 @@ public class Noellesroles implements ModInitializer {
             IronManPlayerComponent.KEY.get(player).reset();
             TaotiePlayerComponent.KEY.get(player).reset();
             SwallowedPlayerComponent.KEY.get(player).reset();
+            TaotiePlayerComponent.KEY.get(player).reset();
         });
 
         // Bartender and Recaller get +50 coins when completing tasks

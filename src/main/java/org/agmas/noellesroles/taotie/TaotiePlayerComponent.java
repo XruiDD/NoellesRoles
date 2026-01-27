@@ -1,8 +1,5 @@
 package org.agmas.noellesroles.taotie;
 
-import de.maxhenkel.voicechat.api.Group;
-import de.maxhenkel.voicechat.api.VoicechatConnection;
-import de.maxhenkel.voicechat.api.VoicechatServerApi;
 import org.agmas.noellesroles.voice.NoellesrolesVoiceChatPlugin;
 import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.game.GameConstants;
@@ -63,9 +60,6 @@ public class TaotiePlayerComponent implements AutoSyncedComponent, ServerTicking
     private int taotieMomentTicks = 0;
     private int triggerThreshold = 0; // Number of players needed to trigger moment
 
-    // Voice chat group for stomach
-    private transient Group stomachGroup = null;
-
     // Total player count at game start (for win condition)
     private int totalPlayersAtStart = 0;
 
@@ -91,7 +85,7 @@ public class TaotiePlayerComponent implements AutoSyncedComponent, ServerTicking
         this.calculatedSwallowCooldown = SWALLOW_COOLDOWN;
 
         // Clean up voice chat group
-        this.stomachGroup = null;
+        NoellesrolesVoiceChatPlugin.clearStomachGroup(player.getUuid());
 
         this.sync();
     }
@@ -186,11 +180,8 @@ public class TaotiePlayerComponent implements AutoSyncedComponent, ServerTicking
         targetSwallowed.setSwallowed(taotie.getUuid(), originalMode);
         swallowedPlayers.add(target.getUuid());
 
-        // Set up voice chat group if available
-        VoicechatServerApi voicechatApi = NoellesrolesVoiceChatPlugin.getServerApi();
-        if (voicechatApi != null) {
-            setupVoiceChatForSwallowedPlayer(target, voicechatApi);
-        }
+        // Set up voice chat group
+        NoellesrolesVoiceChatPlugin.addToStomachGroup(taotie, target);
 
         // Set cooldown (使用动态计算的冷却时间)
         swallowCooldown = calculatedSwallowCooldown;
@@ -213,45 +204,13 @@ public class TaotiePlayerComponent implements AutoSyncedComponent, ServerTicking
         return true;
     }
 
-    /**
-     * Set up voice chat for a swallowed player
-     */
-    private void setupVoiceChatForSwallowedPlayer(ServerPlayerEntity target, VoicechatServerApi voicechatApi) {
-        // Create stomach group if it doesn't exist
-        if (stomachGroup == null) {
-            stomachGroup = voicechatApi.groupBuilder()
-                    .setPersistent(true)
-                    .setName("TaotieStomach_" + player.getUuidAsString())
-                    .setType(Group.Type.NORMAL)
-                    .build();
-        }
-
-        // Add target to stomach group
-        VoicechatConnection targetCon = voicechatApi.getConnectionOf(target.getUuid());
-        if (targetCon != null) {
-            targetCon.setGroup(stomachGroup);
-        }
-    }
-
-    /**
-     * Remove player from voice chat group
-     */
-    private void removeFromVoiceChat(UUID playerUuid) {
-        VoicechatServerApi voicechatApi = NoellesrolesVoiceChatPlugin.getServerApi();
-        if (voicechatApi == null) return;
-
-        VoicechatConnection con = voicechatApi.getConnectionOf(playerUuid);
-        if (con != null) {
-            con.setGroup(null);
-        }
-    }
 
     /**
      * Remove a specific swallowed player from the list (used when they die while swallowed)
      */
     public void removeSwallowedPlayer(ServerPlayerEntity player) {
         swallowedPlayers.remove(player.getUuid());
-        removeFromVoiceChat(player.getUuid());
+        NoellesrolesVoiceChatPlugin.removeFromVoiceChat(player.getUuid());
         this.sync();
     }
 
@@ -266,12 +225,12 @@ public class TaotiePlayerComponent implements AutoSyncedComponent, ServerTicking
             if (swallowed != null) {
                 SwallowedPlayerComponent comp = SwallowedPlayerComponent.KEY.get(swallowed);
                 comp.release(position);
-                removeFromVoiceChat(uuid);
+                NoellesrolesVoiceChatPlugin.removeFromVoiceChat(uuid);
             }
         }
 
         swallowedPlayers.clear();
-        stomachGroup = null;
+        NoellesrolesVoiceChatPlugin.clearStomachGroup(player.getUuid());
         this.sync();
     }
 
@@ -457,10 +416,6 @@ public class TaotiePlayerComponent implements AutoSyncedComponent, ServerTicking
 
     public int getTotalPlayersAtStart() {
         return totalPlayersAtStart;
-    }
-
-    public Group getStomachGroup() {
-        return stomachGroup;
     }
 
     @Override
