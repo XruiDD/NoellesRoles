@@ -43,6 +43,11 @@ public class TimedBombItem extends Item {
 
         // 服务端处理
         if (!world.isClient) {
+
+            if(user.getItemCooldownManager().isCoolingDown(this)) {
+                return ActionResult.PASS;
+            }
+
             if (!GameFunctions.isPlayerAliveAndSurvival(target)) {
                 return ActionResult.PASS;
             }

@@ -421,6 +421,9 @@ public class Noellesroles implements ModInitializer {
                 taotieComp.setSwallowCooldown(GameConstants.getInTicks(1, 0));
                 player.giveItemStack(ModItems.NEUTRAL_MASTER_KEY.getDefaultStack());
             }
+            if(role.equals(BOMBER)) {
+                player.getItemCooldownManager().set(ModItems.TIMED_BOMB, 20 * 45);
+            }
         });
         ResetPlayer.EVENT.register(player -> {
             BartenderPlayerComponent.KEY.get(player).reset();

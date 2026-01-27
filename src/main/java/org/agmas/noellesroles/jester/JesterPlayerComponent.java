@@ -16,6 +16,7 @@ import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 
 import java.util.UUID;
@@ -128,7 +129,7 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
                     // Send Subtitle (副标题)
                     p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.SubtitleS2CPacket(
                         net.minecraft.text.Text.translatable("subtitle.noellesroles.jester_moment")
-                            .formatted(net.minecraft.util.Formatting.PINK)
+                            .formatted(Formatting.LIGHT_PURPLE)
                     ));
 
                     // Set Title times (fadeIn, stay, fadeOut in ticks)
