@@ -43,14 +43,13 @@ import org.agmas.noellesroles.corruptcop.CorruptCopPlayerComponent;
 import org.agmas.noellesroles.jester.JesterPlayerComponent;
 import org.agmas.noellesroles.packet.AbilityC2SPacket;
 import org.agmas.noellesroles.packet.VultureEatC2SPacket;
-import org.agmas.noellesroles.packet.CorruptCopMomentS2CPacket;
 import org.agmas.noellesroles.packet.ReporterMarkC2SPacket;
 import org.agmas.noellesroles.pathogen.InfectedPlayerComponent;
 import org.agmas.noellesroles.professor.IronManPlayerComponent;
 import org.agmas.noellesroles.taotie.SwallowedPlayerComponent;
 import org.agmas.noellesroles.taotie.TaotiePlayerComponent;
 import org.agmas.noellesroles.packet.TaotieSwallowC2SPacket;
-import org.agmas.noellesroles.client.corruptcop.CorruptCopMomentMusicManager;
+import org.agmas.noellesroles.client.music.WorldMusicManager;
 import org.agmas.noellesroles.reporter.ReporterPlayerComponent;
 import org.agmas.noellesroles.serialkiller.SerialKillerPlayerComponent;
 import org.lwjgl.glfw.GLFW;
@@ -84,27 +83,8 @@ public class NoellesrolesClient implements ClientModInitializer {
                     return player.getItemCooldownManager().isCoolingDown(stack.getItem()) ? 1.0f : 0.0f;
                 });
 
-        // 注册黑警时刻BGM到AmbienceUtil
-        CorruptCopMomentMusicManager.register();
-
-        // 注册黑警时刻S2C数据包接收器
-        ClientPlayNetworking.registerGlobalReceiver(CorruptCopMomentS2CPacket.ID, (payload, context) -> {
-            context.client().execute(() -> {
-                if (payload.start()) {
-                    CorruptCopMomentMusicManager.startMoment(payload.soundIndex());
-
-                    // 显示黑警时刻标题 (5秒 = 100 ticks)
-                    MinecraftClient client = context.client();
-                    if (client.inGameHud != null) {
-                        client.inGameHud.setTitle(Text.translatable("title.noellesroles.corrupt_cop_moment"));
-                        client.inGameHud.setSubtitle(Text.translatable("subtitle.noellesroles.corrupt_cop_moment"));
-                        client.inGameHud.setTitleTicks(10, 100, 10); // fadeIn, stay, fadeOut
-                    }
-                } else {
-                    CorruptCopMomentMusicManager.stopMoment();
-                }
-            });
-        });
+        // 注册世界BGM管理器
+        WorldMusicManager.register();
 
         CanSeeMoney.EVENT.register(player -> {
             if (!GameFunctions.isPlayerAliveAndSurvival(player)) return null;
@@ -270,6 +250,9 @@ public class NoellesrolesClient implements ClientModInitializer {
         });
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            // 更新世界BGM管理器
+            WorldMusicManager.tick();
+
             insanityTime++;
             if (insanityTime >= 20*6) {
                 insanityTime = 0;

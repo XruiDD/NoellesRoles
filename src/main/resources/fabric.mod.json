@@ -48,7 +48,8 @@
       "noellesroles:serial_killer",
       "noellesroles:iron_man",
       "noellesroles:taotie",
-      "noellesroles:swallowed"
+      "noellesroles:swallowed",
+      "noellesroles:world_music"
     ]
   },
   "mixins": [

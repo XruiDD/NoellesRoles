@@ -3,7 +3,6 @@ package org.agmas.noellesroles.corruptcop;
 import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.index.WatheItems;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.packet.s2c.play.PlaySoundS2CPacket;
@@ -16,7 +15,8 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import org.agmas.noellesroles.ModSounds;
 import org.agmas.noellesroles.Noellesroles;
-import org.agmas.noellesroles.packet.CorruptCopMomentS2CPacket;
+import org.agmas.noellesroles.music.MusicMomentType;
+import org.agmas.noellesroles.music.WorldMusicComponent;
 import org.jetbrains.annotations.NotNull;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
@@ -115,14 +115,18 @@ public class CorruptCopPlayerComponent implements AutoSyncedComponent, ClientTic
         player.sendMessage(Text.translatable("tip.corrupt_cop.moment_triggered")
                 .formatted(Formatting.DARK_RED, Formatting.BOLD), false);
 
-        // 向所有玩家广播黑警时刻开始
-        for (var player : player.getWorld().getPlayers()) {
-            if (player instanceof ServerPlayerEntity serverPlayer) {
-                // 发送BGM播放包
-                var radom = new Random();
-                ServerPlayNetworking.send(serverPlayer, new CorruptCopMomentS2CPacket(true, radom.nextInt(2) + 1));
+        // 通过CCA组件同步BGM播放状态到所有客户端
+        WorldMusicComponent worldMusic = WorldMusicComponent.KEY.get(player.getWorld());
+        var random = new Random();
+        worldMusic.startMusic(MusicMomentType.CORRUPT_COP_MOMENT, random.nextInt(2) + 1);
+
+        // 显示黑警时刻标题
+        for (var worldPlayer : player.getWorld().getPlayers()) {
+            if (worldPlayer instanceof ServerPlayerEntity serverPlayer) {
+                serverPlayer.sendMessage(Text.translatable("title.noellesroles.corrupt_cop_moment"), true);
             }
         }
+
         this.sync();
     }
 
@@ -136,12 +140,10 @@ public class CorruptCopPlayerComponent implements AutoSyncedComponent, ClientTic
 
         if (!(player.getWorld() instanceof ServerWorld)) return;
 
-        // 向所有玩家发送停止BGM的包
-        for (var player : player.getWorld().getPlayers()) {
-            if (player instanceof ServerPlayerEntity serverPlayer) {
-                ServerPlayNetworking.send(serverPlayer, new CorruptCopMomentS2CPacket(false, 0));
-            }
-        }
+        // 通过CCA组件停止BGM播放
+        WorldMusicComponent worldMusic = WorldMusicComponent.KEY.get(player.getWorld());
+        worldMusic.stopMusic();
+
         this.sync();
     }
 

@@ -52,7 +52,6 @@ import org.agmas.noellesroles.scavenger.ScavengerPlayerComponent;
 import org.agmas.noellesroles.scavenger.ScavengerShopHandler;
 import org.agmas.noellesroles.timekeeper.TimekeeperShopHandler;
 import org.agmas.noellesroles.corruptcop.CorruptCopPlayerComponent;
-import org.agmas.noellesroles.packet.CorruptCopMomentS2CPacket;
 import org.agmas.noellesroles.packet.ReporterMarkC2SPacket;
 import org.agmas.noellesroles.professor.IronManPlayerComponent;
 import org.agmas.noellesroles.reporter.ReporterPlayerComponent;
@@ -186,8 +185,6 @@ public class Noellesroles implements ModInitializer {
         PayloadTypeRegistry.playC2S().register(AssassinGuessRoleC2SPacket.ID, AssassinGuessRoleC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(ReporterMarkC2SPacket.ID, ReporterMarkC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(TaotieSwallowC2SPacket.ID, TaotieSwallowC2SPacket.CODEC);
-        // 注册S2C数据包
-        PayloadTypeRegistry.playS2C().register(CorruptCopMomentS2CPacket.ID, CorruptCopMomentS2CPacket.CODEC);
 
         registerEvents();
 
@@ -700,7 +697,6 @@ public class Noellesroles implements ModInitializer {
                         corruptCopComp.checkAndTriggerMoment(aliveCount);
                     }
                 }
-
                 // 检查是否应该触发饕餮时刻
                 for (UUID uuid : gameComponent.getAllWithRole(TAOTIE)) {
                     PlayerEntity taotie = serverWorld.getPlayerByUuid(uuid);
