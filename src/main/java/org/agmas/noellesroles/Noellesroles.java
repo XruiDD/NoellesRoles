@@ -614,7 +614,7 @@ public class Noellesroles implements ModInitializer {
             if (NoellesRolesConfig.HANDLER.instance().voodooNonKillerDeaths || killer != null) {
                 if (gameComponent.isRole(victim, Noellesroles.VOODOO)) {
                     VoodooPlayerComponent voodooPlayerComponent = VoodooPlayerComponent.KEY.get(victim);
-                    if (voodooPlayerComponent.target != null && (deathReason != DEATH_REASON_ASSASSINATED || !gameComponent.isRole(victim ,ASSASSIN))) {
+                    if (voodooPlayerComponent.target != null && (deathReason != DEATH_REASON_ASSASSINATED || !gameComponent.isRole(voodooPlayerComponent.target ,ASSASSIN))) {
                         PlayerEntity voodooed = victim.getWorld().getPlayerByUuid(voodooPlayerComponent.target);
                         if (voodooed != null) {
                             if (GameFunctions.isPlayerAliveAndSurvival(voodooed) && voodooed != victim) {
