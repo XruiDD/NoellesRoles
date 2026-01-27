@@ -1,6 +1,5 @@
 package org.agmas.noellesroles;
 
-import de.maxhenkel.voicechat.api.ServerPlayer;
 import dev.doctor4t.wathe.api.Role;
 import dev.doctor4t.wathe.api.RoleAppearanceCondition;
 import dev.doctor4t.wathe.api.WatheRoles;
@@ -664,7 +663,7 @@ public class Noellesroles implements ModInitializer {
                     PlayerEntity taotie = serverWorld2.getPlayerByUuid(taotieUuid);
                     if (taotie != null) {
                         TaotiePlayerComponent taotieComp = TaotiePlayerComponent.KEY.get(taotie);
-                        taotieComp.removeSwallowedPlayer((ServerPlayer) victim);
+                        taotieComp.removeSwallowedPlayer((ServerPlayerEntity) victim);
                         // 播放打嗝音效
                         serverWorld2.playSound(null, taotie.getBlockPos(),
                             SoundEvents.ENTITY_PLAYER_BURP, SoundCategory.PLAYERS, 1.5F, 0.8F);

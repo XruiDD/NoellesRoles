@@ -1,7 +1,6 @@
 package org.agmas.noellesroles.taotie;
 
 import de.maxhenkel.voicechat.api.Group;
-import de.maxhenkel.voicechat.api.ServerPlayer;
 import de.maxhenkel.voicechat.api.VoicechatConnection;
 import de.maxhenkel.voicechat.api.VoicechatServerApi;
 import org.agmas.noellesroles.voice.NoellesrolesVoiceChatPlugin;
@@ -250,7 +249,7 @@ public class TaotiePlayerComponent implements AutoSyncedComponent, ServerTicking
     /**
      * Remove a specific swallowed player from the list (used when they die while swallowed)
      */
-    public void removeSwallowedPlayer(ServerPlayer player) {
+    public void removeSwallowedPlayer(ServerPlayerEntity player) {
         swallowedPlayers.remove(player.getUuid());
         removeFromVoiceChat(player.getUuid());
         this.sync();
