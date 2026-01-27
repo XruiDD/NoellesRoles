@@ -134,6 +134,8 @@
 
   "tip.corrupt_cop.moment_triggered": "Corrupt Cop Moment activated! Gun cooldown reduced, crowbar obtained!",
   "tip.corrupt_cop.moment_ended": "Corrupt Cop Moment ended.",
+  "tip.corrupt_cop.vision_active": "Vision Active: %ss",
+  "tip.corrupt_cop.vision_inactive": "Vision Cooldown: %ss",
 
   "title.noellesroles.corrupt_cop_moment": "Corrupt Cop Execution Moment",
   "subtitle.noellesroles.corrupt_cop_moment": "The Corrupt Cop has cleared enough people. He initiates the final gambit against the survivors.",

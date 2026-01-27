@@ -167,6 +167,8 @@
 
   "tip.corrupt_cop.moment_triggered": "黑警时刻已触发！枪械冷却减少，撬棍已获得！",
   "tip.corrupt_cop.moment_ended": "黑警时刻结束。",
+  "tip.corrupt_cop.vision_active": "透视激活: %s秒",
+  "tip.corrupt_cop.vision_inactive": "透视冷却: %s秒",
 
   "title.noellesroles.corrupt_cop_moment": "黑警处决时刻",
   "subtitle.noellesroles.corrupt_cop_moment": "黑警已经清理了足够的人，他向剩下的人发起了巴巴博弈",

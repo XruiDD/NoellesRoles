@@ -6,6 +6,7 @@
   "client": [
     "assassin.AssassinHudMixin",
     "coroner.CoronerHudMixin",
+    "corruptcop.CorruptCopHudMixin",
     "jester.JesterHudMixin",
     "morphling.MorphlingCapeRendererMixin",
     "morphling.MorphlingElytraRendererMixin",

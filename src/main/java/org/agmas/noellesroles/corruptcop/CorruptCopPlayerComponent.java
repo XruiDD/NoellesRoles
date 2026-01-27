@@ -185,6 +185,13 @@ public class CorruptCopPlayerComponent implements AutoSyncedComponent, ClientTic
         visionCycleTimer = 0;
     }
 
+    /**
+     * 获取当前透视循环计时器的值（客户端用于显示倒计时）
+     */
+    public int getVisionCycleTimer() {
+        return visionCycleTimer;
+    }
+
     @Override
     public void writeToNbt(@NotNull NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
         tag.putBoolean("corruptCopMomentActive", this.corruptCopMomentActive);
