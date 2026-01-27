@@ -171,5 +171,22 @@
   "item.noellesroles.antidote": "Antidote",
   "item.noellesroles.antidote.tooltip": "Use on a poisoned player to cure them\nRequires 1.5s charge time\n5 minute cooldown after use",
 
-  "noellesroles.infected.notification": "You don't feel so good..."
+  "noellesroles.infected.notification": "You don't feel so good...",
+
+  "announcement.goals.taotie": "Swallow all players or survive 2 minutes during Taotie Moment to win!",
+  "announcement.role.taotie": "Taotie",
+  "announcement.win.taotie": "Taotie Wins!",
+  "game.win.taotie": "The endless hunger has finally been satisfied.",
+  "tip.taotie.swallow": "Press %s to swallow %s",
+  "tip.taotie.swallowed_count": "In stomach: %s players",
+  "tip.taotie.moment_active": "Taotie Moment! %s seconds remaining",
+  "title.noellesroles.taotie_moment": "Taotie Moment",
+  "subtitle.noellesroles.taotie_moment": "The endless hunger will devour everything",
+  "tip.noellesroles.taotie_moment_countdown": "Find and kill Taotie! Time remaining: %s seconds",
+  "tip.noellesroles.taotie_moment_ended": "Taotie Moment has ended",
+
+  "title.noellesroles.jester_moment": "Jester's Feast",
+  "subtitle.noellesroles.jester_moment": "When justice begins to mock itself...",
+
+  "death_reason.noellesroles.digested": "Digested by Taotie"
 }

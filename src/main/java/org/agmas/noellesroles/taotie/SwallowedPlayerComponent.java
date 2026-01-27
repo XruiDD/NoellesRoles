@@ -22,7 +22,7 @@ import java.util.UUID;
 /**
  * Component for players who have been swallowed by Taotie
  */
-public class SwallowedPlayerComponent implements AutoSyncedComponent, ServerTickingComponent {
+public class SwallowedPlayerComponent implements AutoSyncedComponent {
     public static final ComponentKey<SwallowedPlayerComponent> KEY = ComponentRegistry.getOrCreate(
             Identifier.of(Noellesroles.MOD_ID, "swallowed"), SwallowedPlayerComponent.class);
 
@@ -80,15 +80,34 @@ public class SwallowedPlayerComponent implements AutoSyncedComponent, ServerTick
 
     /**
      * Mark this player as swallowed by the given Taotie
+     * Immediately changes game mode to spectator and teleports to Taotie's position
      */
-    public void setSwallowed(UUID taotieUuid, GameMode originalMode) {
+    public void setSwallowed(UUID taotieUuid) {
         this.isSwallowed = true;
         this.swallowedBy = taotieUuid;
+
+        if (player instanceof ServerPlayerEntity serverPlayer) {
+            // Change to spectator mode
+            serverPlayer.changeGameMode(GameMode.SPECTATOR);
+
+            // Teleport to Taotie's position
+            if (player.getWorld() instanceof ServerWorld serverWorld) {
+                PlayerEntity taotie = serverWorld.getPlayerByUuid(taotieUuid);
+                if (taotie != null) {
+                    serverPlayer.teleport(serverWorld, taotie.getX(), taotie.getY(), taotie.getZ(),
+                            serverPlayer.getYaw(), serverPlayer.getPitch());
+                    // Set camera to follow Taotie
+                    serverPlayer.setCameraEntity(taotie);
+                }
+            }
+        }
+
         this.sync();
     }
 
     /**
      * Release this player from Taotie's stomach
+     * Teleports to release position and changes to adventure mode
      */
     public void release(Vec3d position) {
         if (!isSwallowed) return;
@@ -97,6 +116,7 @@ public class SwallowedPlayerComponent implements AutoSyncedComponent, ServerTick
             // Reset camera to self first
             serverPlayer.setCameraEntity(serverPlayer);
 
+            // Change to adventure mode (force all alive players to adventure)
             serverPlayer.changeGameMode(GameMode.ADVENTURE);
 
             // Teleport to release position
@@ -110,33 +130,6 @@ public class SwallowedPlayerComponent implements AutoSyncedComponent, ServerTick
         this.sync();
     }
 
-    @Override
-    public void serverTick() {
-        if (!isSwallowed || swallowedBy == null) return;
-        if (!(player instanceof ServerPlayerEntity serverPlayer)) return;
-        if (!(player.getWorld() instanceof ServerWorld serverWorld)) return;
-
-        // Force spectator mode every tick
-        if (serverPlayer.interactionManager.getGameMode() != GameMode.SPECTATOR) {
-            serverPlayer.changeGameMode(GameMode.SPECTATOR);
-        }
-
-        // Find the Taotie player
-        PlayerEntity taotie = serverWorld.getPlayerByUuid(swallowedBy);
-        if (taotie != null && GameFunctions.isPlayerAliveAndSurvival(taotie)) {
-            // Force camera to follow Taotie every tick (prevent player from escaping)
-            if (serverPlayer.getCameraEntity() != taotie) {
-                serverPlayer.setCameraEntity(taotie);
-            }
-
-            // Teleport swallowed player to Taotie's position (prevent them from moving away)
-            if (serverPlayer.squaredDistanceTo(taotie) > 1.0) {
-                serverPlayer.teleport(serverWorld, taotie.getX(), taotie.getY(), taotie.getZ(),
-                        serverPlayer.getYaw(), serverPlayer.getPitch());
-            }
-        }
-        // If Taotie is dead, TaotiePlayerComponent.releaseAllPlayers will handle release
-    }
 
     public boolean isSwallowed() {
         return isSwallowed;

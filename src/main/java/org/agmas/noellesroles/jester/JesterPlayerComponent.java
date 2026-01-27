@@ -7,6 +7,9 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.packet.s2c.play.PlaySoundS2CPacket;
+import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
+import net.minecraft.network.packet.s2c.play.TitleFadeS2CPacket;
+import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.entry.RegistryEntry;
@@ -112,6 +115,33 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
             psychoComponent.setPsychoTicks(Integer.MAX_VALUE);
             psychoComponent.setArmour(this.psychoArmour);
             this.inPsychoMode = true;
+
+            // Broadcast Jester Psycho Mode to all players with Title
+            if (player.getWorld() instanceof ServerWorld serverWorld) {
+                for (ServerPlayerEntity p : serverWorld.getPlayers()) {
+                    // Send Title (主标题)
+                    p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.TitleS2CPacket(
+                        net.minecraft.text.Text.translatable("title.noellesroles.jester_moment")
+                            .formatted(net.minecraft.util.Formatting.LIGHT_PURPLE, net.minecraft.util.Formatting.BOLD)
+                    ));
+
+                    // Send Subtitle (副标题)
+                    p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.SubtitleS2CPacket(
+                        net.minecraft.text.Text.translatable("subtitle.noellesroles.jester_moment")
+                            .formatted(net.minecraft.util.Formatting.PINK)
+                    ));
+
+                    // Set Title times (fadeIn, stay, fadeOut in ticks)
+                    p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.TitleFadeS2CPacket(
+                        10, 100, 10
+                    ));
+
+                    // Also send chat message
+                    p.sendMessage(net.minecraft.text.Text.translatable("title.noellesroles.jester_moment")
+                            .formatted(net.minecraft.util.Formatting.LIGHT_PURPLE, net.minecraft.util.Formatting.BOLD), false);
+                }
+            }
+
             this.sync();
         }
     }

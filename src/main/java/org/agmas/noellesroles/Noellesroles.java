@@ -163,6 +163,8 @@ public class Noellesroles implements ModInitializer {
     public static final CustomPayload.Id<TaotieSwallowC2SPacket> TAOTIE_SWALLOW_PACKET = TaotieSwallowC2SPacket.ID;
     public static final ArrayList<Role> VANNILA_ROLES = new ArrayList<>();
     public static final ArrayList<Identifier> VANNILA_ROLE_IDS = new ArrayList<>();
+    // 中立万能钥匙可用角色集合
+    private static final Set<Role> NEUTRAL_MASTER_KEY_ROLES = Set.of(VULTURE, PATHOGEN, TAOTIE);
 
     @Override
     public void onInitialize() {
@@ -217,6 +219,14 @@ public class Noellesroles implements ModInitializer {
             if (gameWorldComponent.isRole(victim, CORRUPT_COP)) {
                 CorruptCopPlayerComponent corruptCopComp = CorruptCopPlayerComponent.KEY.get(victim);
                 if(corruptCopComp.isCorruptCopMomentActive() && deathReason == DEATH_REASON_ASSASSINATED){
+                    return KillPlayer.KillResult.cancel();
+                }
+            }
+
+            // 饕餮时刻时无法被刺客杀死
+            if (gameWorldComponent.isRole(victim, TAOTIE)) {
+                TaotiePlayerComponent taotieComp = TaotiePlayerComponent.KEY.get(victim);
+                if(taotieComp.isTaotieMomentActive() && deathReason == DEATH_REASON_ASSASSINATED){
                     return KillPlayer.KillResult.cancel();
                 }
             }
@@ -430,7 +440,6 @@ public class Noellesroles implements ModInitializer {
             IronManPlayerComponent.KEY.get(player).reset();
             TaotiePlayerComponent.KEY.get(player).reset();
             SwallowedPlayerComponent.KEY.get(player).reset();
-            TaotiePlayerComponent.KEY.get(player).reset();
         });
 
         // Bartender and Recaller get +50 coins when completing tasks
@@ -648,10 +657,11 @@ public class Noellesroles implements ModInitializer {
                 corruptCopComp.endCorruptCopMoment();
             }
 
-            // 饕餮被杀时释放所有被吞玩家
+            // 饕餮被杀时释放所有被吞玩家并结束饕餮时刻
             if (gameComponent.isRole(victim, TAOTIE)) {
                 TaotiePlayerComponent taotieComp = TaotiePlayerComponent.KEY.get(victim);
                 taotieComp.releaseAllPlayers(victim.getPos());
+                taotieComp.endTaotieMoment();
             }
 
             // 被吞玩家死亡后的特殊处理（不生成尸体，播放打嗝音效）
@@ -697,7 +707,6 @@ public class Noellesroles implements ModInitializer {
                         int aliveCountForTaotie = 0;
                         for (ServerPlayerEntity p : serverWorld.getPlayers()) {
                             if (GameFunctions.isPlayerAliveAndSurvival(p)) {
-                                // 不计算被吞的玩家
                                 SwallowedPlayerComponent swallowed = SwallowedPlayerComponent.KEY.get(p);
                                 if (!swallowed.isSwallowed()) {
                                     aliveCountForTaotie++;
@@ -748,7 +757,8 @@ public class Noellesroles implements ModInitializer {
                 if (player.getItemCooldownManager().isCoolingDown(ModItems.NEUTRAL_MASTER_KEY)) {
                     return DoorInteraction.DoorInteractionResult.DENY;
                 }
-                if (gameWorld.isRole(player, Noellesroles.VULTURE) || gameWorld.isRole(player, Noellesroles.PATHOGEN) || gameWorld.isRole(player, Noellesroles.TAOTIE)){
+                Role playerRole = gameWorld.getRole(player);
+                if (NEUTRAL_MASTER_KEY_ROLES.contains(playerRole)){
                     player.getItemCooldownManager().set(ModItems.NEUTRAL_MASTER_KEY, 200);
                     return DoorInteraction.DoorInteractionResult.ALLOW;
                 } else if (gameWorld.isRole(player, Noellesroles.CORRUPT_COP) && doorType == DoorInteraction.DoorType.SMALL_DOOR){
@@ -763,7 +773,7 @@ public class Noellesroles implements ModInitializer {
         GameEvents.ON_WIN_DETERMINED.register((world, gameComponent, winStatus, neutralWinner) -> {
             for (UUID taotieUuid : gameComponent.getAllWithRole(TAOTIE)) {
                 PlayerEntity taotie = world.getPlayerByUuid(taotieUuid);
-                if (taotie != null) {
+                if (taotie != null && GameFunctions.isPlayerAliveAndSurvival(taotie)) {
                     TaotiePlayerComponent taotieComp = TaotiePlayerComponent.KEY.get(taotie);
                     List<UUID> swallowedPlayers = taotieComp.getSwallowedPlayers();
                     for (UUID swallowedUuid : swallowedPlayers) {
@@ -953,15 +963,6 @@ public class Noellesroles implements ModInitializer {
                     // Set cooldown based on player count (calculated at game start)
                     PathogenPlayerComponent pathogenComp = PathogenPlayerComponent.KEY.get(context.player());
                     abilityPlayerComponent.setCooldown(pathogenComp.getBaseCooldownTicks());
-
-                    // Play coughing sound centered on the infected target (nearby players can hear)
-                    if (context.player().getWorld() instanceof ServerWorld serverWorld) {
-                        // 生成随机延迟：10-20秒
-                        int delayTicks = 200 + serverWorld.random.nextInt(201); // 200 + [0, 400] = [200, 600]
-
-                        // 在被感染者的Component中设置延迟音效
-                        targetInfected.scheduleSneezeSound(delayTicks);
-                    }
                 }
             }
         });

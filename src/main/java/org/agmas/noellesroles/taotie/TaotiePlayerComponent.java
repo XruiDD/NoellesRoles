@@ -9,6 +9,10 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtString;
 import net.minecraft.network.RegistryByteBuf;
+import net.minecraft.network.packet.s2c.play.ClearTitleS2CPacket;
+import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
+import net.minecraft.network.packet.s2c.play.TitleFadeS2CPacket;
+import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -27,7 +31,6 @@ import org.jetbrains.annotations.NotNull;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
 import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
-import org.ladysnake.cca.api.v3.component.tick.ClientTickingComponent;
 import org.ladysnake.cca.api.v3.component.tick.ServerTickingComponent;
 
 import java.util.ArrayList;
@@ -38,7 +41,7 @@ import java.util.UUID;
  * Main component for Taotie player
  * Manages swallowed players, cooldowns, and Taotie Moment
  */
-public class TaotiePlayerComponent implements AutoSyncedComponent, ServerTickingComponent, ClientTickingComponent {
+public class TaotiePlayerComponent implements AutoSyncedComponent, ServerTickingComponent {
     public static final ComponentKey<TaotiePlayerComponent> KEY = ComponentRegistry.getOrCreate(
             Identifier.of(Noellesroles.MOD_ID, "taotie"), TaotiePlayerComponent.class);
 
@@ -51,6 +54,9 @@ public class TaotiePlayerComponent implements AutoSyncedComponent, ServerTicking
 
     // Swallowed players list
     private final List<UUID> swallowedPlayers = new ArrayList<>();
+
+    // Client-side swallowed count (used for display only, not actual UUIDs)
+    private int swallowedCountForClient = 0;
 
     // Cooldown for swallowing (ticks)
     private int swallowCooldown = 0;
@@ -77,6 +83,7 @@ public class TaotiePlayerComponent implements AutoSyncedComponent, ServerTicking
         }
 
         this.swallowedPlayers.clear();
+        this.swallowedCountForClient = 0;
         this.swallowCooldown = 0;
         this.taotieMomentActive = false;
         this.taotieMomentTicks = 0;
@@ -111,12 +118,7 @@ public class TaotiePlayerComponent implements AutoSyncedComponent, ServerTicking
     @Override
     public void applySyncPacket(RegistryByteBuf buf) {
         this.swallowCooldown = buf.readInt();
-        int swallowedCount = buf.readInt();
-        // We don't sync the actual UUIDs to client, just the count
-        this.swallowedPlayers.clear();
-        for (int i = 0; i < swallowedCount; i++) {
-            this.swallowedPlayers.add(UUID.randomUUID()); // Placeholder for count
-        }
+        this.swallowedCountForClient = buf.readInt();
         this.taotieMomentActive = buf.readBoolean();
         this.taotieMomentTicks = buf.readInt();
         this.totalPlayersAtStart = buf.readInt();
@@ -161,7 +163,7 @@ public class TaotiePlayerComponent implements AutoSyncedComponent, ServerTicking
         SwallowedPlayerComponent targetSwallowed = SwallowedPlayerComponent.KEY.get(target);
         if (targetSwallowed.isSwallowed()) return false;
 
-        // Check if target is alive
+        // Check if target is alive (must be in survival or adventure mode)
         if (!GameFunctions.isPlayerAliveAndSurvival(target)) return false;
 
         // 铁人药水保护
@@ -176,8 +178,7 @@ public class TaotiePlayerComponent implements AutoSyncedComponent, ServerTicking
         }
 
         // Perform swallow
-        GameMode originalMode = target.interactionManager.getGameMode();
-        targetSwallowed.setSwallowed(taotie.getUuid(), originalMode);
+        targetSwallowed.setSwallowed(taotie.getUuid());
         swallowedPlayers.add(target.getUuid());
 
         // Set up voice chat group
@@ -186,22 +187,102 @@ public class TaotiePlayerComponent implements AutoSyncedComponent, ServerTicking
         // Set cooldown (使用动态计算的冷却时间)
         swallowCooldown = calculatedSwallowCooldown;
 
-        // 检查是否是连环杀手的目标，如果是则触发目标切换
+        // 通知连环杀手目标被吞噬
         if (target.getWorld() instanceof ServerWorld serverWorld) {
-            GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(serverWorld);
-            for (UUID uuid : gameWorldComponent.getAllWithRole(Noellesroles.SERIAL_KILLER)) {
-                PlayerEntity serialKiller = serverWorld.getPlayerByUuid(uuid);
-                if (serialKiller != null && GameFunctions.isPlayerAliveAndSurvival(serialKiller)) {
-                    SerialKillerPlayerComponent serialKillerComp = SerialKillerPlayerComponent.KEY.get(serialKiller);
-                    if (serialKillerComp.isCurrentTarget(target.getUuid())) {
-                        serialKillerComp.onTargetDeath(gameWorldComponent);
+            notifySerialKillersTargetSwallowed(target, serverWorld);
+        }
+
+        // 病原体感染传播：检查新被吞者或饕餮是否被感染，如果是则传播给肚子里所有人
+        spreadInfectionOnSwallow(target);
+
+        this.sync();
+        return true;
+    }
+
+    /**
+     * Notify serial killers if their target was swallowed
+     */
+    private void notifySerialKillersTargetSwallowed(ServerPlayerEntity target, ServerWorld serverWorld) {
+        GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(serverWorld);
+        for (UUID uuid : gameWorldComponent.getAllWithRole(Noellesroles.SERIAL_KILLER)) {
+            PlayerEntity serialKiller = serverWorld.getPlayerByUuid(uuid);
+            if (serialKiller != null && GameFunctions.isPlayerAliveAndSurvival(serialKiller)) {
+                SerialKillerPlayerComponent serialKillerComp = SerialKillerPlayerComponent.KEY.get(serialKiller);
+                if (serialKillerComp.isCurrentTarget(target.getUuid())) {
+                    serialKillerComp.onTargetDeath(gameWorldComponent);
+                }
+            }
+        }
+    }
+
+    /**
+     * Spread infection when a new player is swallowed
+     * If anyone (Taotie or any swallowed player) is infected, spread to all
+     */
+    private void spreadInfectionOnSwallow(ServerPlayerEntity newlySwallowed) {
+        if (!(player.getWorld() instanceof ServerWorld serverWorld)) return;
+
+        UUID pathogenUuid = null;
+
+        // Check if Taotie is infected
+        InfectedPlayerComponent taotieInfected = InfectedPlayerComponent.KEY.get(player);
+        if (taotieInfected.isInfected()) {
+            pathogenUuid = taotieInfected.getInfectedBy();
+        }
+
+        // Check if newly swallowed player is infected
+        if (pathogenUuid == null) {
+            InfectedPlayerComponent newlySwallowedInfected = InfectedPlayerComponent.KEY.get(newlySwallowed);
+            if (newlySwallowedInfected.isInfected()) {
+                pathogenUuid = newlySwallowedInfected.getInfectedBy();
+            }
+        }
+
+        // Check if any previously swallowed player is infected
+        if (pathogenUuid == null) {
+            for (UUID uuid : swallowedPlayers) {
+                if (uuid.equals(newlySwallowed.getUuid())) continue; // Skip newly swallowed (already checked)
+                PlayerEntity swallowed = serverWorld.getPlayerByUuid(uuid);
+                if (swallowed != null) {
+                    InfectedPlayerComponent infected = InfectedPlayerComponent.KEY.get(swallowed);
+                    if (infected.isInfected()) {
+                        pathogenUuid = infected.getInfectedBy();
+                        break;
                     }
                 }
             }
         }
 
-        this.sync();
-        return true;
+        // If anyone is infected, spread to all
+        if (pathogenUuid != null) {
+            spreadInfectionInStomach(pathogenUuid);
+        }
+    }
+
+    /**
+     * Spread infection to all players in Taotie's stomach (including Taotie)
+     * Called when infection is detected or when a new infected player is swallowed
+     */
+    public void spreadInfectionInStomach(UUID pathogenUuid) {
+        if (!(player.getWorld() instanceof ServerWorld serverWorld)) return;
+        if (pathogenUuid == null) return;
+
+        // Infect Taotie
+        InfectedPlayerComponent taotieInfected = InfectedPlayerComponent.KEY.get(player);
+        if (!taotieInfected.isInfected()) {
+            taotieInfected.setInfected(true, pathogenUuid);
+        }
+
+        // Infect all swallowed players
+        for (UUID uuid : swallowedPlayers) {
+            PlayerEntity swallowed = serverWorld.getPlayerByUuid(uuid);
+            if (swallowed != null) {
+                InfectedPlayerComponent infected = InfectedPlayerComponent.KEY.get(swallowed);
+                if (!infected.isInfected()) {
+                    infected.setInfected(true, pathogenUuid);
+                }
+            }
+        }
     }
 
 
@@ -236,26 +317,29 @@ public class TaotiePlayerComponent implements AutoSyncedComponent, ServerTicking
 
     /**
      * Check if Taotie has swallowed all other players (win condition 1)
+     * Win if: all other alive players are in Taotie's stomach, or only Taotie is alive
      */
     public boolean hasSwallowedEveryone() {
         if (!(player.getWorld() instanceof ServerWorld serverWorld)) return false;
 
         GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(serverWorld);
 
-        // Count alive players (excluding Taotie and swallowed players)
-        int aliveCount = 0;
+        // Count alive players not in stomach (excluding Taotie)
+        int aliveNotSwallowedCount = 0;
         for (UUID uuid : gameWorldComponent.getAllPlayers()) {
             if (uuid.equals(player.getUuid())) continue; // Skip Taotie
-            if (swallowedPlayers.contains(uuid)) continue; // Skip swallowed
 
             PlayerEntity p = serverWorld.getPlayerByUuid(uuid);
             if (GameFunctions.isPlayerAliveAndSurvival(p)) {
-                aliveCount++;
+                // Check if this player is swallowed
+                if (!swallowedPlayers.contains(uuid)) {
+                    aliveNotSwallowedCount++;
+                }
             }
         }
 
-        // Win if no one else is alive (all are swallowed or dead)
-        return aliveCount == 0 && !swallowedPlayers.isEmpty();
+        // Win if no alive players outside stomach (all are swallowed or dead)
+        return aliveNotSwallowedCount == 0 && !swallowedPlayers.isEmpty();
     }
 
     /**
@@ -286,14 +370,55 @@ public class TaotiePlayerComponent implements AutoSyncedComponent, ServerTicking
 
         if (!(player.getWorld() instanceof ServerWorld serverWorld)) return;
 
-        // Broadcast to all players
+        // Broadcast to all players with Title
         for (ServerPlayerEntity p : serverWorld.getPlayers()) {
-            // Title announcement
+            // Send Title (主标题)
+            p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.TitleS2CPacket(
+                Text.translatable("title.noellesroles.taotie_moment")
+                    .formatted(Formatting.DARK_RED, Formatting.BOLD)
+            ));
+
+            // Send Subtitle (副标题) - optional
+            p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.SubtitleS2CPacket(
+                Text.translatable("subtitle.noellesroles.taotie_moment")
+                    .formatted(Formatting.RED)
+            ));
+
+            // Set Title times (fadeIn, stay, fadeOut in ticks)
+            p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.TitleFadeS2CPacket(
+                10, 100, 10
+            ));
+
+            // Also send chat message
             p.sendMessage(Text.translatable("title.noellesroles.taotie_moment")
                     .formatted(Formatting.DARK_RED, Formatting.BOLD), false);
         }
 
         broadcastCountdown();
+        this.sync();
+    }
+
+    /**
+     * End Taotie Moment (called when Taotie dies)
+     */
+    public void endTaotieMoment() {
+        if (!taotieMomentActive) return;
+
+        this.taotieMomentActive = false;
+        this.taotieMomentTicks = 0;
+
+        if (!(player.getWorld() instanceof ServerWorld serverWorld)) return;
+
+        // Broadcast end message to all players
+        for (ServerPlayerEntity p : serverWorld.getPlayers()) {
+            // Clear Title
+            p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.ClearTitleS2CPacket(false));
+
+            // Send end message in chat and actionbar
+            p.sendMessage(Text.translatable("tip.noellesroles.taotie_moment_ended")
+                    .formatted(Formatting.GRAY), true);
+        }
+
         this.sync();
     }
 
@@ -334,58 +459,6 @@ public class TaotiePlayerComponent implements AutoSyncedComponent, ServerTicking
 
             // If moment completed, win condition is checked in CheckWinCondition event
         }
-
-        // 病原体感染共享传播（在饕餮肚子内）
-        if (!swallowedPlayers.isEmpty() && player.getWorld() instanceof ServerWorld serverWorld) {
-            boolean anyoneInfected = false;
-            UUID pathogenUuid = null;
-
-            // 检查饕餮是否被感染
-            InfectedPlayerComponent taotieInfected = InfectedPlayerComponent.KEY.get(player);
-            if (taotieInfected.isInfected()) {
-                anyoneInfected = true;
-                pathogenUuid = taotieInfected.getInfectedBy();
-            }
-
-            // 检查被吞玩家是否有人被感染
-            if (!anyoneInfected) {
-                for (UUID uuid : swallowedPlayers) {
-                    PlayerEntity swallowed = serverWorld.getPlayerByUuid(uuid);
-                    if (swallowed != null) {
-                        InfectedPlayerComponent infected = InfectedPlayerComponent.KEY.get(swallowed);
-                        if (infected.isInfected()) {
-                            anyoneInfected = true;
-                            pathogenUuid = infected.getInfectedBy();
-                            break;
-                        }
-                    }
-                }
-            }
-
-            // 如果有人感染，传播给所有人
-            if (anyoneInfected && pathogenUuid != null) {
-                if (!taotieInfected.isInfected()) {
-                    taotieInfected.setInfected(true, pathogenUuid);
-                }
-                for (UUID uuid : swallowedPlayers) {
-                    PlayerEntity swallowed = serverWorld.getPlayerByUuid(uuid);
-                    if (swallowed != null) {
-                        InfectedPlayerComponent infected = InfectedPlayerComponent.KEY.get(swallowed);
-                        if (!infected.isInfected()) {
-                            infected.setInfected(true, pathogenUuid);
-                        }
-                    }
-                }
-            }
-        }
-
-        // Ensure swallowed players stay in spectator mode following Taotie
-        // This is handled by SwallowedPlayerComponent
-    }
-
-    @Override
-    public void clientTick() {
-        // Client-side tick (for HUD updates)
     }
 
     // Getters and Setters
@@ -399,7 +472,8 @@ public class TaotiePlayerComponent implements AutoSyncedComponent, ServerTicking
     }
 
     public int getSwallowedCount() {
-        return swallowedPlayers.size();
+        // On client side, use synced count; on server side, use actual list size
+        return player.getWorld().isClient() ? swallowedCountForClient : swallowedPlayers.size();
     }
 
     public List<UUID> getSwallowedPlayers() {

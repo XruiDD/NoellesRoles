@@ -210,5 +210,12 @@
   "tip.taotie.swallowed_count": "肚子里: %s人",
   "tip.taotie.moment_active": "饕餮时刻！剩余 %s 秒",
   "title.noellesroles.taotie_moment": "饕餮时刻",
-  "tip.noellesroles.taotie_moment_countdown": "你必须找出并杀掉饕餮！剩余时间: %s秒"
+  "subtitle.noellesroles.taotie_moment": "无尽的饥饿即将吞噬一切",
+  "tip.noellesroles.taotie_moment_countdown": "你必须找出并杀掉饕餮！剩余时间: %s秒",
+  "tip.noellesroles.taotie_moment_ended": "饕餮时刻已结束",
+
+  "title.noellesroles.jester_moment": "小丑盛宴",
+  "subtitle.noellesroles.jester_moment": "当正义开始嘲笑自己...",
+
+  "death_reason.noellesroles.digested": "被饕餮消化"
 }
