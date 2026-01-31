@@ -14,6 +14,7 @@ import dev.doctor4t.wathe.index.WatheItems;
 import dev.doctor4t.wathe.index.WatheSounds;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.effect.StatusEffectInstance;
@@ -201,9 +202,9 @@ public class Noellesroles implements ModInitializer {
 
     public void registerEvents() {
 
-        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
-            GameWorldComponent.KEY.get(server.getOverworld()).setRoleEnabled(THE_INSANE_DAMNED_PARANOID_KILLER_OF_DOOM_DEATH_DESTRUCTION_AND_WAFFLES, false);
-            GameWorldComponent.KEY.get(server.getOverworld()).setRoleEnabled(AWESOME_BINGLUS, false);
+        ServerWorldEvents.LOAD.register((server, world) -> {
+            GameWorldComponent.KEY.get(world).setRoleEnabled(THE_INSANE_DAMNED_PARANOID_KILLER_OF_DOOM_DEATH_DESTRUCTION_AND_WAFFLES, false);
+            GameWorldComponent.KEY.get(world).setRoleEnabled(AWESOME_BINGLUS, false);
         });
 
         // Master key should drop on death
