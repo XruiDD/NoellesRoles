@@ -16,7 +16,8 @@
     "equipment.EntityTrackerMixin",
     "taotie.SpectatorTeleportMixin",
     "taotie.SwallowedPlayerEntityMixin",
-    "taotie.SwallowedPlayerSpectatorMixin"
+    "taotie.SwallowedPlayerSpectatorMixin",
+    "taotie.SwallowedPlayerSkyVisibilityMixin"
   ],
   "injectors": {
     "defaultRequire": 1
