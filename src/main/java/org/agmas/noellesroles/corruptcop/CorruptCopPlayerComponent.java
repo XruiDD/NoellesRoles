@@ -1,6 +1,5 @@
 package org.agmas.noellesroles.corruptcop;
 
-import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.index.WatheItems;
 import net.minecraft.entity.player.PlayerEntity;
@@ -24,7 +23,6 @@ import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
 import org.ladysnake.cca.api.v3.component.tick.ClientTickingComponent;
 
 import java.util.Random;
-import java.util.UUID;
 
 /**
  * 黑警玩家组件

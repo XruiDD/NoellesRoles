@@ -165,6 +165,43 @@ public class Noellesroles implements ModInitializer {
     public static final ArrayList<Identifier> VANNILA_ROLE_IDS = new ArrayList<>();
     // 中立万能钥匙可用角色集合
     private static final Set<Role> NEUTRAL_MASTER_KEY_ROLES = Set.of(VULTURE, PATHOGEN, TAOTIE);
+    private static final int MOMENT_TRIGGER_MIN_THRESHOLD = 2;
+
+    public static void checkAndTriggerMomentsForWorld(ServerWorld serverWorld) {
+        if (serverWorld == null) return;
+        GameWorldComponent gameComponent = GameWorldComponent.KEY.get(serverWorld);
+
+        int corruptCopAliveCount = 0;
+        int taotieAliveCount = 0;
+        for (ServerPlayerEntity p : serverWorld.getPlayers()) {
+            if (!GameFunctions.isPlayerPlayingAndAlive(p) || p.isSpectator()) continue;
+            SwallowedPlayerComponent swallowed = SwallowedPlayerComponent.KEY.get(p);
+            if (!swallowed.isSwallowed()) {
+                corruptCopAliveCount++;
+                taotieAliveCount++;
+            }
+        }
+
+        if (corruptCopAliveCount >= MOMENT_TRIGGER_MIN_THRESHOLD) {
+            for (UUID uuid : gameComponent.getAllWithRole(CORRUPT_COP)) {
+                PlayerEntity corruptCop = serverWorld.getPlayerByUuid(uuid);
+                if (GameFunctions.isPlayerPlayingAndAlive(corruptCop) && GameFunctions.isPlayerAliveAndSurvival(corruptCop)) {
+                    CorruptCopPlayerComponent corruptCopComp = CorruptCopPlayerComponent.KEY.get(corruptCop);
+                    corruptCopComp.checkAndTriggerMoment(corruptCopAliveCount);
+                }
+            }
+        }
+
+        if (taotieAliveCount >= MOMENT_TRIGGER_MIN_THRESHOLD) {
+            for (UUID uuid : gameComponent.getAllWithRole(TAOTIE)) {
+                PlayerEntity taotie = serverWorld.getPlayerByUuid(uuid);
+                if (GameFunctions.isPlayerPlayingAndAlive(taotie)) {
+                    TaotiePlayerComponent taotieComp = TaotiePlayerComponent.KEY.get(taotie);
+                    taotieComp.checkAndTriggerMoment(taotieAliveCount);
+                }
+            }
+        }
+    }
 
     @Override
     public void onInitialize() {
@@ -684,38 +721,7 @@ public class Noellesroles implements ModInitializer {
 
             // 检查是否应该触发黑警时刻
             if (victim.getWorld() instanceof ServerWorld serverWorld) {
-                for (UUID uuid : gameComponent.getAllWithRole(CORRUPT_COP)) {
-                    PlayerEntity corruptCop = serverWorld.getPlayerByUuid(uuid);
-                    if (GameFunctions.isPlayerPlayingAndAlive(corruptCop) && GameFunctions.isPlayerAliveAndSurvival(corruptCop)) {
-                        CorruptCopPlayerComponent corruptCopComp = CorruptCopPlayerComponent.KEY.get(corruptCop);
-                        // 计算当前存活人数
-                        int aliveCount = 0;
-                        for (ServerPlayerEntity p : serverWorld.getPlayers()) {
-                            if (GameFunctions.isPlayerPlayingAndAlive(p) && !p.isSpectator()) {
-                                aliveCount++;
-                            }
-                        }
-                        corruptCopComp.checkAndTriggerMoment(aliveCount);
-                    }
-                }
-                // 检查是否应该触发饕餮时刻
-                for (UUID uuid : gameComponent.getAllWithRole(TAOTIE)) {
-                    PlayerEntity taotie = serverWorld.getPlayerByUuid(uuid);
-                    if (GameFunctions.isPlayerPlayingAndAlive(taotie)) {
-                        TaotiePlayerComponent taotieComp = TaotiePlayerComponent.KEY.get(taotie);
-                        // 计算当前存活人数
-                        int aliveCountForTaotie = 0;
-                        for (ServerPlayerEntity p : serverWorld.getPlayers()) {
-                            if (GameFunctions.isPlayerPlayingAndAlive(p)) {
-                                SwallowedPlayerComponent swallowed = SwallowedPlayerComponent.KEY.get(p);
-                                if (!swallowed.isSwallowed()) {
-                                    aliveCountForTaotie++;
-                                }
-                            }
-                        }
-                        taotieComp.checkAndTriggerMoment(aliveCountForTaotie);
-                    }
-                }
+                checkAndTriggerMomentsForWorld(serverWorld);
             }
 
             bomberPlayerComponent.reset();
