@@ -111,7 +111,8 @@ public class SwallowedPlayerComponent implements AutoSyncedComponent {
      */
     public void release(Vec3d position) {
         if (!isSwallowed) return;
-
+        this.isSwallowed = false;
+        this.swallowedBy = null;
         if (player instanceof ServerPlayerEntity serverPlayer) {
             // Reset camera to self first
             serverPlayer.setCameraEntity(serverPlayer);
@@ -124,9 +125,6 @@ public class SwallowedPlayerComponent implements AutoSyncedComponent {
                     position.x, position.y, position.z,
                     serverPlayer.getYaw(), serverPlayer.getPitch());
         }
-
-        this.isSwallowed = false;
-        this.swallowedBy = null;
         this.sync();
     }
 

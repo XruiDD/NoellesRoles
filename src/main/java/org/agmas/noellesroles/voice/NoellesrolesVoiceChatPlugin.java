@@ -142,6 +142,9 @@ public class NoellesrolesVoiceChatPlugin implements VoicechatPlugin {
      */
     public void blockVoiceToSwallowedPlayers(MicrophonePacketEvent event) {
         // Get recipient (the player who would receive this sound packet)
+        if (event.getReceiverConnection() == null || event.getSenderConnection() == null){
+            return;
+        }
         ServerPlayerEntity recipient = (ServerPlayerEntity) event.getReceiverConnection().getPlayer().getPlayer();
         SwallowedPlayerComponent recipientSwallowed = SwallowedPlayerComponent.KEY.get(recipient);
 
