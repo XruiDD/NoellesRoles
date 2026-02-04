@@ -1,11 +1,11 @@
 package org.agmas.noellesroles.client.mixin.swapper;
 
 import dev.doctor4t.wathe.cca.GameWorldComponent;
+import dev.doctor4t.wathe.client.WatheClient;
 import dev.doctor4t.wathe.client.gui.screen.ingame.LimitedHandledScreen;
 import dev.doctor4t.wathe.client.gui.screen.ingame.LimitedInventoryScreen;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.screen.PlayerScreenHandler;
@@ -21,6 +21,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -55,8 +56,8 @@ public abstract class SwapperScreenMixin extends LimitedHandledScreen<PlayerScre
         GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(player.getWorld());
         if (gameWorldComponent.isRole(player,Noellesroles.SWAPPER)) {
             List<UUID> lives = gameWorldComponent.getAllAlivePlayers();
-            List<AbstractClientPlayerEntity> entries = MinecraftClient.getInstance().world.getPlayers();
-            entries.removeIf(p -> !lives.contains(p.getUuid()));
+            List<UUID> entries = new ArrayList<>(WatheClient.PLAYER_ENTRIES_CACHE.keySet());
+            entries.removeIf(uuid -> !lives.contains(uuid));
 
             for(int i = 0; i < entries.size(); ++i) {
                 int x = PlayerSelectWidget.calculateGridX(width, entries.size(), i);

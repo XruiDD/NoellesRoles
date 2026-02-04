@@ -7,9 +7,13 @@ import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.PlayerSkinDrawer;
 import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.util.DefaultSkinHelper;
+import net.minecraft.client.util.SkinTextures;
+import com.mojang.authlib.GameProfile;
+import net.minecraft.client.network.PlayerListEntry;
 import net.minecraft.text.Text;
+import dev.doctor4t.wathe.client.WatheClient;
 import org.agmas.noellesroles.assassin.AssassinPlayerComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -21,18 +25,18 @@ import java.util.function.Consumer;
 public class AssassinTargetWidget extends ButtonWidget {
     @Nullable
     public final LimitedInventoryScreen screen;
-    public final AbstractClientPlayerEntity target;
+    public final UUID targetUuid;
 
-    public AssassinTargetWidget(@Nullable LimitedInventoryScreen screen, int x, int y, @NotNull AbstractClientPlayerEntity target, int index, Consumer<UUID> onTargetSelected) {
-        super(x, y, 16, 16, target.getName(), (button) -> {
+    public AssassinTargetWidget(@Nullable LimitedInventoryScreen screen, int x, int y, @NotNull UUID targetUuid, int index, Consumer<UUID> onTargetSelected) {
+        super(x, y, 16, 16, getNameText(targetUuid), (button) -> {
             AssassinPlayerComponent assassinComp = AssassinPlayerComponent.KEY.get(MinecraftClient.getInstance().player);
             if (assassinComp.canGuess()) {
                 // 调用回调函数，通知Screen更新客户端状态
-                onTargetSelected.accept(target.getUuid());
+                onTargetSelected.accept(targetUuid);
             }
         }, DEFAULT_NARRATION_SUPPLIER);
         this.screen = screen;
-        this.target = target;
+        this.targetUuid = targetUuid;
     }
 
     @Override
@@ -44,7 +48,7 @@ public class AssassinTargetWidget extends ButtonWidget {
             // 冷却中或次数用完：灰色显示
             context.setShaderColor(0.25f, 0.25f, 0.25f, 0.5f);
             context.drawGuiTexture(ShopEntry.Type.POISON.getTexture(), this.getX() - 7, this.getY() - 7, 30, 30);
-            PlayerSkinDrawer.draw(context, target.getSkinTextures().texture(), this.getX(), this.getY(), 16);
+            PlayerSkinDrawer.draw(context, getSkinTextures().texture(), this.getX(), this.getY(), 16);
             context.setShaderColor(1f, 1f, 1f, 1f);
 
             // 显示冷却倒计时
@@ -56,19 +60,21 @@ public class AssassinTargetWidget extends ButtonWidget {
 
             if (this.isHovered()) {
                 this.drawShopSlotHighlight(context, this.getX(), this.getY(), 0);
-                context.drawTooltip(MinecraftClient.getInstance().textRenderer, target.getName(),
-                    this.getX() - 4 - MinecraftClient.getInstance().textRenderer.getWidth(target.getName()) / 2,
+                Text name = getNameText(targetUuid);
+                context.drawTooltip(MinecraftClient.getInstance().textRenderer, name,
+                    this.getX() - 4 - MinecraftClient.getInstance().textRenderer.getWidth(name) / 2,
                     this.getY() - 9);
             }
         } else {
             // 可用：正常显示
             context.drawGuiTexture(ShopEntry.Type.POISON.getTexture(), this.getX() - 7, this.getY() - 7, 30, 30);
-            PlayerSkinDrawer.draw(context, target.getSkinTextures().texture(), this.getX(), this.getY(), 16);
+            PlayerSkinDrawer.draw(context, getSkinTextures().texture(), this.getX(), this.getY(), 16);
 
             if (this.isHovered()) {
                 this.drawShopSlotHighlight(context, this.getX(), this.getY(), 0);
-                context.drawTooltip(MinecraftClient.getInstance().textRenderer, target.getName(),
-                    this.getX() - 4 - MinecraftClient.getInstance().textRenderer.getWidth(target.getName()) / 2,
+                Text name = getNameText(targetUuid);
+                context.drawTooltip(MinecraftClient.getInstance().textRenderer, name,
+                    this.getX() - 4 - MinecraftClient.getInstance().textRenderer.getWidth(name) / 2,
                     this.getY() - 9);
             }
         }
@@ -82,5 +88,21 @@ public class AssassinTargetWidget extends ButtonWidget {
     }
 
     public void drawMessage(DrawContext context, TextRenderer textRenderer, int color) {
+    }
+
+    private static Text getNameText(UUID targetUuid) {
+        PlayerListEntry entry = WatheClient.PLAYER_ENTRIES_CACHE.get(targetUuid);
+        if (entry != null && entry.getDisplayName() != null) {
+            return entry.getDisplayName();
+        }
+        return entry != null ? Text.literal(entry.getProfile().getName()) : Text.literal("Unknown");
+    }
+
+    private SkinTextures getSkinTextures() {
+        PlayerListEntry entry = WatheClient.PLAYER_ENTRIES_CACHE.get(targetUuid);
+        if (entry != null) {
+            return entry.getSkinTextures();
+        }
+        return DefaultSkinHelper.getSkinTextures(new GameProfile(targetUuid, "Unknown"));
     }
 }

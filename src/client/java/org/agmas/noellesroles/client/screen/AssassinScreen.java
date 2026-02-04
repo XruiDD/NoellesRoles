@@ -3,15 +3,15 @@ package org.agmas.noellesroles.client.screen;
 import dev.doctor4t.wathe.api.Role;
 import dev.doctor4t.wathe.api.WatheRoles;
 import dev.doctor4t.wathe.cca.GameWorldComponent;
+import dev.doctor4t.wathe.client.WatheClient;
 import dev.doctor4t.wathe.game.GameFunctions;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.client.network.PlayerListEntry;
 import net.minecraft.text.Text;
 import org.agmas.noellesroles.Noellesroles;
 import org.agmas.noellesroles.assassin.AssassinPlayerComponent;
@@ -54,17 +54,8 @@ public class AssassinScreen extends Screen {
 
             // 获取目标列表
             List<UUID> alivePlayers = gameWorld.getAllAlivePlayers();
-            List<AbstractClientPlayerEntity> targets = null;
-            if (MinecraftClient.getInstance().world != null) {
-                targets = new ArrayList<>(MinecraftClient.getInstance().world.getPlayers());
-            }
-
-            if (targets != null) {
-                targets.removeIf(p -> {
-                    if (p.getUuid().equals(player.getUuid())) return true;
-                    return !alivePlayers.contains(p.getUuid());
-                });
-            }
+            List<UUID> targets = new ArrayList<>(WatheClient.PLAYER_ENTRIES_CACHE.keySet());
+            targets.removeIf(uuid -> uuid.equals(player.getUuid()) || !alivePlayers.contains(uuid));
 
             // 动态网格布局：每行最多 6 个人
             int columns = 6;
@@ -75,7 +66,7 @@ public class AssassinScreen extends Screen {
             int startY = centerY - (totalRows * spacingY / 2) + 20;
 
             for (int i = 0; i < targets.size(); i++) {
-                AbstractClientPlayerEntity target = targets.get(i);
+                UUID targetUuid = targets.get(i);
                 int row = i / columns;
                 int col = i % columns;
 
@@ -83,7 +74,7 @@ public class AssassinScreen extends Screen {
                         null,
                         startX + col * spacingX,
                         startY + row * spacingY,
-                        target,
+                        targetUuid,
                         i,
                         (selectedTarget) -> {
                             this.selectedTarget = selectedTarget;
@@ -156,8 +147,11 @@ public class AssassinScreen extends Screen {
             drawCenteredSubTitle(context, font, Text.translatable("screen.assassin.subtitle.click_to_confirm"), centerX, centerY - 65);
         } else {
             // 阶段2 标题
-            PlayerEntity target = player.getWorld().getPlayerByUuid(selectedTarget);
-            String targetName = target != null ? target.getName().getString() : Text.translatable("screen.assassin.unknown_target").getString();
+            PlayerListEntry entry = WatheClient.PLAYER_ENTRIES_CACHE.get(selectedTarget);
+            Text displayName = entry != null ? entry.getDisplayName() : null;
+            String targetName = displayName != null ? displayName.getString()
+                : entry != null ? entry.getProfile().getName()
+                : Text.translatable("screen.assassin.unknown_target").getString();
 
             drawCenteredTitle(context, font, Text.translatable("screen.assassin.title.confirm_execution", targetName), centerX, centerY - 100);
             drawCenteredSubTitle(context, font, Text.translatable("screen.assassin.subtitle.warning"), centerX, centerY - 85);
