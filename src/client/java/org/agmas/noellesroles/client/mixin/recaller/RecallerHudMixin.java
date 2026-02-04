@@ -30,7 +30,7 @@ public abstract class RecallerHudMixin {
         AbilityPlayerComponent abilityPlayerComponent = (AbilityPlayerComponent) AbilityPlayerComponent.KEY.get(MinecraftClient.getInstance().player);
         RecallerPlayerComponent recallerPlayerComponent = RecallerPlayerComponent.KEY.get(MinecraftClient.getInstance().player);
         PlayerShopComponent playerShopComponent = PlayerShopComponent.KEY.get(MinecraftClient.getInstance().player);
-        if (!GameFunctions.isPlayerAliveAndSurvival(MinecraftClient.getInstance().player))  return;
+        if (!GameFunctions.isPlayerPlayingAndAlive(MinecraftClient.getInstance().player))  return;
         if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.RECALLER)) {
             int drawY = context.getScaledWindowHeight();
 

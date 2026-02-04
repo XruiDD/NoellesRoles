@@ -34,7 +34,7 @@ public abstract class JesterHudMixin {
     public void jesterPsychoTimeHud(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
         var player = client.player;
         if (player == null) return;
-        if (!GameFunctions.isPlayerAliveAndSurvival(player)) return;
+        if (!GameFunctions.isPlayerPlayingAndAlive(player)) return;
 
         GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(player.getWorld());
 

@@ -118,7 +118,7 @@ public class NoellesrolesVoiceChatPlugin implements VoicechatPlugin {
         SwallowedPlayerComponent swallowedComp = SwallowedPlayerComponent.KEY.get(spectator);
         if (spectator.interactionManager.getGameMode().equals(GameMode.SPECTATOR) && !swallowedComp.isSwallowed()) {
             spectator.getWorld().getPlayers().forEach((p) -> {
-                if (gameWorldComponent.isRole(p, Noellesroles.THE_INSANE_DAMNED_PARANOID_KILLER_OF_DOOM_DEATH_DESTRUCTION_AND_WAFFLES) && GameFunctions.isPlayerAliveAndSurvival(p)) {
+                if (gameWorldComponent.isRole(p, Noellesroles.THE_INSANE_DAMNED_PARANOID_KILLER_OF_DOOM_DEATH_DESTRUCTION_AND_WAFFLES) && GameFunctions.isPlayerPlayingAndAlive(p)) {
                     if (spectator.distanceTo(p) <= api.getVoiceChatDistance()) {
                         VoicechatConnection con = api.getConnectionOf(p.getUuid());
                         api.sendLocationalSoundPacketTo(con, event.getPacket().locationalSoundPacketBuilder()
@@ -194,7 +194,7 @@ public class NoellesrolesVoiceChatPlugin implements VoicechatPlugin {
             UUID taotieUuid = swallowedComp.getSwallowedBy();
             if (taotieUuid != null) {
                 PlayerEntity taotie = speaker.getWorld().getPlayerByUuid(taotieUuid);
-                if (taotie != null && GameFunctions.isPlayerAliveAndSurvival(taotie)) {
+                if (taotie != null && GameFunctions.isPlayerPlayingAndAlive(taotie)) {
                     VoicechatConnection taotieCon = api.getConnectionOf(taotieUuid);
                     if (taotieCon != null) {
                         // Forward voice to Taotie at Taotie's position

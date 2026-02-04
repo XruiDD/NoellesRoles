@@ -164,7 +164,7 @@ public class TaotiePlayerComponent implements AutoSyncedComponent, ServerTicking
         if (targetSwallowed.isSwallowed()) return false;
 
         // Check if target is alive (must be in survival or adventure mode)
-        if (!GameFunctions.isPlayerAliveAndSurvival(target)) return false;
+        if (!GameFunctions.isPlayerPlayingAndAlive(target)) return false;
 
         // 铁人药水保护
         IronManPlayerComponent ironManComp = IronManPlayerComponent.KEY.get(target);
@@ -206,7 +206,7 @@ public class TaotiePlayerComponent implements AutoSyncedComponent, ServerTicking
         GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(serverWorld);
         for (UUID uuid : gameWorldComponent.getAllWithRole(Noellesroles.SERIAL_KILLER)) {
             PlayerEntity serialKiller = serverWorld.getPlayerByUuid(uuid);
-            if (serialKiller != null && GameFunctions.isPlayerAliveAndSurvival(serialKiller)) {
+            if (serialKiller != null && GameFunctions.isPlayerPlayingAndAlive(serialKiller)) {
                 SerialKillerPlayerComponent serialKillerComp = SerialKillerPlayerComponent.KEY.get(serialKiller);
                 if (serialKillerComp.isCurrentTarget(target.getUuid())) {
                     serialKillerComp.onTargetDeath(gameWorldComponent);
@@ -330,7 +330,7 @@ public class TaotiePlayerComponent implements AutoSyncedComponent, ServerTicking
             if (uuid.equals(player.getUuid())) continue; // Skip Taotie
 
             PlayerEntity p = serverWorld.getPlayerByUuid(uuid);
-            if (GameFunctions.isPlayerAliveAndSurvival(p)) {
+            if (GameFunctions.isPlayerPlayingAndAlive(p)) {
                 // Check if this player is swallowed
                 if (!swallowedPlayers.contains(uuid)) {
                     aliveNotSwallowedCount++;

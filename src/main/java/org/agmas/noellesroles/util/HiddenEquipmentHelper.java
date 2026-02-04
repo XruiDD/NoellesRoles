@@ -57,7 +57,7 @@ public final class HiddenEquipmentHelper {
             ServerPlayerEntity observer
     ) {
         // 只对活着的生存模式玩家隐藏
-        if (!GameFunctions.isPlayerAliveAndSurvival(observer)) {
+        if (!GameFunctions.isPlayerPlayingAndAlive(observer)) {
             return null;
         }
 

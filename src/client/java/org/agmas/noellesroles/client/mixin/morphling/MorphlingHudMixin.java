@@ -24,7 +24,7 @@ public abstract class MorphlingHudMixin {
     public void morphlingHud(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
         GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(MinecraftClient.getInstance().player.getWorld());
         MorphlingPlayerComponent morphlingPlayerComponent = MorphlingPlayerComponent.KEY.get(MinecraftClient.getInstance().player);
-        if (!GameFunctions.isPlayerAliveAndSurvival(MinecraftClient.getInstance().player)) return;
+        if (!GameFunctions.isPlayerPlayingAndAlive(MinecraftClient.getInstance().player)) return;
         if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.MORPHLING)) {
             int drawY = context.getScaledWindowHeight();
             int morphTicks = morphlingPlayerComponent.getMorphTicks();

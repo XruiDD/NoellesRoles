@@ -87,7 +87,7 @@ public class NoellesrolesClient implements ClientModInitializer {
         WorldMusicManager.register();
 
         CanSeeMoney.EVENT.register(player -> {
-            if (!GameFunctions.isPlayerAliveAndSurvival(player)) return null;
+            if (!GameFunctions.isPlayerPlayingAndAlive(player)) return null;
             GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(
                     player.getWorld()
             );
@@ -121,7 +121,7 @@ public class NoellesrolesClient implements ClientModInitializer {
                 MinecraftClient.getInstance().player.getWorld()
             );
 
-            if (!GameFunctions.isPlayerAliveAndSurvival(MinecraftClient.getInstance().player)) return null;
+            if (!WatheClient.isPlayerPlayingAndAlive()) return null;
 
             PlayerEntity localPlayer = MinecraftClient.getInstance().player;
 
@@ -220,7 +220,7 @@ public class NoellesrolesClient implements ClientModInitializer {
 
             // 只有当查看者是杀手时才生效
             if (!gameWorldComponent.canUseKillerFeatures(localPlayer)) return null;
-            if (!GameFunctions.isPlayerAliveAndSurvival(localPlayer)) return null;
+            if (!GameFunctions.isPlayerPlayingAndAlive(localPlayer)) return null;
 
             // 如果目标是卧底，让杀手误以为是同伙（显示红色）
             if (gameWorldComponent.isRole(player, Noellesroles.UNDERCOVER)) {
@@ -239,7 +239,7 @@ public class NoellesrolesClient implements ClientModInitializer {
 
             // 只有当查看者是杀手时才生效
             if (!gameWorldComponent.canUseKillerFeatures(viewer)) return null;
-            if (!GameFunctions.isPlayerAliveAndSurvival(viewer)) return null;
+            if (!GameFunctions.isPlayerPlayingAndAlive(viewer)) return null;
 
             // 如果目标是卧底，显示cohort提示
             if (gameWorldComponent.isRole(target, Noellesroles.UNDERCOVER)) {
@@ -361,7 +361,7 @@ public class NoellesrolesClient implements ClientModInitializer {
                 var eyePos = localPlayer.getEyePos();
                 var hitResult = ProjectileUtil.getCollision(
                         localPlayer,
-                        entity -> entity instanceof PlayerEntity player && GameFunctions.isPlayerAliveAndSurvival(player) && !player.isSpectator(),
+                        entity -> entity instanceof PlayerEntity player && GameFunctions.isPlayerPlayingAndAlive(player),
                         maxDistance
                 );
 
@@ -384,7 +384,7 @@ public class NoellesrolesClient implements ClientModInitializer {
 
                     // 刺客角色按G打开刺客界面
                     if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.ASSASSIN)) {
-                        if (GameFunctions.isPlayerAliveAndSurvival(MinecraftClient.getInstance().player) && !SwallowedPlayerComponent.isPlayerSwallowed(MinecraftClient.getInstance().player)) {
+                        if (GameFunctions.isPlayerPlayingAndAlive(MinecraftClient.getInstance().player) && !SwallowedPlayerComponent.isPlayerSwallowed(MinecraftClient.getInstance().player)) {
                             AssassinPlayerComponent assassinComp = AssassinPlayerComponent.KEY.get(MinecraftClient.getInstance().player);
                             // 检查是否可以使用技能（不在冷却中且有剩余次数）
                             if (assassinComp.canGuess()) {

@@ -34,7 +34,7 @@ public abstract class NoisemakerKillMixin {
                RegistryEntry<SoundEvent> soundEntry = RegistryEntry.of(SoundEvents.ENTITY_ALLAY_DEATH);
                var seed = serverWorld.random.nextLong();
                for (ServerPlayerEntity player : serverWorld.getServer().getPlayerManager().getPlayerList()) {
-                   if(gameWorldComponent.isInnocent(player) || !GameFunctions.isPlayerAliveAndSurvival(player)){
+                   if(gameWorldComponent.isInnocent(player) || !GameFunctions.isPlayerPlayingAndAlive(player)){
                        player.networkHandler.sendPacket(new PlaySoundS2CPacket(soundEntry, SoundCategory.PLAYERS, player.getX(), player.getY(), player.getZ(),1.0f, 1.0f,seed));
                        player.sendMessage(Text.translatable("noellesroles.noisemaker.death_scream"), true);
                    }

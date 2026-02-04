@@ -108,7 +108,7 @@ public class BomberPlayerComponent implements ServerTickingComponent {
         }
 
         // 检查目标是否存活
-        if (!GameFunctions.isPlayerAliveAndSurvival(target) || SwallowedPlayerComponent.isPlayerSwallowed(target)) {
+        if (!GameFunctions.isPlayerPlayingAndAlive(target) || SwallowedPlayerComponent.isPlayerSwallowed(target)) {
             return;
         }
 
@@ -243,13 +243,13 @@ public class BomberPlayerComponent implements ServerTickingComponent {
             UUID taotieUuid = swallowedComp.getSwallowedBy();
             if (taotieUuid != null) {
                 PlayerEntity taotie = serverWorld.getPlayerByUuid(taotieUuid);
-                if (taotie != null && GameFunctions.isPlayerAliveAndSurvival(taotie)) {
+                if (taotie != null && GameFunctions.isPlayerPlayingAndAlive(taotie)) {
                     GameFunctions.killPlayer(taotie, true, bomber, Noellesroles.DEATH_REASON_BOMB);
                 }
             }
         } else {
             // 普通情况：杀死携带炸弹的玩家
-            if (GameFunctions.isPlayerAliveAndSurvival(player)) {
+            if (GameFunctions.isPlayerPlayingAndAlive(player)) {
                 GameFunctions.killPlayer(player, true, bomber, Noellesroles.DEATH_REASON_BOMB);
             }
         }

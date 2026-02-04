@@ -126,7 +126,7 @@ public class InfectedPlayerComponent implements AutoSyncedComponent, ServerTicki
                     UUID taotieUuid = swallowedComp.getSwallowedBy();
                     if (taotieUuid != null) {
                         PlayerEntity taotie = serverWorld.getPlayerByUuid(taotieUuid);
-                        if (taotie != null && GameFunctions.isPlayerAliveAndSurvival(taotie)) {
+                        if (taotie != null && GameFunctions.isPlayerPlayingAndAlive(taotie)) {
                             TaotiePlayerComponent taotieComp = TaotiePlayerComponent.KEY.get(taotie);
                             taotieComp.spreadInfectionInStomach(pathogenUuid);
                         }

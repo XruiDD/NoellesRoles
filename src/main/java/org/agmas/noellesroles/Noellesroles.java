@@ -455,7 +455,7 @@ public class Noellesroles implements ModInitializer {
         CheckWinCondition.EVENT.register((world, gameComponent, currentStatus) -> {
             for (UUID uuid : gameComponent.getAllWithRole(VULTURE)) {
                 PlayerEntity vulture = world.getPlayerByUuid(uuid);
-                if (GameFunctions.isPlayerAliveAndSurvival(vulture)) {
+                if (GameFunctions.isPlayerPlayingAndAlive(vulture)) {
                     VulturePlayerComponent component = VulturePlayerComponent.KEY.get(vulture);
                     if (component.hasWon()) {
                         return CheckWinCondition.WinResult.neutralWin((ServerPlayerEntity) vulture);
@@ -465,20 +465,20 @@ public class Noellesroles implements ModInitializer {
 
             for (UUID uuid : gameComponent.getAllWithRole(PATHOGEN)) {
                 PlayerEntity pathogen = world.getPlayerByUuid(uuid);
-                if (GameFunctions.isPlayerAliveAndSurvival(pathogen)) {
+                if (GameFunctions.isPlayerPlayingAndAlive(pathogen)) {
                     boolean allInfected = true;
                     for (UUID playerUuid : gameComponent.getAllPlayers()) {
                         if (playerUuid.equals(uuid)) continue;
                         PlayerEntity player = world.getPlayerByUuid(playerUuid);
                         if (player == null) continue;
-                        if (!GameFunctions.isPlayerAliveAndSurvival(player)) continue;
+                        if (!GameFunctions.isPlayerPlayingAndAlive(player)) continue;
                         InfectedPlayerComponent infected = InfectedPlayerComponent.KEY.get(player);
                         if (!infected.isInfected()) {
                             allInfected = false;
                             break;
                         }
                     }
-                    if (allInfected && GameFunctions.isPlayerAliveAndSurvival(pathogen)) {
+                    if (allInfected && GameFunctions.isPlayerPlayingAndAlive(pathogen)) {
                         return CheckWinCondition.WinResult.neutralWin((ServerPlayerEntity) pathogen);
                     }
                 }
@@ -486,7 +486,7 @@ public class Noellesroles implements ModInitializer {
 
             for (UUID uuid : gameComponent.getAllWithRole(JESTER)) {
                 PlayerEntity jester = world.getPlayerByUuid(uuid);
-                if (GameFunctions.isPlayerAliveAndSurvival(jester)) {
+                if (GameFunctions.isPlayerPlayingAndAlive(jester)) {
                     JesterPlayerComponent component = JesterPlayerComponent.KEY.get(jester);
                     if (component.won) {
                         return CheckWinCondition.WinResult.neutralWin((ServerPlayerEntity) jester);
@@ -501,7 +501,7 @@ public class Noellesroles implements ModInitializer {
             // Taotie win condition check (priority over corrupt cop)
             for (UUID uuid : gameComponent.getAllWithRole(TAOTIE)) {
                 PlayerEntity taotie = world.getPlayerByUuid(uuid);
-                if (GameFunctions.isPlayerAliveAndSurvival(taotie)) {
+                if (GameFunctions.isPlayerPlayingAndAlive(taotie)) {
                     TaotiePlayerComponent taotieComp = TaotiePlayerComponent.KEY.get(taotie);
 
                     // Win condition 1: Swallowed all players
@@ -526,7 +526,7 @@ public class Noellesroles implements ModInitializer {
             ServerPlayerEntity livingCorruptCop = null;
             for (UUID uuid : gameComponent.getAllWithRole(CORRUPT_COP)) {
                 ServerPlayerEntity player = (ServerPlayerEntity) world.getPlayerByUuid(uuid);
-                if (GameFunctions.isPlayerAliveAndSurvival(player)) {
+                if (GameFunctions.isPlayerPlayingAndAlive(player)) {
                     livingCorruptCop = player;
                     break;
                 }
@@ -541,7 +541,7 @@ public class Noellesroles implements ModInitializer {
             int aliveCount = 0;
             boolean corruptCopIsAlive = false;
             for (ServerPlayerEntity player : world.getPlayers()) {
-                if (GameFunctions.isPlayerAliveAndSurvival(player)) {
+                if (GameFunctions.isPlayerPlayingAndAlive(player)) {
                     aliveCount++;
                     if (player.getUuid().equals(livingCorruptCop.getUuid())) {
                         corruptCopIsAlive = true;
@@ -571,7 +571,7 @@ public class Noellesroles implements ModInitializer {
             if (victim.getWorld() instanceof ServerWorld serverWorld) {
                 for (UUID uuid : gameComponent.getAllWithRole(SERIAL_KILLER)) {
                     PlayerEntity serialKiller = serverWorld.getPlayerByUuid(uuid);
-                    if (GameFunctions.isPlayerAliveAndSurvival(serialKiller)) {
+                    if (GameFunctions.isPlayerPlayingAndAlive(serialKiller)) {
                         SerialKillerPlayerComponent serialKillerComp = SerialKillerPlayerComponent.KEY.get(serialKiller);
 
                         // 如果被杀者是连环杀手的目标
@@ -593,7 +593,7 @@ public class Noellesroles implements ModInitializer {
                 PlayerShopComponent.KEY.get(killer).addToBalance(50);
             }else if(bomberPlayerComponent.hasBomb()){
                 PlayerEntity bomber = victim.getWorld().getPlayerByUuid(bomberPlayerComponent.getBomberUuid());
-                if(GameFunctions.isPlayerAliveAndSurvival(bomber)){
+                if(GameFunctions.isPlayerPlayingAndAlive(bomber)){
                     if((deathReason == GameConstants.DeathReasons.FELL_OUT_OF_TRAIN || deathReason == GameConstants.DeathReasons.ESCAPED)){
                         PlayerShopComponent.KEY.get(bomber).addToBalance(150);
                     }else{
@@ -615,7 +615,7 @@ public class Noellesroles implements ModInitializer {
                     if (voodooPlayerComponent.target != null && (deathReason != DEATH_REASON_ASSASSINATED || !gameComponent.isRole(voodooPlayerComponent.target ,ASSASSIN))) {
                         PlayerEntity voodooed = victim.getWorld().getPlayerByUuid(voodooPlayerComponent.target);
                         if (voodooed != null) {
-                            if (GameFunctions.isPlayerAliveAndSurvival(voodooed) && voodooed != victim) {
+                            if (GameFunctions.isPlayerPlayingAndAlive(voodooed) && voodooed != victim) {
                                 GameFunctions.killPlayer(voodooed, true, null, Identifier.of(Noellesroles.MOD_ID, "voodoo"));
                             }
                         }
@@ -686,12 +686,12 @@ public class Noellesroles implements ModInitializer {
             if (victim.getWorld() instanceof ServerWorld serverWorld) {
                 for (UUID uuid : gameComponent.getAllWithRole(CORRUPT_COP)) {
                     PlayerEntity corruptCop = serverWorld.getPlayerByUuid(uuid);
-                    if (GameFunctions.isPlayerAliveAndSurvival(corruptCop)) {
+                    if (GameFunctions.isPlayerPlayingAndAlive(corruptCop) && GameFunctions.isPlayerAliveAndSurvival(corruptCop)) {
                         CorruptCopPlayerComponent corruptCopComp = CorruptCopPlayerComponent.KEY.get(corruptCop);
                         // 计算当前存活人数
                         int aliveCount = 0;
                         for (ServerPlayerEntity p : serverWorld.getPlayers()) {
-                            if (GameFunctions.isPlayerAliveAndSurvival(p)) {
+                            if (GameFunctions.isPlayerPlayingAndAlive(p) && !p.isSpectator()) {
                                 aliveCount++;
                             }
                         }
@@ -701,12 +701,12 @@ public class Noellesroles implements ModInitializer {
                 // 检查是否应该触发饕餮时刻
                 for (UUID uuid : gameComponent.getAllWithRole(TAOTIE)) {
                     PlayerEntity taotie = serverWorld.getPlayerByUuid(uuid);
-                    if (GameFunctions.isPlayerAliveAndSurvival(taotie)) {
+                    if (GameFunctions.isPlayerPlayingAndAlive(taotie)) {
                         TaotiePlayerComponent taotieComp = TaotiePlayerComponent.KEY.get(taotie);
                         // 计算当前存活人数
                         int aliveCountForTaotie = 0;
                         for (ServerPlayerEntity p : serverWorld.getPlayers()) {
-                            if (GameFunctions.isPlayerAliveAndSurvival(p)) {
+                            if (GameFunctions.isPlayerPlayingAndAlive(p)) {
                                 SwallowedPlayerComponent swallowed = SwallowedPlayerComponent.KEY.get(p);
                                 if (!swallowed.isSwallowed()) {
                                     aliveCountForTaotie++;
@@ -773,12 +773,12 @@ public class Noellesroles implements ModInitializer {
         GameEvents.ON_WIN_DETERMINED.register((world, gameComponent, winStatus, neutralWinner) -> {
             for (UUID taotieUuid : gameComponent.getAllWithRole(TAOTIE)) {
                 PlayerEntity taotie = world.getPlayerByUuid(taotieUuid);
-                if (taotie != null && GameFunctions.isPlayerAliveAndSurvival(taotie)) {
+                if (taotie != null && GameFunctions.isPlayerPlayingAndAlive(taotie)) {
                     TaotiePlayerComponent taotieComp = TaotiePlayerComponent.KEY.get(taotie);
                     List<UUID> swallowedPlayers = taotieComp.getSwallowedPlayers();
                     for (UUID swallowedUuid : swallowedPlayers) {
                         PlayerEntity swallowed = world.getPlayerByUuid(swallowedUuid);
-                        if (swallowed != null && GameFunctions.isPlayerAliveAndSurvival(swallowed)) {
+                        if (swallowed != null && GameFunctions.isPlayerPlayingAndAlive(swallowed)) {
                             GameFunctions.killPlayer(swallowed, false, taotie, DEATH_REASON_DIGESTED);
                         }
                     }
@@ -797,14 +797,14 @@ public class Noellesroles implements ModInitializer {
             if (abilityPlayerComponent.cooldown > 0) return;
             if (context.player().getWorld().getPlayerByUuid(payload.player()) == null) return;
 
-            if (gameWorldComponent.isRole(context.player(), VOODOO) && GameFunctions.isPlayerAliveAndSurvival(context.player()) && !SwallowedPlayerComponent.isPlayerSwallowed(context.player())) {
+            if (gameWorldComponent.isRole(context.player(), VOODOO) && GameFunctions.isPlayerPlayingAndAlive(context.player()) && !SwallowedPlayerComponent.isPlayerSwallowed(context.player())) {
                 abilityPlayerComponent.cooldown = GameConstants.getInTicks(0, 30);
                 abilityPlayerComponent.sync();
                 VoodooPlayerComponent voodooPlayerComponent = (VoodooPlayerComponent) VoodooPlayerComponent.KEY.get(context.player());
                 voodooPlayerComponent.setTarget(payload.player());
 
             }
-            if (gameWorldComponent.isRole(context.player(), MORPHLING) && GameFunctions.isPlayerAliveAndSurvival(context.player()) && !SwallowedPlayerComponent.isPlayerSwallowed(context.player())) {
+            if (gameWorldComponent.isRole(context.player(), MORPHLING) && GameFunctions.isPlayerPlayingAndAlive(context.player()) && !SwallowedPlayerComponent.isPlayerSwallowed(context.player())) {
                 MorphlingPlayerComponent morphlingPlayerComponent = (MorphlingPlayerComponent) MorphlingPlayerComponent.KEY.get(context.player());
                 // 服务端验证冷却是否结束，防止作弊
                 if (morphlingPlayerComponent.getMorphTicks() != 0) return;
@@ -815,7 +815,7 @@ public class Noellesroles implements ModInitializer {
             GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(context.player().getWorld());
             AbilityPlayerComponent abilityPlayerComponent = AbilityPlayerComponent.KEY.get(context.player());
 
-            if (gameWorldComponent.isRole(context.player(), VULTURE) && GameFunctions.isPlayerAliveAndSurvival(context.player()) && !SwallowedPlayerComponent.isPlayerSwallowed(context.player())) {
+            if (gameWorldComponent.isRole(context.player(), VULTURE) && GameFunctions.isPlayerPlayingAndAlive(context.player()) && !SwallowedPlayerComponent.isPlayerSwallowed(context.player())) {
                 if (abilityPlayerComponent.getCooldown() > 0) return;
                 List<PlayerBodyEntity> playerBodyEntities = context.player().getWorld().getEntitiesByType(TypeFilter.equals(PlayerBodyEntity.class), context.player().getBoundingBox().expand(5), (playerBodyEntity -> {
                     return playerBodyEntity.getUuid().equals(payload.playerBody());
@@ -841,7 +841,7 @@ public class Noellesroles implements ModInitializer {
         });
         ServerPlayNetworking.registerGlobalReceiver(Noellesroles.SWAP_PACKET, (payload, context) -> {
             GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(context.player().getWorld());
-            if (gameWorldComponent.isRole(context.player(), SWAPPER) && GameFunctions.isPlayerAliveAndSurvival(context.player()) && !SwallowedPlayerComponent.isPlayerSwallowed(context.player())) {
+            if (gameWorldComponent.isRole(context.player(), SWAPPER) && GameFunctions.isPlayerPlayingAndAlive(context.player()) && !SwallowedPlayerComponent.isPlayerSwallowed(context.player())) {
                 if (payload.player() != null) {
                     if (context.player().getWorld().getPlayerByUuid(payload.player()) != null) {
                         if (payload.player2() != null) {
@@ -912,7 +912,7 @@ public class Noellesroles implements ModInitializer {
         ServerPlayNetworking.registerGlobalReceiver(Noellesroles.ABILITY_PACKET, (payload, context) -> {
             AbilityPlayerComponent abilityPlayerComponent = (AbilityPlayerComponent) AbilityPlayerComponent.KEY.get(context.player());
             GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(context.player().getWorld());
-            if (gameWorldComponent.isRole(context.player(), RECALLER) && abilityPlayerComponent.cooldown <= 0 && GameFunctions.isPlayerAliveAndSurvival(context.player()) && !SwallowedPlayerComponent.isPlayerSwallowed(context.player())) {
+            if (gameWorldComponent.isRole(context.player(), RECALLER) && abilityPlayerComponent.cooldown <= 0 && GameFunctions.isPlayerPlayingAndAlive(context.player()) && !SwallowedPlayerComponent.isPlayerSwallowed(context.player())) {
                 RecallerPlayerComponent recallerPlayerComponent = RecallerPlayerComponent.KEY.get(context.player());
                 PlayerShopComponent playerShopComponent = PlayerShopComponent.KEY.get(context.player());
                 if (!recallerPlayerComponent.placed) {
@@ -927,12 +927,12 @@ public class Noellesroles implements ModInitializer {
                 }
 
             }
-            if (gameWorldComponent.isRole(context.player(), PHANTOM) && abilityPlayerComponent.cooldown <= 0 && GameFunctions.isPlayerAliveAndSurvival(context.player()) && !SwallowedPlayerComponent.isPlayerSwallowed(context.player())) {
+            if (gameWorldComponent.isRole(context.player(), PHANTOM) && abilityPlayerComponent.cooldown <= 0 && GameFunctions.isPlayerPlayingAndAlive(context.player()) && !SwallowedPlayerComponent.isPlayerSwallowed(context.player())) {
                 context.player().addStatusEffect(new StatusEffectInstance(StatusEffects.INVISIBILITY, 30 * 20,0,true,false,true));
                 abilityPlayerComponent.cooldown = GameConstants.getInTicks(1, 30);
             }
             // Pathogen infection ability
-            if (gameWorldComponent.isRole(context.player(), PATHOGEN) && abilityPlayerComponent.cooldown <= 0 && GameFunctions.isPlayerAliveAndSurvival(context.player()) && !SwallowedPlayerComponent.isPlayerSwallowed(context.player())) {
+            if (gameWorldComponent.isRole(context.player(), PATHOGEN) && abilityPlayerComponent.cooldown <= 0 && GameFunctions.isPlayerPlayingAndAlive(context.player()) && !SwallowedPlayerComponent.isPlayerSwallowed(context.player())) {
                 // Find nearest uninfected player within 3 blocks (with line of sight)
                 PlayerEntity nearestTarget = null;
                 double nearestDistance = 9.0; // 3^2 = 9
@@ -940,7 +940,7 @@ public class Noellesroles implements ModInitializer {
                 for (UUID playerUuid : gameWorldComponent.getAllPlayers()) {
                     PlayerEntity player = context.player().getWorld().getPlayerByUuid(playerUuid);
                     if (player == null || player.equals(context.player())) continue;
-                    if (!GameFunctions.isPlayerAliveAndSurvival(player)) continue;
+                    if (!GameFunctions.isPlayerPlayingAndAlive(player)) continue;
 
                     InfectedPlayerComponent infected = InfectedPlayerComponent.KEY.get(player);
                     if (infected.isInfected()) continue;
@@ -974,7 +974,7 @@ public class Noellesroles implements ModInitializer {
 
             // 验证角色和状态
             if (!gameWorldComponent.isRole(assassin, ASSASSIN)) return;
-            if (!GameFunctions.isPlayerAliveAndSurvival(assassin)) return;
+            if (!GameFunctions.isPlayerPlayingAndAlive(assassin)) return;
             if (SwallowedPlayerComponent.isPlayerSwallowed(assassin)) return;
 
             AssassinPlayerComponent assassinComp = AssassinPlayerComponent.KEY.get(assassin);
@@ -983,7 +983,7 @@ public class Noellesroles implements ModInitializer {
             // 验证目标
             ServerPlayerEntity target = (ServerPlayerEntity) assassin.getWorld().getPlayerByUuid(payload.targetPlayer());
             if (target == null) return;
-            if (!GameFunctions.isPlayerAliveAndSurvival(target)) return;
+            if (!GameFunctions.isPlayerPlayingAndAlive(target)) return;
 
             // 🔒 关键安全验证：防止恶意客户端猜测不可猜测的角色
             if (target.equals(assassin)) return;  // 不能猜测自己
@@ -1052,7 +1052,7 @@ public class Noellesroles implements ModInitializer {
 
             // 验证角色和状态
             if (!gameWorldComponent.isRole(reporter, REPORTER)) return;
-            if (!GameFunctions.isPlayerAliveAndSurvival(reporter)) return;
+            if (!GameFunctions.isPlayerPlayingAndAlive(reporter)) return;
             if (SwallowedPlayerComponent.isPlayerSwallowed(reporter)) return;
             if (abilityPlayerComponent.cooldown > 0) return;
 
@@ -1061,7 +1061,7 @@ public class Noellesroles implements ModInitializer {
             PlayerEntity target = reporter.getWorld().getPlayerByUuid(payload.targetPlayer());
             if (target == null) return;
             if (target.equals(reporter)) return;
-            if (!GameFunctions.isPlayerAliveAndSurvival(target)) return;
+            if (!GameFunctions.isPlayerPlayingAndAlive(target)) return;
 
             // 验证距离（3格内）
             double distance = reporter.squaredDistanceTo(target);
@@ -1084,7 +1084,7 @@ public class Noellesroles implements ModInitializer {
 
             // 验证角色和状态
             if (!gameWorldComponent.isRole(taotie, TAOTIE)) return;
-            if (!GameFunctions.isPlayerAliveAndSurvival(taotie)) return;
+            if (!GameFunctions.isPlayerPlayingAndAlive(taotie)) return;
             if (SwallowedPlayerComponent.isPlayerSwallowed(taotie)) return;
 
             TaotiePlayerComponent taotieComp = TaotiePlayerComponent.KEY.get(taotie);
@@ -1095,7 +1095,7 @@ public class Noellesroles implements ModInitializer {
             ServerPlayerEntity target = (ServerPlayerEntity) taotie.getWorld().getPlayerByUuid(payload.targetPlayer());
             if (target == null) return;
             if (target.equals(taotie)) return;
-            if (!GameFunctions.isPlayerAliveAndSurvival(target)) return;
+            if (!GameFunctions.isPlayerPlayingAndAlive(target)) return;
 
             // 验证距离（3格内）
             double distance = taotie.squaredDistanceTo(target);

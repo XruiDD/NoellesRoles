@@ -100,7 +100,7 @@ public class SerialKillerPlayerComponent implements AutoSyncedComponent {
 
             PlayerEntity targetPlayer = serverWorld.getPlayerByUuid(playerUuid);
             if (targetPlayer == null) continue;
-            if (!GameFunctions.isPlayerAliveAndSurvival(targetPlayer) || SwallowedPlayerComponent.isPlayerSwallowed(targetPlayer)) continue;
+            if (!GameFunctions.isPlayerPlayingAndAlive(targetPlayer) || SwallowedPlayerComponent.isPlayerSwallowed(targetPlayer)) continue;
 
 
             // 检查是否为非杀手阵营

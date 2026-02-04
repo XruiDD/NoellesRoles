@@ -25,7 +25,7 @@ public abstract class PathogenHudMixin {
     @Inject(method = "render", at = @At("TAIL"))
     public void pathogenHud(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
         if (MinecraftClient.getInstance().player == null) return;
-        if (!GameFunctions.isPlayerAliveAndSurvival(MinecraftClient.getInstance().player))  return;
+        if (!GameFunctions.isPlayerPlayingAndAlive(MinecraftClient.getInstance().player))  return;
         GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(MinecraftClient.getInstance().player.getWorld());
         AbilityPlayerComponent abilityPlayerComponent = AbilityPlayerComponent.KEY.get(MinecraftClient.getInstance().player);
         PlayerEntity localPlayer = MinecraftClient.getInstance().player;

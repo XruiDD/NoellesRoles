@@ -31,7 +31,7 @@ public abstract class ReporterHudMixin {
         AbilityPlayerComponent abilityPlayerComponent = AbilityPlayerComponent.KEY.get(MinecraftClient.getInstance().player);
         ReporterPlayerComponent reporterPlayerComponent = ReporterPlayerComponent.KEY.get(MinecraftClient.getInstance().player);
 
-        if (!GameFunctions.isPlayerAliveAndSurvival(MinecraftClient.getInstance().player)) return;
+        if (!GameFunctions.isPlayerPlayingAndAlive(MinecraftClient.getInstance().player)) return;
 
         if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.REPORTER)) {
             int drawY = context.getScaledWindowHeight();

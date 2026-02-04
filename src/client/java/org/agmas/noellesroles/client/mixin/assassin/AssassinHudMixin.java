@@ -29,7 +29,7 @@ public abstract class AssassinHudMixin {
 
         GameWorldComponent gameWorld = GameWorldComponent.KEY.get(MinecraftClient.getInstance().player.getWorld());
         if (!gameWorld.isRole(MinecraftClient.getInstance().player, Noellesroles.ASSASSIN)) return;
-        if (!GameFunctions.isPlayerAliveAndSurvival(MinecraftClient.getInstance().player)) return;
+        if (!GameFunctions.isPlayerPlayingAndAlive(MinecraftClient.getInstance().player)) return;
 
         AssassinPlayerComponent assassinComp = AssassinPlayerComponent.KEY.get(MinecraftClient.getInstance().player);
 

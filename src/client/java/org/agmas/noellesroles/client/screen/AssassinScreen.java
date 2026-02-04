@@ -41,7 +41,7 @@ public class AssassinScreen extends Screen {
 
         // 基础检查
         if (!gameWorld.isRole(player, Noellesroles.ASSASSIN) ||
-                !GameFunctions.isPlayerAliveAndSurvival(player) || SwallowedPlayerComponent.isPlayerSwallowed(MinecraftClient.getInstance().player)) {
+                !GameFunctions.isPlayerPlayingAndAlive(player) || SwallowedPlayerComponent.isPlayerSwallowed(MinecraftClient.getInstance().player)) {
             this.close();
             return;
         }
