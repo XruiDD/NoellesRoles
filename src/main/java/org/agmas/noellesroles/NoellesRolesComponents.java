@@ -19,6 +19,7 @@ import org.agmas.noellesroles.reporter.ReporterPlayerComponent;
 import org.agmas.noellesroles.serialkiller.SerialKillerPlayerComponent;
 import org.agmas.noellesroles.taotie.TaotiePlayerComponent;
 import org.agmas.noellesroles.taotie.SwallowedPlayerComponent;
+import org.agmas.noellesroles.silencer.SilencedPlayerComponent;
 import org.agmas.noellesroles.music.WorldMusicComponent;
 import org.jetbrains.annotations.NotNull;
 import org.ladysnake.cca.api.v3.entity.EntityComponentFactoryRegistry;
@@ -50,6 +51,7 @@ public class NoellesRolesComponents implements EntityComponentInitializer, World
         registry.beginRegistration(PlayerEntity.class, IronManPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(IronManPlayerComponent::new);
         registry.beginRegistration(PlayerEntity.class, TaotiePlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(TaotiePlayerComponent::new);
         registry.beginRegistration(PlayerEntity.class, SwallowedPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(SwallowedPlayerComponent::new);
+        registry.beginRegistration(PlayerEntity.class, SilencedPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(SilencedPlayerComponent::new);
     }
 
     @Override

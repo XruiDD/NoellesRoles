@@ -190,5 +190,15 @@
   "title.noellesroles.jester_moment": "Jester's Feast",
   "subtitle.noellesroles.jester_moment": "When justice begins to mock itself...",
 
-  "death_reason.noellesroles.digested": "Digested by Taotie"
+  "death_reason.noellesroles.digested": "Digested by Taotie",
+
+  "announcement.goals.silencer": "Shut them up! Silenced targets can't speak or hear others.",
+  "announcement.role.silencer": "Silencer",
+  "announcement.win.silencer": "Killers Win!",
+  "tip.silencer.silence": "Press %s to silence %s",
+  "tip.silencer.ready": "Ability ready! Aim at target and press [%s]",
+  "tip.silencer.already_silenced": "%s is already silenced",
+  "tip.silencer.success": "You silenced %s",
+
+  "replay.skill.noellesroles.silencer.target": "%s §7silenced§r %s"
 }

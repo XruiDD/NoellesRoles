@@ -65,6 +65,8 @@ import org.agmas.noellesroles.serialkiller.SerialKillerPlayerComponent;
 import org.agmas.noellesroles.taotie.TaotiePlayerComponent;
 import org.agmas.noellesroles.taotie.SwallowedPlayerComponent;
 import org.agmas.noellesroles.packet.TaotieSwallowC2SPacket;
+import org.agmas.noellesroles.packet.SilencerSilenceC2SPacket;
+import org.agmas.noellesroles.silencer.SilencedPlayerComponent;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.WrittenBookContentComponent;
 import net.minecraft.item.Items;
@@ -107,6 +109,7 @@ public class Noellesroles implements ModInitializer {
     public static Identifier PROFESSOR_ID = Identifier.of(MOD_ID, "professor");
     public static Identifier ATTENDANT_ID = Identifier.of(MOD_ID, "attendant");
     public static Identifier TAOTIE_ID = Identifier.of(MOD_ID, "taotie");
+    public static Identifier SILENCER_ID = Identifier.of(MOD_ID, "silencer");
     // 炸弹死亡原因
     public static Identifier DEATH_REASON_BOMB = Identifier.of(MOD_ID, "bomb");
     // 刺客死亡原因
@@ -128,6 +131,8 @@ public class Noellesroles implements ModInitializer {
     public static Role SCAVENGER = WatheRoles.registerRole(new Role(SCAVENGER_ID, new Color(101, 67, 33).getRGB(), false, true, Role.MoodType.FAKE, Integer.MAX_VALUE, true));
     // 连环杀手角色 - 杀手阵营，开局随机选择一个非杀手阵营的人为透视目标，目标死后自动更换，杀掉目标后获得额外金钱奖励
     public static Role SERIAL_KILLER = WatheRoles.registerRole(new Role(SERIAL_KILLER_ID, new Color(102, 34, 34).getRGB(), false, true, Role.MoodType.FAKE, Integer.MAX_VALUE, true));
+    // 静语者角色 - 杀手阵营，可以让目标无法使用voicechat说话，且无法听到他人说话，持续60秒，冷却45秒
+    public static Role SILENCER = WatheRoles.registerRole(new Role(SILENCER_ID, new Color(80, 70, 110).getRGB(), false, true, Role.MoodType.FAKE, Integer.MAX_VALUE, true));
 
 
     public static HashMap<Role, RoleAnnouncementTexts.RoleAnnouncementText> roleRoleAnnouncementTextHashMap = new HashMap<>();
@@ -166,6 +171,7 @@ public class Noellesroles implements ModInitializer {
     public static final CustomPayload.Id<AssassinGuessRoleC2SPacket> ASSASSIN_GUESS_ROLE_PACKET = AssassinGuessRoleC2SPacket.ID;
     public static final CustomPayload.Id<ReporterMarkC2SPacket> REPORTER_MARK_PACKET = ReporterMarkC2SPacket.ID;
     public static final CustomPayload.Id<TaotieSwallowC2SPacket> TAOTIE_SWALLOW_PACKET = TaotieSwallowC2SPacket.ID;
+    public static final CustomPayload.Id<SilencerSilenceC2SPacket> SILENCER_SILENCE_PACKET = SilencerSilenceC2SPacket.ID;
     public static final ArrayList<Role> VANNILA_ROLES = new ArrayList<>();
     public static final ArrayList<Identifier> VANNILA_ROLE_IDS = new ArrayList<>();
     // 中立万能钥匙可用角色集合
@@ -228,6 +234,7 @@ public class Noellesroles implements ModInitializer {
         PayloadTypeRegistry.playC2S().register(AssassinGuessRoleC2SPacket.ID, AssassinGuessRoleC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(ReporterMarkC2SPacket.ID, ReporterMarkC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(TaotieSwallowC2SPacket.ID, TaotieSwallowC2SPacket.CODEC);
+        PayloadTypeRegistry.playC2S().register(SilencerSilenceC2SPacket.ID, SilencerSilenceC2SPacket.CODEC);
 
         registerEvents();
 
@@ -511,6 +518,10 @@ public class Noellesroles implements ModInitializer {
             if(role.equals(BOMBER)) {
                 player.getItemCooldownManager().set(ModItems.TIMED_BOMB, 20 * 45);
             }
+            if (role.equals(SILENCER)) {
+                // 静语者开局冷却45秒
+                abilityPlayerComponent.cooldown = GameConstants.getInTicks(0, 45);
+            }
         });
         ResetPlayer.EVENT.register(player -> {
             BartenderPlayerComponent.KEY.get(player).reset();
@@ -530,6 +541,7 @@ public class Noellesroles implements ModInitializer {
             IronManPlayerComponent.KEY.get(player).reset();
             TaotiePlayerComponent.KEY.get(player).reset();
             SwallowedPlayerComponent.KEY.get(player).reset();
+            SilencedPlayerComponent.KEY.get(player).reset();
         });
 
         // Bartender and Recaller get +50 coins when completing tasks
@@ -1261,6 +1273,56 @@ public class Noellesroles implements ModInitializer {
                 GameRecordManager.recordSkillUse(taotie, TAOTIE_ID, target, extra);
             }
         });
+
+        // 静语者沉默目标
+        ServerPlayNetworking.registerGlobalReceiver(Noellesroles.SILENCER_SILENCE_PACKET, (payload, context) -> {
+            ServerPlayerEntity silencer = context.player();
+            GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(silencer.getWorld());
+            AbilityPlayerComponent abilityPlayerComponent = AbilityPlayerComponent.KEY.get(silencer);
+
+            // 验证角色和状态
+            if (!gameWorldComponent.isRole(silencer, SILENCER)) return;
+            if (!GameFunctions.isPlayerPlayingAndAlive(silencer)) return;
+            if (SwallowedPlayerComponent.isPlayerSwallowed(silencer)) return;
+            if (abilityPlayerComponent.cooldown > 0) return;
+
+            // 验证目标
+            if (payload.targetPlayer() == null) return;
+            ServerPlayerEntity target = (ServerPlayerEntity) silencer.getWorld().getPlayerByUuid(payload.targetPlayer());
+            if (target == null) return;
+            if (target.equals(silencer)) return;
+            if (!GameFunctions.isPlayerPlayingAndAlive(target)) return;
+            if (SwallowedPlayerComponent.isPlayerSwallowed(target)) return; // 不能沉默被吞噬的玩家
+
+            // 验证距离（3格内）
+            double distance = silencer.squaredDistanceTo(target);
+            if (distance > 9.0) return; // 3^2 = 9
+
+            // 验证视线
+            if (!silencer.canSee(target)) return;
+
+            // 检查目标是否已被沉默
+            SilencedPlayerComponent silencedComp = SilencedPlayerComponent.KEY.get(target);
+            if (silencedComp.isSilenced()) return;
+
+            // 执行沉默
+            silencedComp.applySilence(silencer.getUuid());
+
+            // 设置冷却45秒
+            abilityPlayerComponent.setCooldown(GameConstants.getInTicks(0, 45));
+
+            // 给静语者发送成功提示
+            silencer.sendMessage(
+                Text.translatable("tip.silencer.success", target.getName())
+                    .formatted(net.minecraft.util.Formatting.GRAY),
+                true
+            );
+
+            // 记录技能使用
+            NbtCompound extra = new NbtCompound();
+            extra.putString("action", "silence");
+            GameRecordManager.recordSkillUse(silencer, SILENCER_ID, target, extra);
+        });
     }
 
     /**
@@ -1317,6 +1379,9 @@ public class Noellesroles implements ModInitializer {
 
             return Text.translatable("replay.death_in_stomach", actorText);
         });
+
+        // silencer skill 格式化器（通过 skillUse 系统自动处理，这里只需要注册翻译键）
+        // 翻译键 replay.skill.noellesroles.silencer.target 在语言文件中定义
     }
 
 }

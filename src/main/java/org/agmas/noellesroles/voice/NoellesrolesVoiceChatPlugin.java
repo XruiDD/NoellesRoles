@@ -14,6 +14,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.world.GameMode;
 import org.agmas.noellesroles.Noellesroles;
+import org.agmas.noellesroles.silencer.SilencedPlayerComponent;
 import org.agmas.noellesroles.taotie.SwallowedPlayerComponent;
 
 import java.util.HashMap;
@@ -221,11 +222,45 @@ public class NoellesrolesVoiceChatPlugin implements VoicechatPlugin {
         taotieStomachGroups.entrySet().removeIf(entry -> entry.getValue().equals(removedGroup));
     }
 
+    /**
+     * Block voice packets from silenced players (they cannot speak)
+     * Also block voice packets TO silenced players (they cannot hear)
+     */
+    public void silencerVoiceEvent(MicrophonePacketEvent event) {
+        if (event.getSenderConnection() == null) return;
+        if (event.getSenderConnection().getPlayer() == null) return;
+        if (event.getSenderConnection().getPlayer().getPlayer() == null) return;
+
+        ServerPlayerEntity speaker = (ServerPlayerEntity) event.getSenderConnection().getPlayer().getPlayer();
+        if (speaker == null) return;
+
+        // Block silenced players from speaking
+        SilencedPlayerComponent speakerSilenced = SilencedPlayerComponent.KEY.get(speaker);
+        if (speakerSilenced != null && speakerSilenced.isSilenced()) {
+            event.cancel();
+            return;
+        }
+
+        // Block voice packets TO silenced players (they cannot hear)
+        if (event.getReceiverConnection() != null
+                && event.getReceiverConnection().getPlayer() != null
+                && event.getReceiverConnection().getPlayer().getPlayer() != null) {
+            ServerPlayerEntity recipient = (ServerPlayerEntity) event.getReceiverConnection().getPlayer().getPlayer();
+            if (recipient != null) {
+                SilencedPlayerComponent recipientSilenced = SilencedPlayerComponent.KEY.get(recipient);
+                if (recipientSilenced != null && recipientSilenced.isSilenced()) {
+                    event.cancel();
+                }
+            }
+        }
+    }
+
     @Override
     public void registerEvents(EventRegistration registration) {
         registration.registerEvent(MicrophonePacketEvent.class, this::paranoidEvent);
         registration.registerEvent(MicrophonePacketEvent.class, this::taotieVoiceEvent);
         registration.registerEvent(MicrophonePacketEvent.class, this::blockVoiceToSwallowedPlayers);
+        registration.registerEvent(MicrophonePacketEvent.class, this::silencerVoiceEvent);
         registration.registerEvent(RemoveGroupEvent.class, this::onGroupRemoved);
         VoicechatPlugin.super.registerEvents(registration);
     }

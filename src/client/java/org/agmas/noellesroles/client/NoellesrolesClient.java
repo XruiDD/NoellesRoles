@@ -33,6 +33,7 @@ import com.mojang.authlib.GameProfile;
 import net.minecraft.client.network.PlayerListEntry;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
+import org.agmas.noellesroles.AbilityPlayerComponent;
 import org.agmas.noellesroles.ModItems;
 import org.agmas.noellesroles.Noellesroles;
 import org.agmas.noellesroles.assassin.AssassinPlayerComponent;
@@ -49,6 +50,7 @@ import org.agmas.noellesroles.professor.IronManPlayerComponent;
 import org.agmas.noellesroles.taotie.SwallowedPlayerComponent;
 import org.agmas.noellesroles.taotie.TaotiePlayerComponent;
 import org.agmas.noellesroles.packet.TaotieSwallowC2SPacket;
+import org.agmas.noellesroles.packet.SilencerSilenceC2SPacket;
 import org.agmas.noellesroles.client.music.WorldMusicManager;
 import org.agmas.noellesroles.reporter.ReporterPlayerComponent;
 import org.agmas.noellesroles.serialkiller.SerialKillerPlayerComponent;
@@ -415,6 +417,17 @@ public class NoellesrolesClient implements ClientModInitializer {
                             TaotiePlayerComponent taotieComp = TaotiePlayerComponent.KEY.get(MinecraftClient.getInstance().player);
                             if (taotieComp.getSwallowCooldown() <= 0) {
                                 ClientPlayNetworking.send(new TaotieSwallowC2SPacket(crosshairTarget.getUuid()));
+                            }
+                        }
+                        return;
+                    }
+
+                    // 静语者角色按G沉默准星目标
+                    if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.SILENCER)) {
+                        if (crosshairTarget != null && crosshairTargetDistance <= 3.0) {
+                            AbilityPlayerComponent abilityComp = AbilityPlayerComponent.KEY.get(MinecraftClient.getInstance().player);
+                            if (abilityComp.getCooldown() <= 0) {
+                                ClientPlayNetworking.send(new SilencerSilenceC2SPacket(crosshairTarget.getUuid()));
                             }
                         }
                         return;

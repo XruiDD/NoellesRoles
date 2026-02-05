@@ -221,6 +221,16 @@
 
   "death_reason.noellesroles.digested": "被饕餮消化",
 
+  "announcement.goals.silencer": "让目标闭嘴！被沉默的人无法说话也无法听到别人说话。",
+  "announcement.role.silencer": "静语者",
+  "announcement.win.silencer": "杀手胜利！",
+  "tip.silencer.silence": "按 %s 沉默 %s",
+  "tip.silencer.ready": "技能就绪！对准目标按 [%s] 释放",
+  "tip.silencer.already_silenced": "%s 已被沉默",
+  "tip.silencer.success": "你沉默了 %s",
+
+  "replay.skill.noellesroles.silencer.target": "%s §7沉默§r了 %s",
+
   "replay.death_blocked.corrupt_cop_moment": "%s 在§d黑警时刻§r中免疫死亡",
   "replay.death_blocked.taotie_moment": "%s 在§d饕餮时刻§r中免疫死亡",
   "replay.death_blocked.jester_stasis": "%s 进入§d小丑禁锢§r，免疫死亡",
