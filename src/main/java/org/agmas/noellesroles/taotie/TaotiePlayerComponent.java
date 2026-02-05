@@ -307,19 +307,19 @@ public class TaotiePlayerComponent implements AutoSyncedComponent, ServerTicking
      */
     public void releaseAllPlayers(Vec3d position) {
         if (!(player.getWorld() instanceof ServerWorld serverWorld)) return;
-
-        for (UUID uuid : new ArrayList<>(swallowedPlayers)) {
-            PlayerEntity swallowed = serverWorld.getPlayerByUuid(uuid);
-            if (swallowed != null) {
-                SwallowedPlayerComponent comp = SwallowedPlayerComponent.KEY.get(swallowed);
-                comp.release(position);
-                NoellesrolesVoiceChatPlugin.removeFromVoiceChat(uuid);
+        serverWorld.getServer().execute(()->{
+            for (UUID uuid : new ArrayList<>(swallowedPlayers)) {
+                PlayerEntity swallowed = serverWorld.getPlayerByUuid(uuid);
+                if (swallowed != null) {
+                    SwallowedPlayerComponent comp = SwallowedPlayerComponent.KEY.get(swallowed);
+                    comp.release(position);
+                    NoellesrolesVoiceChatPlugin.removeFromVoiceChat(uuid);
+                }
             }
-        }
-
-        swallowedPlayers.clear();
-        NoellesrolesVoiceChatPlugin.clearStomachGroup(player.getUuid());
-        this.sync();
+            swallowedPlayers.clear();
+            NoellesrolesVoiceChatPlugin.clearStomachGroup(player.getUuid());
+            this.sync();
+        });
     }
 
     /**
