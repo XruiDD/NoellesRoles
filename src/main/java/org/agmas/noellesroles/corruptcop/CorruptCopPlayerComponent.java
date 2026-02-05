@@ -2,6 +2,7 @@ package org.agmas.noellesroles.corruptcop;
 
 import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.index.WatheItems;
+import dev.doctor4t.wathe.record.GameRecordManager;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.packet.s2c.play.PlaySoundS2CPacket;
@@ -31,6 +32,8 @@ import java.util.Random;
 public class CorruptCopPlayerComponent implements AutoSyncedComponent, ClientTickingComponent {
     public static final ComponentKey<CorruptCopPlayerComponent> KEY = ComponentRegistry.getOrCreate(
             Identifier.of(Noellesroles.MOD_ID, "corrupt_cop"), CorruptCopPlayerComponent.class);
+    private static final Identifier EVENT_MOMENT_START = Identifier.of(Noellesroles.MOD_ID, "corrupt_cop_moment_start");
+    private static final Identifier EVENT_MOMENT_END = Identifier.of(Noellesroles.MOD_ID, "corrupt_cop_moment_end");
 
     private final PlayerEntity player;
 
@@ -96,6 +99,11 @@ public class CorruptCopPlayerComponent implements AutoSyncedComponent, ClientTic
         this.corruptCopMomentActive = true;
 
         if (!(player.getWorld() instanceof ServerWorld serverWorld)) return;
+        if (player instanceof ServerPlayerEntity serverPlayer) {
+            NbtCompound extra = new NbtCompound();
+            extra.putInt("trigger_threshold", triggerThreshold);
+            GameRecordManager.recordGlobalEvent(serverWorld, EVENT_MOMENT_START, serverPlayer, extra);
+        }
 
         // 给黑警撬棍
         boolean hasCrowbar = false;
@@ -137,6 +145,9 @@ public class CorruptCopPlayerComponent implements AutoSyncedComponent, ClientTic
         this.corruptCopMomentActive = false;
 
         if (!(player.getWorld() instanceof ServerWorld)) return;
+        if (player instanceof ServerPlayerEntity serverPlayer) {
+            GameRecordManager.recordGlobalEvent((ServerWorld) player.getWorld(), EVENT_MOMENT_END, serverPlayer, null);
+        }
 
         // 通过CCA组件停止BGM播放
         WorldMusicComponent worldMusic = WorldMusicComponent.KEY.get(player.getWorld());

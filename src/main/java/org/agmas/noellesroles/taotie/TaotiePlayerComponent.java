@@ -4,6 +4,7 @@ import org.agmas.noellesroles.voice.NoellesrolesVoiceChatPlugin;
 import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.game.GameFunctions;
+import dev.doctor4t.wathe.record.GameRecordManager;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
@@ -44,6 +45,8 @@ import java.util.UUID;
 public class TaotiePlayerComponent implements AutoSyncedComponent, ServerTickingComponent {
     public static final ComponentKey<TaotiePlayerComponent> KEY = ComponentRegistry.getOrCreate(
             Identifier.of(Noellesroles.MOD_ID, "taotie"), TaotiePlayerComponent.class);
+    private static final Identifier EVENT_MOMENT_START = Identifier.of(Noellesroles.MOD_ID, "taotie_moment_start");
+    private static final Identifier EVENT_MOMENT_END = Identifier.of(Noellesroles.MOD_ID, "taotie_moment_end");
 
     // Constants
     public static final int SWALLOW_COOLDOWN = GameConstants.getInTicks(0, 45); // 45 seconds
@@ -374,6 +377,12 @@ public class TaotiePlayerComponent implements AutoSyncedComponent, ServerTicking
         this.taotieMomentTicks = TAOTIE_MOMENT_DURATION;
 
         if (!(player.getWorld() instanceof ServerWorld serverWorld)) return;
+        if (player instanceof ServerPlayerEntity serverPlayer) {
+            NbtCompound extra = new NbtCompound();
+            extra.putInt("trigger_threshold", triggerThreshold);
+            extra.putInt("duration_ticks", TAOTIE_MOMENT_DURATION);
+            GameRecordManager.recordGlobalEvent(serverWorld, EVENT_MOMENT_START, serverPlayer, extra);
+        }
 
         // Broadcast to all players with Title
         for (ServerPlayerEntity p : serverWorld.getPlayers()) {
@@ -413,6 +422,9 @@ public class TaotiePlayerComponent implements AutoSyncedComponent, ServerTicking
         this.taotieMomentTicks = 0;
 
         if (!(player.getWorld() instanceof ServerWorld serverWorld)) return;
+        if (player instanceof ServerPlayerEntity serverPlayer) {
+            GameRecordManager.recordGlobalEvent(serverWorld, EVENT_MOMENT_END, serverPlayer, null);
+        }
 
         // Broadcast end message to all players
         for (ServerPlayerEntity p : serverWorld.getPlayers()) {

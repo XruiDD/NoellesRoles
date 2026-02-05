@@ -2,6 +2,7 @@ package org.agmas.noellesroles.serialkiller;
 
 import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.game.GameFunctions;
+import dev.doctor4t.wathe.record.GameRecordManager;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryWrapper;
@@ -67,6 +68,14 @@ public class SerialKillerPlayerComponent implements AutoSyncedComponent {
             Random random = new Random();
             this.currentTarget = eligibleTargets.get(random.nextInt(eligibleTargets.size()));
             this.sync();
+
+            // 记录目标分配
+            if (player instanceof ServerPlayerEntity serverPlayer) {
+                ServerPlayerEntity targetPlayer = serverWorld.getServer().getPlayerManager().getPlayer(this.currentTarget);
+                NbtCompound extra = new NbtCompound();
+                extra.putString("action", "assign");
+                GameRecordManager.recordSkillUse(serverPlayer, Noellesroles.SERIAL_KILLER_ID, targetPlayer, extra);
+            }
         }
     }
 
@@ -77,15 +86,37 @@ public class SerialKillerPlayerComponent implements AutoSyncedComponent {
     public void onTargetDeath(GameWorldComponent gameWorldComponent) {
         if (!(player.getWorld() instanceof ServerWorld serverWorld)) return;
 
+        UUID previousTarget = this.currentTarget;
         List<UUID> eligibleTargets = getEligibleTargets(gameWorldComponent, serverWorld);
 
         if (!eligibleTargets.isEmpty()) {
             Random random = new Random();
             this.currentTarget = eligibleTargets.get(random.nextInt(eligibleTargets.size()));
             this.sync();
+
+            // 记录目标更换
+            if (player instanceof ServerPlayerEntity serverPlayer) {
+                ServerPlayerEntity newTargetPlayer = serverWorld.getServer().getPlayerManager().getPlayer(this.currentTarget);
+                NbtCompound extra = new NbtCompound();
+                extra.putString("action", "reassign");
+                if (previousTarget != null) {
+                    extra.putUuid("previous_target", previousTarget);
+                }
+                GameRecordManager.recordSkillUse(serverPlayer, Noellesroles.SERIAL_KILLER_ID, newTargetPlayer, extra);
+            }
         } else {
             this.currentTarget = null;
             this.sync();
+
+            // 记录无可用目标
+            if (player instanceof ServerPlayerEntity serverPlayer) {
+                NbtCompound extra = new NbtCompound();
+                extra.putString("action", "no_target");
+                if (previousTarget != null) {
+                    extra.putUuid("previous_target", previousTarget);
+                }
+                GameRecordManager.recordSkillUse(serverPlayer, Noellesroles.SERIAL_KILLER_ID, null, extra);
+            }
         }
     }
 

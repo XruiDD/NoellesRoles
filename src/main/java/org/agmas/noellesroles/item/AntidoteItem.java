@@ -2,6 +2,7 @@ package org.agmas.noellesroles.item;
 
 import dev.doctor4t.wathe.cca.PlayerPoisonComponent;
 import dev.doctor4t.wathe.game.GameFunctions;
+import dev.doctor4t.wathe.record.GameRecordManager;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.LivingEntity;
@@ -10,6 +11,8 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsage;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.Registries;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.ActionResult;
@@ -134,6 +137,12 @@ public class AntidoteItem extends Item {
 
             // Set cooldown
             player.getItemCooldownManager().set(this, COOLDOWN_TICKS);
+            if (player instanceof ServerPlayerEntity serverPlayer) {
+                ServerPlayerEntity recordTarget = target instanceof ServerPlayerEntity serverTarget ? serverTarget : null;
+                NbtCompound extra = new NbtCompound();
+                extra.putString("action", "cure");
+                GameRecordManager.recordItemUse(serverPlayer, Registries.ITEM.getId(this), recordTarget, extra);
+            }
         }
 
         // Clear target data

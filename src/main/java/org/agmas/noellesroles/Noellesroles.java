@@ -12,6 +12,7 @@ import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.game.GameFunctions;
 import dev.doctor4t.wathe.index.WatheItems;
 import dev.doctor4t.wathe.index.WatheSounds;
+import dev.doctor4t.wathe.record.GameRecordManager;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
@@ -21,9 +22,11 @@ import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.particle.ParticleTypes;
+import net.minecraft.registry.Registries;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
@@ -293,6 +296,17 @@ public class Noellesroles implements ModInitializer {
             IronManPlayerComponent ironManComp = IronManPlayerComponent.KEY.get(victim);
             if (ironManComp.hasBuff() && deathReason != GameConstants.DeathReasons.SHOT_INNOCENT && deathReason != DEATH_REASON_ASSASSINATED) {
                 victim.getWorld().playSound(null, victim.getBlockPos(), WatheSounds.ITEM_PSYCHO_ARMOUR, SoundCategory.MASTER, 5.0F, 1.0F);
+                // 记录铁人药水保护生效
+                if (victim instanceof ServerPlayerEntity serverVictim && victim.getWorld() instanceof ServerWorld serverWorld) {
+                    NbtCompound extra = new NbtCompound();
+                    extra.putString("action", "protect");
+                    extra.putString("death_reason", deathReason.toString());
+                    if (killer != null) {
+                        extra.putUuid("attacker", killer.getUuid());
+                    }
+                    GameRecordManager.recordItemUse(serverVictim, Registries.ITEM.getId(ModItems.IRON_MAN_VIAL),
+                        killer instanceof ServerPlayerEntity serverKiller ? serverKiller : null, extra);
+                }
                 ironManComp.removeBuff();
                 return KillPlayer.KillResult.cancel();
             }
@@ -604,6 +618,22 @@ public class Noellesroles implements ModInitializer {
         KillPlayer.AFTER.register((victim, killer, deathReason) -> {
             GameWorldComponent gameComponent = GameWorldComponent.KEY.get(victim.getWorld());
 
+            // 记录被吞玩家肚内死亡标记
+            SwallowedPlayerComponent victimSwallowedCheck = SwallowedPlayerComponent.KEY.get(victim);
+            if (victimSwallowedCheck.isSwallowed() && victim instanceof ServerPlayerEntity serverVictim && victim.getWorld() instanceof ServerWorld serverWorld) {
+                UUID taotieUuid = victimSwallowedCheck.getSwallowedBy();
+                NbtCompound extra = new NbtCompound();
+                extra.putString("event", "death_in_stomach");
+                extra.putString("death_reason", deathReason.toString());
+                if (taotieUuid != null) {
+                    extra.putUuid("taotie_uuid", taotieUuid);
+                }
+                if (killer != null) {
+                    extra.putUuid("killer_uuid", killer.getUuid());
+                }
+                GameRecordManager.recordGlobalEvent(serverWorld, Identifier.of(MOD_ID, "death_in_stomach"), serverVictim, extra);
+            }
+
             // 连环杀手处理：击杀目标奖励和目标更换
             if (victim.getWorld() instanceof ServerWorld serverWorld) {
                 for (UUID uuid : gameComponent.getAllWithRole(SERIAL_KILLER)) {
@@ -801,13 +831,16 @@ public class Noellesroles implements ModInitializer {
 
             if (payload.player() == null) return;
             if (abilityPlayerComponent.cooldown > 0) return;
-            if (context.player().getWorld().getPlayerByUuid(payload.player()) == null) return;
+            PlayerEntity abilityTarget = context.player().getWorld().getPlayerByUuid(payload.player());
+            if (abilityTarget == null) return;
 
             if (gameWorldComponent.isRole(context.player(), VOODOO) && GameFunctions.isPlayerPlayingAndAlive(context.player()) && !SwallowedPlayerComponent.isPlayerSwallowed(context.player())) {
                 abilityPlayerComponent.cooldown = GameConstants.getInTicks(0, 30);
                 abilityPlayerComponent.sync();
                 VoodooPlayerComponent voodooPlayerComponent = (VoodooPlayerComponent) VoodooPlayerComponent.KEY.get(context.player());
                 voodooPlayerComponent.setTarget(payload.player());
+                ServerPlayerEntity recordTarget = abilityTarget instanceof ServerPlayerEntity serverTarget ? serverTarget : null;
+                GameRecordManager.recordSkillUse(context.player(), VOODOO_ID, recordTarget, null);
 
             }
             if (gameWorldComponent.isRole(context.player(), MORPHLING) && GameFunctions.isPlayerPlayingAndAlive(context.player()) && !SwallowedPlayerComponent.isPlayerSwallowed(context.player())) {
@@ -815,6 +848,11 @@ public class Noellesroles implements ModInitializer {
                 // 服务端验证冷却是否结束，防止作弊
                 if (morphlingPlayerComponent.getMorphTicks() != 0) return;
                 morphlingPlayerComponent.startMorph(payload.player());
+                ServerPlayerEntity recordTarget = abilityTarget instanceof ServerPlayerEntity serverTarget ? serverTarget : null;
+                NbtCompound extra = new NbtCompound();
+                extra.putString("action", "morph");
+                extra.putUuid("disguise_as", payload.player());
+                GameRecordManager.recordSkillUse(context.player(), MORPHLING_ID, recordTarget, extra);
             }
         });
         ServerPlayNetworking.registerGlobalReceiver(Noellesroles.VULTURE_PACKET, (payload, context) -> {
@@ -828,6 +866,8 @@ public class Noellesroles implements ModInitializer {
                 }));
                 if (!playerBodyEntities.isEmpty()) {
                     PlayerBodyEntity body = playerBodyEntities.getFirst();
+                    UUID bodyPlayerUuid = body.getPlayerUuid();
+                    Vec3d bodyPos = body.getPos();
                     abilityPlayerComponent.setCooldown(GameConstants.getInTicks(0, 5));
                     VulturePlayerComponent vulturePlayerComponent = VulturePlayerComponent.KEY.get(context.player());
                     vulturePlayerComponent.addBody(body.getUuid());
@@ -841,6 +881,20 @@ public class Noellesroles implements ModInitializer {
 
                     // 移除尸体
                     body.discard();
+                    ServerPlayerEntity recordTarget = null;
+                    if (bodyPlayerUuid != null) {
+                        PlayerEntity targetPlayer = context.player().getServerWorld().getPlayerByUuid(bodyPlayerUuid);
+                        if (targetPlayer instanceof ServerPlayerEntity serverTarget) {
+                            recordTarget = serverTarget;
+                        }
+                    }
+                    NbtCompound extra = new NbtCompound();
+                    extra.putUuid("body_uuid", body.getUuid());
+                    if (bodyPlayerUuid != null) {
+                        extra.putUuid("body_player_uuid", bodyPlayerUuid);
+                    }
+                    GameRecordManager.putPos(extra, "body_pos", bodyPos);
+                    GameRecordManager.recordSkillUse(context.player(), VULTURE_ID, recordTarget, extra);
                 }
 
             }
@@ -894,6 +948,7 @@ public class Noellesroles implements ModInitializer {
 //                                if (!context.player().getWorld().isSpaceEmpty(player2)) return;
 
                                 Set<PositionFlag> movementFlags = EnumSet.noneOf(PositionFlag.class);
+                                boolean swapped = false;
                                 if (player1.teleport(world2, x2, y2, z2, movementFlags, yaw2, pitch2)) {
                                     AbilityPlayerComponent abilityPlayerComponent = AbilityPlayerComponent.KEY.get(context.player());
                                     abilityPlayerComponent.cooldown = GameConstants.getInTicks(1, 0);
@@ -907,7 +962,18 @@ public class Noellesroles implements ModInitializer {
                                             player2.setVelocity(player1.getVelocity().multiply(1.0, 0.0, 1.0));
                                             player2.setOnGround(true);
                                         }
+                                        swapped = true;
                                     }
+                                }
+                                if (swapped) {
+                                    NbtCompound extra = new NbtCompound();
+                                    extra.putString("action", "swap");
+                                    extra.putUuid("target1", player1.getUuid());
+                                    extra.putUuid("target2", player2.getUuid());
+                                    GameRecordManager.putPos(extra, "target1_pos", swappedPos1);
+                                    GameRecordManager.putPos(extra, "target2_pos", swappedPos2);
+                                    ServerPlayerEntity recordTarget = player1 instanceof ServerPlayerEntity serverTarget ? serverTarget : null;
+                                    GameRecordManager.recordSkillUse(context.player(), SWAPPER_ID, recordTarget, extra);
                                 }
                             }
                         }
@@ -924,18 +990,36 @@ public class Noellesroles implements ModInitializer {
                 if (!recallerPlayerComponent.placed) {
                     abilityPlayerComponent.cooldown = GameConstants.getInTicks(0,10);
                     recallerPlayerComponent.setPosition();
+                    NbtCompound extra = new NbtCompound();
+                    extra.putString("action", "place");
+                    extra.putDouble("x", recallerPlayerComponent.x);
+                    extra.putDouble("y", recallerPlayerComponent.y);
+                    extra.putDouble("z", recallerPlayerComponent.z);
+                    GameRecordManager.recordSkillUse(context.player(), RECALLER_ID, null, extra);
                 }
                 else if (playerShopComponent.balance >= 100) {
                     playerShopComponent.balance -= 100;
                     playerShopComponent.sync();
                     abilityPlayerComponent.cooldown = GameConstants.getInTicks(0,30);
+                    double targetX = recallerPlayerComponent.x;
+                    double targetY = recallerPlayerComponent.y;
+                    double targetZ = recallerPlayerComponent.z;
                     recallerPlayerComponent.teleport();
+                    NbtCompound extra = new NbtCompound();
+                    extra.putString("action", "teleport");
+                    extra.putDouble("x", targetX);
+                    extra.putDouble("y", targetY);
+                    extra.putDouble("z", targetZ);
+                    GameRecordManager.recordSkillUse(context.player(), RECALLER_ID, null, extra);
                 }
 
             }
             if (gameWorldComponent.isRole(context.player(), PHANTOM) && abilityPlayerComponent.cooldown <= 0 && GameFunctions.isPlayerPlayingAndAlive(context.player()) && !SwallowedPlayerComponent.isPlayerSwallowed(context.player())) {
                 context.player().addStatusEffect(new StatusEffectInstance(StatusEffects.INVISIBILITY, 30 * 20,0,true,false,true));
                 abilityPlayerComponent.cooldown = GameConstants.getInTicks(1, 30);
+                NbtCompound extra = new NbtCompound();
+                extra.putString("action", "invisible");
+                GameRecordManager.recordSkillUse(context.player(), PHANTOM_ID, null, extra);
             }
             // Pathogen infection ability
             if (gameWorldComponent.isRole(context.player(), PATHOGEN) && abilityPlayerComponent.cooldown <= 0 && GameFunctions.isPlayerPlayingAndAlive(context.player()) && !SwallowedPlayerComponent.isPlayerSwallowed(context.player())) {
@@ -969,6 +1053,10 @@ public class Noellesroles implements ModInitializer {
                     // Set cooldown based on player count (calculated at game start)
                     PathogenPlayerComponent pathogenComp = PathogenPlayerComponent.KEY.get(context.player());
                     abilityPlayerComponent.setCooldown(pathogenComp.getBaseCooldownTicks());
+                    ServerPlayerEntity recordTarget = nearestTarget instanceof ServerPlayerEntity serverTarget ? serverTarget : null;
+                    NbtCompound extra = new NbtCompound();
+                    extra.putString("action", "infect");
+                    GameRecordManager.recordSkillUse(context.player(), PATHOGEN_ID, recordTarget, extra);
                 }
             }
         });
@@ -1046,6 +1134,12 @@ public class Noellesroles implements ModInitializer {
                 GameFunctions.killPlayer(assassin, true, null, DEATH_REASON_ASSASSIN_MISFIRE);
             }
 
+            NbtCompound extra = new NbtCompound();
+            extra.putString("action", "guess");
+            extra.putString("guessed_role", payload.guessedRole().toString());
+            extra.putBoolean("correct", guessedCorrectly);
+            GameRecordManager.recordSkillUse(assassin, ASSASSIN_ID, target, extra);
+
             // 消耗猜测次数，设置冷却
             assassinComp.useGuess();
         });
@@ -1081,6 +1175,9 @@ public class Noellesroles implements ModInitializer {
             reporterComp.setMarkedTarget(target.getUuid());
             // 设置冷却30秒
             abilityPlayerComponent.setCooldown(GameConstants.getInTicks(0, 30));
+            NbtCompound extra = new NbtCompound();
+            extra.putString("action", "mark");
+            GameRecordManager.recordSkillUse(reporter, REPORTER_ID, target instanceof ServerPlayerEntity serverTarget ? serverTarget : null, extra);
         });
 
         // 饕餮吞噬目标
@@ -1102,6 +1199,7 @@ public class Noellesroles implements ModInitializer {
             if (target == null) return;
             if (target.equals(taotie)) return;
             if (!GameFunctions.isPlayerPlayingAndAlive(target)) return;
+            if (!GameFunctions.isPlayerAliveAndSurvival(target)) return;
 
             // 验证距离（3格内）
             double distance = taotie.squaredDistanceTo(target);
@@ -1111,7 +1209,11 @@ public class Noellesroles implements ModInitializer {
             if (!taotie.canSee(target)) return;
 
             // 执行吞噬
-            taotieComp.swallowPlayer(target);
+            if (taotieComp.swallowPlayer(target)) {
+                NbtCompound extra = new NbtCompound();
+                extra.putString("action", "swallow");
+                GameRecordManager.recordSkillUse(taotie, TAOTIE_ID, target, extra);
+            }
         });
     }
 

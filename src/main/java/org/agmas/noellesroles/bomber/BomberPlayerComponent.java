@@ -3,6 +3,7 @@ package org.agmas.noellesroles.bomber;
 import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.game.GameFunctions;
 import dev.doctor4t.wathe.index.WatheParticles;
+import dev.doctor4t.wathe.record.GameRecordManager;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -11,6 +12,7 @@ import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -90,6 +92,11 @@ public class BomberPlayerComponent implements ServerTickingComponent {
         this.bomberUuid = bomber.getUuid();
         this.transferCooldown = 0;
         this.lastDisplayedSeconds = -1;
+        if (bomber instanceof ServerPlayerEntity serverBomber && player instanceof ServerPlayerEntity target) {
+            NbtCompound extra = new NbtCompound();
+            extra.putString("action", "place");
+            GameRecordManager.recordSkillUse(serverBomber, Noellesroles.BOMBER_ID, target, extra);
+        }
     }
 
     /**
@@ -145,6 +152,11 @@ public class BomberPlayerComponent implements ServerTickingComponent {
         // 播放传递音效
         player.getWorld().playSound(null, target.getX(), target.getY(), target.getZ(),
                 SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 1.0F, 1.0F);
+        if (player instanceof ServerPlayerEntity serverPlayer && target instanceof ServerPlayerEntity serverTarget) {
+            NbtCompound extra = new NbtCompound();
+            extra.putString("action", "transfer");
+            GameRecordManager.recordSkillUse(serverPlayer, Noellesroles.BOMBER_ID, serverTarget, extra);
+        }
     }
 
     /**
@@ -235,6 +247,11 @@ public class BomberPlayerComponent implements ServerTickingComponent {
 
         // 获取炸弹客玩家
         PlayerEntity bomber = bomberUuid != null ? player.getWorld().getPlayerByUuid(bomberUuid) : null;
+        ServerPlayerEntity recordActor = bomber instanceof ServerPlayerEntity serverBomber
+            ? serverBomber
+            : (player instanceof ServerPlayerEntity serverHolder ? serverHolder : null);
+        ServerPlayerEntity recordTarget = player instanceof ServerPlayerEntity serverHolder ? serverHolder : null;
+        NbtCompound recordExtra = null;
 
         // 检查持有者是否被饕餮吞噬
         SwallowedPlayerComponent swallowedComp = SwallowedPlayerComponent.KEY.get(player);
@@ -244,6 +261,9 @@ public class BomberPlayerComponent implements ServerTickingComponent {
             if (taotieUuid != null) {
                 PlayerEntity taotie = serverWorld.getPlayerByUuid(taotieUuid);
                 if (taotie != null && GameFunctions.isPlayerPlayingAndAlive(taotie)) {
+                    if (taotie instanceof ServerPlayerEntity serverTaotie) {
+                        recordTarget = serverTaotie;
+                    }
                     GameFunctions.killPlayer(taotie, true, bomber, Noellesroles.DEATH_REASON_BOMB);
                 }
             }
@@ -252,6 +272,17 @@ public class BomberPlayerComponent implements ServerTickingComponent {
             if (GameFunctions.isPlayerPlayingAndAlive(player)) {
                 GameFunctions.killPlayer(player, true, bomber, Noellesroles.DEATH_REASON_BOMB);
             }
+        }
+
+        if (recordActor != null) {
+            recordExtra = new NbtCompound();
+            recordExtra.putString("action", "explode");
+            recordExtra.putUuid("holder_uuid", player.getUuid());
+            if (bomberUuid != null) {
+                recordExtra.putUuid("bomber_uuid", bomberUuid);
+            }
+            recordExtra.putBoolean("swallowed", swallowedComp.isSwallowed());
+            GameRecordManager.recordSkillUse(recordActor, Noellesroles.BOMBER_ID, recordTarget, recordExtra);
         }
 
         // 重置状态

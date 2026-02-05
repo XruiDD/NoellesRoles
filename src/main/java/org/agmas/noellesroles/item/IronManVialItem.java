@@ -2,10 +2,14 @@ package org.agmas.noellesroles.item;
 
 import dev.doctor4t.wathe.game.GameFunctions;
 import dev.doctor4t.wathe.index.WatheSounds;
+import dev.doctor4t.wathe.record.GameRecordManager;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.Registries;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -55,6 +59,12 @@ public class IronManVialItem extends Item {
 
         // Set cooldown (5 minutes)
         user.getItemCooldownManager().set(this, COOLDOWN_TICKS);
+        if (user instanceof ServerPlayerEntity serverPlayer) {
+            ServerPlayerEntity recordTarget = target instanceof ServerPlayerEntity serverTarget ? serverTarget : null;
+            NbtCompound extra = new NbtCompound();
+            extra.putString("action", "buff");
+            GameRecordManager.recordItemUse(serverPlayer, Registries.ITEM.getId(this), recordTarget, extra);
+        }
 
         return ActionResult.CONSUME;
     }

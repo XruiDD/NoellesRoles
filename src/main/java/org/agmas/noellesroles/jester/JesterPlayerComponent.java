@@ -3,6 +3,7 @@ package org.agmas.noellesroles.jester;
 import dev.doctor4t.wathe.Wathe;
 import dev.doctor4t.wathe.cca.PlayerPsychoComponent;
 import dev.doctor4t.wathe.game.GameFunctions;
+import dev.doctor4t.wathe.record.GameRecordManager;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.RegistryByteBuf;
@@ -32,6 +33,9 @@ import org.ladysnake.cca.api.v3.component.tick.ServerTickingComponent;
 public class JesterPlayerComponent implements AutoSyncedComponent, ServerTickingComponent, ClientTickingComponent {
     public static final ComponentKey<JesterPlayerComponent> KEY =
         ComponentRegistry.getOrCreate(Identifier.of(Noellesroles.MOD_ID, "jester"), JesterPlayerComponent.class);
+    private static final Identifier EVENT_MOMENT_START = Identifier.of(Noellesroles.MOD_ID, "jester_moment_start");
+    private static final Identifier EVENT_MOMENT_END = Identifier.of(Noellesroles.MOD_ID, "jester_moment_end");
+    private static final Identifier EVENT_STASIS_START = Identifier.of(Noellesroles.MOD_ID, "jester_stasis_start");
 
     private final PlayerEntity player;
     public boolean won = false;
@@ -61,14 +65,21 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
         this.inStasis = false;
         this.stasisTicks = 0;
         this.psychoArmour = 0;
-        this.psychoModeTicks = 0;
         this.targetKiller = null;
         // 如果正在疯魔模式中，停止疯魔模式
         if (this.inPsychoMode) {
+            // 记录疯魔模式被中断（被杀死），排除超时情况（超时时 psychoModeTicks <= 0，已单独记录）
+            if (this.psychoModeTicks > 0 && player instanceof ServerPlayerEntity serverPlayer && player.getWorld() instanceof ServerWorld serverWorld) {
+                NbtCompound extra = new NbtCompound();
+                extra.putString("reason", "killed");
+                extra.putInt("remaining_ticks", this.psychoModeTicks);
+                GameRecordManager.recordGlobalEvent(serverWorld, EVENT_MOMENT_END, serverPlayer, extra);
+            }
             this.inPsychoMode = false;
             PlayerPsychoComponent psychoComponent = PlayerPsychoComponent.KEY.get(this.player);
             psychoComponent.stopPsycho();
         }
+        this.psychoModeTicks = 0;
         this.sync();
     }
 
@@ -86,6 +97,16 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
 
         // 播放全服声音
         if (player.getWorld() instanceof ServerWorld serverWorld) {
+            // 记录禁锢开始事件
+            if (player instanceof ServerPlayerEntity serverJester) {
+                ServerPlayerEntity killerPlayer = this.targetKiller != null
+                    ? serverWorld.getServer().getPlayerManager().getPlayer(this.targetKiller)
+                    : null;
+                NbtCompound extra = new NbtCompound();
+                extra.putInt("stasis_ticks", ticks);
+                extra.putInt("psycho_armour", this.psychoArmour);
+                GameRecordManager.recordGlobalEvent(serverWorld, EVENT_STASIS_START, serverJester, extra);
+            }
 
             RegistryEntry<net.minecraft.sound.SoundEvent> soundEntry = RegistryEntry.of(ModSounds.JESTER_LAUGH);
 
@@ -119,6 +140,11 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
 
             // Broadcast Jester Psycho Mode to all players with Title
             if (player.getWorld() instanceof ServerWorld serverWorld) {
+                if (player instanceof ServerPlayerEntity serverPlayer) {
+                    NbtCompound extra = new NbtCompound();
+                    extra.putInt("armour", this.psychoArmour);
+                    GameRecordManager.recordGlobalEvent(serverWorld, EVENT_MOMENT_START, serverPlayer, extra);
+                }
                 for (ServerPlayerEntity p : serverWorld.getPlayers()) {
                     // Send Title (主标题)
                     p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.TitleS2CPacket(
@@ -190,6 +216,12 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
         if (this.inPsychoMode && this.psychoModeTicks > 0) {
             this.psychoModeTicks--;
             if (this.psychoModeTicks <= 0) {
+                // 记录疯魔模式超时结束
+                if (player instanceof ServerPlayerEntity serverPlayer && player.getWorld() instanceof ServerWorld serverWorld) {
+                    NbtCompound extra = new NbtCompound();
+                    extra.putString("reason", "timeout");
+                    GameRecordManager.recordGlobalEvent(serverWorld, EVENT_MOMENT_END, serverPlayer, extra);
+                }
                 GameFunctions.killPlayer(this.player, true, null, Noellesroles.DEATH_REASON_JESTER_TIMEOUT, true);
                 this.reset();
             } else if (this.psychoModeTicks % 20 == 0) {
