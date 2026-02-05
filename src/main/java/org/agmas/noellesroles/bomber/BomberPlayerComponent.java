@@ -9,6 +9,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.particle.ItemStackParticleEffect;
 import net.minecraft.particle.ParticleTypes;
+import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.server.world.ServerWorld;
@@ -152,10 +153,15 @@ public class BomberPlayerComponent implements ServerTickingComponent {
         // 播放传递音效
         player.getWorld().playSound(null, target.getX(), target.getY(), target.getZ(),
                 SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 1.0F, 1.0F);
+
+        // 记录炸弹传递为物品使用事件
         if (player instanceof ServerPlayerEntity serverPlayer && target instanceof ServerPlayerEntity serverTarget) {
             NbtCompound extra = new NbtCompound();
             extra.putString("action", "transfer");
-            GameRecordManager.recordSkillUse(serverPlayer, Noellesroles.BOMBER_ID, serverTarget, extra);
+            if (this.bomberUuid != null) {
+                extra.putUuid("bomber_uuid", this.bomberUuid);
+            }
+            GameRecordManager.recordItemUse(serverPlayer, Registries.ITEM.getId(TIMED_BOMB), serverTarget, extra);
         }
     }
 
@@ -247,11 +253,6 @@ public class BomberPlayerComponent implements ServerTickingComponent {
 
         // 获取炸弹客玩家
         PlayerEntity bomber = bomberUuid != null ? player.getWorld().getPlayerByUuid(bomberUuid) : null;
-        ServerPlayerEntity recordActor = bomber instanceof ServerPlayerEntity serverBomber
-            ? serverBomber
-            : (player instanceof ServerPlayerEntity serverHolder ? serverHolder : null);
-        ServerPlayerEntity recordTarget = player instanceof ServerPlayerEntity serverHolder ? serverHolder : null;
-        NbtCompound recordExtra = null;
 
         // 检查持有者是否被饕餮吞噬
         SwallowedPlayerComponent swallowedComp = SwallowedPlayerComponent.KEY.get(player);
@@ -261,9 +262,6 @@ public class BomberPlayerComponent implements ServerTickingComponent {
             if (taotieUuid != null) {
                 PlayerEntity taotie = serverWorld.getPlayerByUuid(taotieUuid);
                 if (taotie != null && GameFunctions.isPlayerPlayingAndAlive(taotie)) {
-                    if (taotie instanceof ServerPlayerEntity serverTaotie) {
-                        recordTarget = serverTaotie;
-                    }
                     GameFunctions.killPlayer(taotie, true, bomber, Noellesroles.DEATH_REASON_BOMB);
                 }
             }
@@ -272,17 +270,6 @@ public class BomberPlayerComponent implements ServerTickingComponent {
             if (GameFunctions.isPlayerPlayingAndAlive(player)) {
                 GameFunctions.killPlayer(player, true, bomber, Noellesroles.DEATH_REASON_BOMB);
             }
-        }
-
-        if (recordActor != null) {
-            recordExtra = new NbtCompound();
-            recordExtra.putString("action", "explode");
-            recordExtra.putUuid("holder_uuid", player.getUuid());
-            if (bomberUuid != null) {
-                recordExtra.putUuid("bomber_uuid", bomberUuid);
-            }
-            recordExtra.putBoolean("swallowed", swallowedComp.isSwallowed());
-            GameRecordManager.recordSkillUse(recordActor, Noellesroles.BOMBER_ID, recordTarget, recordExtra);
         }
 
         // 重置状态

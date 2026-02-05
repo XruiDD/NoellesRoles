@@ -257,6 +257,17 @@ public class Noellesroles implements ModInitializer {
             if (gameWorldComponent.isRole(victim, CORRUPT_COP)) {
                 CorruptCopPlayerComponent corruptCopComp = CorruptCopPlayerComponent.KEY.get(victim);
                 if(corruptCopComp.isCorruptCopMomentActive() && deathReason == DEATH_REASON_ASSASSINATED){
+                    // 记录黑警时刻免疫刺客
+                    if (victim instanceof ServerPlayerEntity serverVictim) {
+                        var event = GameRecordManager.event("death_blocked")
+                            .actor(serverVictim)
+                            .put("block_reason", "corrupt_cop_moment")
+                            .put("death_reason", deathReason.toString());
+                        if (killer instanceof ServerPlayerEntity serverKiller) {
+                            event.target(serverKiller);
+                        }
+                        event.record();
+                    }
                     return KillPlayer.KillResult.cancel();
                 }
             }
@@ -265,6 +276,17 @@ public class Noellesroles implements ModInitializer {
             if (gameWorldComponent.isRole(victim, TAOTIE)) {
                 TaotiePlayerComponent taotieComp = TaotiePlayerComponent.KEY.get(victim);
                 if(taotieComp.isTaotieMomentActive() && deathReason == DEATH_REASON_ASSASSINATED){
+                    // 记录饕餮时刻免疫刺客
+                    if (victim instanceof ServerPlayerEntity serverVictim) {
+                        var event = GameRecordManager.event("death_blocked")
+                            .actor(serverVictim)
+                            .put("block_reason", "taotie_moment")
+                            .put("death_reason", deathReason.toString());
+                        if (killer instanceof ServerPlayerEntity serverKiller) {
+                            event.target(serverKiller);
+                        }
+                        event.record();
+                    }
                     return KillPlayer.KillResult.cancel();
                 }
             }
@@ -272,6 +294,17 @@ public class Noellesroles implements ModInitializer {
             if (gameWorldComponent.isRole(victim, JESTER)) {
                 JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(victim);
                 if (jesterComponent.inStasis) {
+                    // 记录小丑禁锢免疫死亡
+                    if (victim instanceof ServerPlayerEntity serverVictim) {
+                        var event = GameRecordManager.event("death_blocked")
+                            .actor(serverVictim)
+                            .put("block_reason", "jester_stasis")
+                            .put("death_reason", deathReason.toString());
+                        if (killer instanceof ServerPlayerEntity serverKiller) {
+                            event.target(serverKiller);
+                        }
+                        event.record();
+                    }
                     return KillPlayer.KillResult.cancel();
                 }
             }
@@ -297,15 +330,15 @@ public class Noellesroles implements ModInitializer {
             if (ironManComp.hasBuff() && deathReason != GameConstants.DeathReasons.SHOT_INNOCENT && deathReason != DEATH_REASON_ASSASSINATED) {
                 victim.getWorld().playSound(null, victim.getBlockPos(), WatheSounds.ITEM_PSYCHO_ARMOUR, SoundCategory.MASTER, 5.0F, 1.0F);
                 // 记录铁人药水保护生效
-                if (victim instanceof ServerPlayerEntity serverVictim && victim.getWorld() instanceof ServerWorld serverWorld) {
-                    NbtCompound extra = new NbtCompound();
-                    extra.putString("action", "protect");
-                    extra.putString("death_reason", deathReason.toString());
-                    if (killer != null) {
-                        extra.putUuid("attacker", killer.getUuid());
+                if (victim instanceof ServerPlayerEntity serverVictim) {
+                    var event = GameRecordManager.event("death_blocked")
+                        .actor(serverVictim)
+                        .put("block_reason", "iron_man_buff")
+                        .put("death_reason", deathReason.toString());
+                    if (killer instanceof ServerPlayerEntity serverKiller) {
+                        event.target(serverKiller);
                     }
-                    GameRecordManager.recordItemUse(serverVictim, Registries.ITEM.getId(ModItems.IRON_MAN_VIAL),
-                        killer instanceof ServerPlayerEntity serverKiller ? serverKiller : null, extra);
+                    event.record();
                 }
                 ironManComp.removeBuff();
                 return KillPlayer.KillResult.cancel();
@@ -620,18 +653,18 @@ public class Noellesroles implements ModInitializer {
 
             // 记录被吞玩家肚内死亡标记
             SwallowedPlayerComponent victimSwallowedCheck = SwallowedPlayerComponent.KEY.get(victim);
-            if (victimSwallowedCheck.isSwallowed() && victim instanceof ServerPlayerEntity serverVictim && victim.getWorld() instanceof ServerWorld serverWorld) {
+            if (victimSwallowedCheck.isSwallowed() && victim instanceof ServerPlayerEntity serverVictim) {
                 UUID taotieUuid = victimSwallowedCheck.getSwallowedBy();
-                NbtCompound extra = new NbtCompound();
-                extra.putString("event", "death_in_stomach");
-                extra.putString("death_reason", deathReason.toString());
+                var event = GameRecordManager.event("death_in_stomach")
+                    .actor(serverVictim)
+                    .put("death_reason", deathReason.toString());
                 if (taotieUuid != null) {
-                    extra.putUuid("taotie_uuid", taotieUuid);
+                    event.putUuid("taotie_uuid", taotieUuid);
                 }
                 if (killer != null) {
-                    extra.putUuid("killer_uuid", killer.getUuid());
+                    event.putUuid("killer_uuid", killer.getUuid());
                 }
-                GameRecordManager.recordGlobalEvent(serverWorld, Identifier.of(MOD_ID, "death_in_stomach"), serverVictim, extra);
+                event.record();
             }
 
             // 连环杀手处理：击杀目标奖励和目标更换
@@ -683,6 +716,14 @@ public class Noellesroles implements ModInitializer {
                         PlayerEntity voodooed = victim.getWorld().getPlayerByUuid(voodooPlayerComponent.target);
                         if (voodooed != null) {
                             if (GameFunctions.isPlayerPlayingAndAlive(voodooed) && voodooed != victim) {
+                                // 记录 Voodoo 连锁死亡
+                                if (victim instanceof ServerPlayerEntity serverVictim && voodooed instanceof ServerPlayerEntity serverVoodooed) {
+                                    GameRecordManager.event("voodoo_chain_death")
+                                        .actor(serverVictim)
+                                        .target(serverVoodooed)
+                                        .put("voodoo_death_reason", deathReason.toString())
+                                        .record();
+                                }
                                 GameFunctions.killPlayer(voodooed, true, null, Identifier.of(Noellesroles.MOD_ID, "voodoo"));
                             }
                         }
