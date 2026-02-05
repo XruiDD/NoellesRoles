@@ -13,6 +13,8 @@ import dev.doctor4t.wathe.game.GameFunctions;
 import dev.doctor4t.wathe.index.WatheItems;
 import dev.doctor4t.wathe.index.WatheSounds;
 import dev.doctor4t.wathe.record.GameRecordManager;
+import dev.doctor4t.wathe.record.replay.ReplayGenerator;
+import dev.doctor4t.wathe.record.replay.ReplayRegistry;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
@@ -233,6 +235,9 @@ public class Noellesroles implements ModInitializer {
         BomberShopHandler.register();
         ScavengerShopHandler.register();
         TimekeeperShopHandler.register();
+
+        // 注册 DLC 回放格式化器
+        registerReplayFormatters();
 
         registerPackets();
         //NoellesRolesEntities.init();
@@ -1258,6 +1263,60 @@ public class Noellesroles implements ModInitializer {
         });
     }
 
+    /**
+     * 注册 DLC 回放格式化器
+     */
+    private void registerReplayFormatters() {
+        // death_blocked 格式化器
+        ReplayRegistry.registerFormatter("death_blocked", (event, match, world) -> {
+            var playerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
+            NbtCompound data = event.data();
+            UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+            String blockReason = data.getString("block_reason");
 
+            if (actorUuid == null) return null;
+
+            Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
+
+            // 根据 block_reason 选择翻译键
+            String translationKey = switch (blockReason) {
+                case "corrupt_cop_moment" -> "replay.death_blocked.corrupt_cop_moment";
+                case "taotie_moment" -> "replay.death_blocked.taotie_moment";
+                case "jester_stasis" -> "replay.death_blocked.jester_stasis";
+                case "iron_man_buff" -> "replay.death_blocked.iron_man_buff";
+                default -> "replay.death_blocked.unknown";
+            };
+
+            return Text.translatable(translationKey, actorText);
+        });
+
+        // voodoo_chain_death 格式化器
+        ReplayRegistry.registerFormatter("voodoo_chain_death", (event, match, world) -> {
+            var playerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
+            NbtCompound data = event.data();
+            UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+            UUID targetUuid = data.containsUuid("target") ? data.getUuid("target") : null;
+
+            if (actorUuid == null || targetUuid == null) return null;
+
+            Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
+            Text targetText = ReplayGenerator.formatPlayerName(targetUuid, playerInfoCache);
+
+            return Text.translatable("replay.voodoo_chain_death", actorText, targetText);
+        });
+
+        // death_in_stomach 格式化器
+        ReplayRegistry.registerFormatter("death_in_stomach", (event, match, world) -> {
+            var playerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
+            NbtCompound data = event.data();
+            UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+
+            if (actorUuid == null) return null;
+
+            Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
+
+            return Text.translatable("replay.death_in_stomach", actorText);
+        });
+    }
 
 }
