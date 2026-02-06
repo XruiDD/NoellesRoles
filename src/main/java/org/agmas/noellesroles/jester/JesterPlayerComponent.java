@@ -223,7 +223,7 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
                     GameRecordManager.recordGlobalEvent(serverWorld, EVENT_MOMENT_END, serverPlayer, extra);
                 }
                 GameFunctions.killPlayer((ServerPlayerEntity) this.player, true, null, Noellesroles.DEATH_REASON_JESTER_TIMEOUT, true);
-                this.reset();
+                // reset() 已由 KillPlayer.AFTER 回调触发，无需再次调用
             } else if (this.psychoModeTicks % 20 == 0) {
                 this.sync();
             }
