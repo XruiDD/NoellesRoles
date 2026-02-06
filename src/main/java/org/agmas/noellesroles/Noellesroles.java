@@ -1399,6 +1399,75 @@ public class Noellesroles implements ModInitializer {
 
         // silencer skill 格式化器（通过 skillUse 系统自动处理，这里只需要注册翻译键）
         // 翻译键 replay.skill.noellesroles.silencer.target 在语言文件中定义
+
+        // ===== 物品使用格式化器 =====
+
+        Identifier fineDrinkId = Registries.ITEM.getId(ModItems.FINE_DRINK);
+        Identifier timedBombId = Registries.ITEM.getId(ModItems.TIMED_BOMB);
+        Identifier antidoteId = Registries.ITEM.getId(ModItems.ANTIDOTE);
+        Identifier ironManVialId = Registries.ITEM.getId(ModItems.IRON_MAN_VIAL);
+
+        // 上等佳酿 - 喝下 / 放置到餐盘
+        ReplayRegistry.registerItemUseFormatter(fineDrinkId, (event, match, world) -> {
+            var playerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
+            NbtCompound data = event.data();
+            UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+            if (actorUuid == null) return null;
+            Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
+            String action = data.getString("action");
+            if ("place".equals(action)) {
+                return Text.translatable("replay.item_use.noellesroles.fine_drink.place", actorText);
+            }
+            return Text.translatable("replay.item_use.noellesroles.fine_drink.drink", actorText);
+        });
+
+        // 定时炸弹 - 传递
+        ReplayRegistry.registerItemUseFormatter(timedBombId, (event, match, world) -> {
+            var playerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
+            NbtCompound data = event.data();
+            UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+            UUID targetUuid = data.containsUuid("target") ? data.getUuid("target") : null;
+            if (actorUuid == null || targetUuid == null) return null;
+            Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
+            Text targetText = ReplayGenerator.formatPlayerName(targetUuid, playerInfoCache);
+            return Text.translatable("replay.item_use.noellesroles.timed_bomb.transfer", actorText, targetText);
+        });
+
+        // 解毒剂 - 解毒
+        ReplayRegistry.registerItemUseFormatter(antidoteId, (event, match, world) -> {
+            var playerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
+            NbtCompound data = event.data();
+            UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+            UUID targetUuid = data.containsUuid("target") ? data.getUuid("target") : null;
+            if (actorUuid == null || targetUuid == null) return null;
+            Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
+            Text targetText = ReplayGenerator.formatPlayerName(targetUuid, playerInfoCache);
+            return Text.translatable("replay.item_use.noellesroles.antidote", actorText, targetText);
+        });
+
+        // 铁人药剂 - 注射
+        ReplayRegistry.registerItemUseFormatter(ironManVialId, (event, match, world) -> {
+            var playerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
+            NbtCompound data = event.data();
+            UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+            UUID targetUuid = data.containsUuid("target") ? data.getUuid("target") : null;
+            if (actorUuid == null || targetUuid == null) return null;
+            Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
+            Text targetText = ReplayGenerator.formatPlayerName(targetUuid, playerInfoCache);
+            return Text.translatable("replay.item_use.noellesroles.iron_man_vial", actorText, targetText);
+        });
+
+        // ===== 餐盘拿取格式化器 =====
+
+        // 上等佳酿 - 从餐盘拿取
+        ReplayRegistry.registerPlatterTakeFormatter(fineDrinkId, (event, match, world) -> {
+            var playerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
+            NbtCompound data = event.data();
+            UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+            if (actorUuid == null) return null;
+            Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
+            return Text.translatable("replay.platter_take.noellesroles.fine_drink", actorText);
+        });
     }
 
 }

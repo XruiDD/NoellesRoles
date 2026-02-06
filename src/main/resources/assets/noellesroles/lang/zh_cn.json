@@ -237,7 +237,7 @@
   "replay.death_blocked.iron_man_buff": "%s 的§e铁人药剂§r抵挡了致命伤害",
   "replay.death_blocked.unknown": "%s 免疫了死亡",
 
-  "replay.voodoo_chain_death": "%s 死亡，§5巫毒连锁§r导致 %s 一同死亡",
+  "replay.voodoo_chain_death": "%s 死亡，§5巫毒诅咒§r触发，目标 %s",
   "replay.death_in_stomach": "%s 在§6饕餮§r的肚子里死亡",
 
   "replay.skill.noellesroles.morphling.target": "%s §b变形§r为 %s",
@@ -249,6 +249,7 @@
   "replay.skill.noellesroles.recaller": "%s 使用了§b回溯§r",
   "replay.skill.noellesroles.phantom": "%s 进入§7隐身§r状态",
   "replay.skill.noellesroles.swapper.target": "%s §b交换§r了 %s 和 %s 的位置",
+  "replay.skill.noellesroles.bomber.target": "%s 在 %s 身上§e安装了炸弹§r",
   "replay.skill.noellesroles.reporter.target": "%s §b标记§r了 %s",
 
   "replay.death.noellesroles.assassinated.killed": "%s 被 %s §c识破身份§r击杀",
@@ -259,5 +260,12 @@
   "replay.death.noellesroles.bomb.killed": "%s 被 %s 的§e定时炸弹§r炸死",
   "replay.death.noellesroles.bomb.died": "%s 被§e定时炸弹§r炸死",
   "replay.death.noellesroles.voodoo.died": "%s 死于§5巫毒诅咒§r",
-  "replay.death.noellesroles.jester_timeout.died": "%s 的§d疯魔时间§r耗尽"
+  "replay.death.noellesroles.jester_timeout.died": "%s 的§d疯魔时间§r耗尽",
+
+  "replay.item_use.noellesroles.fine_drink.drink": "%s 喝下了§d上等佳酿§r",
+  "replay.item_use.noellesroles.fine_drink.place": "%s 将§d上等佳酿§r放到了餐盘上",
+  "replay.item_use.noellesroles.timed_bomb.transfer": "%s 将§e定时炸弹§r传递给了 %s",
+  "replay.item_use.noellesroles.antidote": "%s 为 %s §a解除§r了毒素",
+  "replay.item_use.noellesroles.iron_man_vial": "%s 为 %s 注射了§b铁人药剂§r",
+  "replay.platter_take.noellesroles.fine_drink": "%s 从餐盘取走了§d上等佳酿§r"
 }
