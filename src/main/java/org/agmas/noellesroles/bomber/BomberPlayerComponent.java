@@ -252,7 +252,7 @@ public class BomberPlayerComponent implements ServerTickingComponent {
                 100, 0, 0, 0, 1.0);
 
         // 获取炸弹客玩家
-        PlayerEntity bomber = bomberUuid != null ? player.getWorld().getPlayerByUuid(bomberUuid) : null;
+        ServerPlayerEntity bomber = bomberUuid != null ? (ServerPlayerEntity) player.getWorld().getPlayerByUuid(bomberUuid) : null;
 
         // 检查持有者是否被饕餮吞噬
         SwallowedPlayerComponent swallowedComp = SwallowedPlayerComponent.KEY.get(player);
@@ -260,15 +260,15 @@ public class BomberPlayerComponent implements ServerTickingComponent {
             // 炸弹在肚子里爆炸，杀死饕餮而非持有者
             UUID taotieUuid = swallowedComp.getSwallowedBy();
             if (taotieUuid != null) {
-                PlayerEntity taotie = serverWorld.getPlayerByUuid(taotieUuid);
-                if (taotie != null && GameFunctions.isPlayerPlayingAndAlive(taotie)) {
+                ServerPlayerEntity taotie = (ServerPlayerEntity) serverWorld.getPlayerByUuid(taotieUuid);
+                if (GameFunctions.isPlayerPlayingAndAlive(taotie)) {
                     GameFunctions.killPlayer(taotie, true, bomber, Noellesroles.DEATH_REASON_BOMB);
                 }
             }
         } else {
             // 普通情况：杀死携带炸弹的玩家
             if (GameFunctions.isPlayerPlayingAndAlive(player)) {
-                GameFunctions.killPlayer(player, true, bomber, Noellesroles.DEATH_REASON_BOMB);
+                GameFunctions.killPlayer((ServerPlayerEntity) player, true, bomber, Noellesroles.DEATH_REASON_BOMB);
             }
         }
 

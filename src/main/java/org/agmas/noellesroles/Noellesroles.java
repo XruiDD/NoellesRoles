@@ -730,7 +730,7 @@ public class Noellesroles implements ModInitializer {
                 if (gameComponent.isRole(victim, Noellesroles.VOODOO)) {
                     VoodooPlayerComponent voodooPlayerComponent = VoodooPlayerComponent.KEY.get(victim);
                     if (voodooPlayerComponent.target != null && (deathReason != DEATH_REASON_ASSASSINATED || !gameComponent.isRole(voodooPlayerComponent.target ,ASSASSIN))) {
-                        PlayerEntity voodooed = victim.getWorld().getPlayerByUuid(voodooPlayerComponent.target);
+                        ServerPlayerEntity voodooed = (ServerPlayerEntity) victim.getWorld().getPlayerByUuid(voodooPlayerComponent.target);
                         if (voodooed != null) {
                             if (GameFunctions.isPlayerPlayingAndAlive(voodooed) && voodooed != victim) {
                                 // 记录 Voodoo 连锁死亡
@@ -866,13 +866,13 @@ public class Noellesroles implements ModInitializer {
         // 游戏胜利确定时，杀死所有被饕餮吞噬的玩家
         GameEvents.ON_WIN_DETERMINED.register((world, gameComponent, winStatus, neutralWinner) -> {
             for (UUID taotieUuid : gameComponent.getAllWithRole(TAOTIE)) {
-                PlayerEntity taotie = world.getPlayerByUuid(taotieUuid);
+                ServerPlayerEntity taotie = (ServerPlayerEntity) world.getPlayerByUuid(taotieUuid);
                 if (taotie != null && GameFunctions.isPlayerPlayingAndAlive(taotie)) {
                     TaotiePlayerComponent taotieComp = TaotiePlayerComponent.KEY.get(taotie);
                     List<UUID> swallowedPlayers = taotieComp.getSwallowedPlayers();
                     for (UUID swallowedUuid : swallowedPlayers) {
-                        PlayerEntity swallowed = world.getPlayerByUuid(swallowedUuid);
-                        if (swallowed != null && GameFunctions.isPlayerPlayingAndAlive(swallowed)) {
+                        ServerPlayerEntity swallowed = (ServerPlayerEntity) world.getPlayerByUuid(swallowedUuid);
+                        if (GameFunctions.isPlayerPlayingAndAlive(swallowed)) {
                             GameFunctions.killPlayer(swallowed, false, taotie, DEATH_REASON_DIGESTED);
                         }
                     }
@@ -1378,6 +1378,23 @@ public class Noellesroles implements ModInitializer {
             Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
 
             return Text.translatable("replay.death_in_stomach", actorText);
+        });
+
+        // 交换者技能格式化器（显示交换的两个玩家）
+        ReplayRegistry.registerSkillFormatter(SWAPPER_ID, (event, match, world) -> {
+            var playerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
+            NbtCompound data = event.data();
+            UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+            UUID target1Uuid = data.containsUuid("target1") ? data.getUuid("target1") : null;
+            UUID target2Uuid = data.containsUuid("target2") ? data.getUuid("target2") : null;
+
+            if (actorUuid == null || target1Uuid == null || target2Uuid == null) return null;
+
+            Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
+            Text target1Text = ReplayGenerator.formatPlayerName(target1Uuid, playerInfoCache);
+            Text target2Text = ReplayGenerator.formatPlayerName(target2Uuid, playerInfoCache);
+
+            return Text.translatable("replay.skill.noellesroles.swapper.target", actorText, target1Text, target2Text);
         });
 
         // silencer skill 格式化器（通过 skillUse 系统自动处理，这里只需要注册翻译键）

@@ -222,7 +222,7 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
                     extra.putString("reason", "timeout");
                     GameRecordManager.recordGlobalEvent(serverWorld, EVENT_MOMENT_END, serverPlayer, extra);
                 }
-                GameFunctions.killPlayer(this.player, true, null, Noellesroles.DEATH_REASON_JESTER_TIMEOUT, true);
+                GameFunctions.killPlayer((ServerPlayerEntity) this.player, true, null, Noellesroles.DEATH_REASON_JESTER_TIMEOUT, true);
                 this.reset();
             } else if (this.psychoModeTicks % 20 == 0) {
                 this.sync();

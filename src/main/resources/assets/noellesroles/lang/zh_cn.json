@@ -248,7 +248,7 @@
   "replay.skill.noellesroles.pathogen.target": "%s §a感染§r了 %s",
   "replay.skill.noellesroles.recaller": "%s 使用了§b回溯§r",
   "replay.skill.noellesroles.phantom": "%s 进入§7隐身§r状态",
-  "replay.skill.noellesroles.swapper.target": "%s §b交换§r了 %s 和另一个玩家的位置",
+  "replay.skill.noellesroles.swapper.target": "%s §b交换§r了 %s 和 %s 的位置",
   "replay.skill.noellesroles.reporter.target": "%s §b标记§r了 %s",
 
   "replay.death.noellesroles.assassinated.killed": "%s 被 %s §c识破身份§r击杀",
