@@ -41,7 +41,7 @@ public class PoisonGasBombItem extends Item {
             PoisonGasBombEntity gasBomb = new PoisonGasBombEntity(NoellesRolesEntities.POISON_GAS_BOMB_ENTITY, world);
             gasBomb.setOwner(user);
             gasBomb.setPos(user.getX(), user.getEyeY() - 0.1, user.getZ());
-            gasBomb.setVelocity(user, user.getPitch(), user.getYaw(), 0.0F, 2.25F, 1.0F);
+            gasBomb.setVelocity(user, user.getPitch(), user.getYaw(), 0.0F, 1.6875F, 1.0F);
             world.spawnEntity(gasBomb);
             if (user instanceof ServerPlayerEntity serverPlayer) {
                 GameRecordManager.recordItemUse(serverPlayer, Registries.ITEM.getId(this), null, null);

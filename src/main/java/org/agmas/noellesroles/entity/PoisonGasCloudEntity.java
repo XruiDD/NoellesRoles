@@ -12,7 +12,9 @@ import net.minecraft.particle.DustParticleEffect;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.World;
 import org.joml.Vector3f;
@@ -109,8 +111,18 @@ public class PoisonGasCloudEntity extends Entity {
             if (!GameFunctions.isPlayerAliveAndSurvival(player)) continue;
             if (gameWorld.isRole(player, Noellesroles.POISONER)) continue;
 
-            BlockPos playerPos = player.getBlockPos();
-            if (gasBlocks.contains(playerPos)) {
+            Box box = player.getBoundingBox();
+            boolean inGas = false;
+            for (int x = MathHelper.floor(box.minX); x <= MathHelper.floor(box.maxX) && !inGas; x++) {
+                for (int y = MathHelper.floor(box.minY); y <= MathHelper.floor(box.maxY) && !inGas; y++) {
+                    for (int z = MathHelper.floor(box.minZ); z <= MathHelper.floor(box.maxZ) && !inGas; z++) {
+                        if (gasBlocks.contains(new BlockPos(x, y, z))) {
+                            inGas = true;
+                        }
+                    }
+                }
+            }
+            if (inGas) {
                 int ticks = exposureTicks.getOrDefault(player.getUuid(), 0) + 1;
                 exposureTicks.put(player.getUuid(), ticks);
 
@@ -119,7 +131,9 @@ public class PoisonGasCloudEntity extends Entity {
                     if (poisonComp.poisonTicks <= 0) {
                         int poisonTime = PlayerPoisonComponent.clampTime.getLeft() +
                                 serverWorld.random.nextInt(PlayerPoisonComponent.clampTime.getRight() - PlayerPoisonComponent.clampTime.getLeft() + 1);
-                        poisonComp.setPoisonTicks(poisonTime, ownerUuid);
+                        NbtCompound recordExtra = new NbtCompound();
+                        recordExtra.putString("source", "gas_bomb");
+                        poisonComp.setPoisonTicks(poisonTime, ownerUuid, recordExtra);
                         exposureTicks.put(player.getUuid(), 0);
                     }
                 }

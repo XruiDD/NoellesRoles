@@ -22,8 +22,12 @@ public class PoisonerShopHandler {
                     entry.stack().isOf(WatheItems.KNIFE) ||
                     entry.stack().isOf(WatheItems.REVOLVER) ||
                     entry.stack().isOf(WatheItems.PSYCHO_MODE) ||
-                    entry.stack().isOf(WatheItems.GRENADE)
+                    entry.stack().isOf(WatheItems.GRENADE) ||
+                    entry.stack().isOf(WatheItems.POISON_VIAL) ||
+                    entry.stack().isOf(WatheItems.SCORPION)
                 );
+                context.addEntry(0, new ShopEntry(WatheItems.SCORPION.getDefaultStack(), 50, ShopEntry.Type.POISON));
+                context.addEntry(0, new ShopEntry(WatheItems.POISON_VIAL.getDefaultStack(), 50, ShopEntry.Type.POISON));
                 context.addEntry(0, new ShopEntry(ModItems.POISON_GAS_BOMB.getDefaultStack(), 300, ShopEntry.Type.WEAPON));
                 context.addEntry(0, new ShopEntry(ModItems.POISON_NEEDLE.getDefaultStack(), 100, ShopEntry.Type.WEAPON));
             }
