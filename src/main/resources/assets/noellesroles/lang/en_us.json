@@ -200,5 +200,15 @@
   "tip.silencer.already_silenced": "%s is already silenced",
   "tip.silencer.success": "You silenced %s",
 
-  "replay.skill.noellesroles.silencer.target": "%s §7silenced§r %s"
+  "replay.skill.noellesroles.silencer.target": "%s §7silenced§r %s",
+
+  "announcement.goals.bodyguard": "Protect the Serial Killer's target! Stay within 3 blocks to sacrifice yourself and save them.",
+  "announcement.role.bodyguard": "Bodyguard",
+  "announcement.win.bodyguard": "Passengers Win!",
+  "tip.bodyguard.target": "Protect: %s",
+  "tip.bodyguard.no_target": "No target to protect",
+  "death_reason.noellesroles.bodyguard_sacrifice": "sacrificed themselves to protect their target.",
+  "replay.death.noellesroles.bodyguard_sacrifice.killed": "%s sacrificed themselves to protect against %s",
+  "replay.death.noellesroles.bodyguard_sacrifice.died": "%s sacrificed themselves as a bodyguard",
+  "replay.skill.noellesroles.bodyguard.target": "%s §bprotected§r %s as a bodyguard"
 }

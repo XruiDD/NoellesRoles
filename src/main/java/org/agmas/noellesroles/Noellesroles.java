@@ -67,6 +67,7 @@ import org.agmas.noellesroles.taotie.SwallowedPlayerComponent;
 import org.agmas.noellesroles.packet.TaotieSwallowC2SPacket;
 import org.agmas.noellesroles.packet.SilencerSilenceC2SPacket;
 import org.agmas.noellesroles.silencer.SilencedPlayerComponent;
+import org.agmas.noellesroles.bodyguard.BodyguardPlayerComponent;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.WrittenBookContentComponent;
 import net.minecraft.item.Items;
@@ -110,6 +111,7 @@ public class Noellesroles implements ModInitializer {
     public static Identifier ATTENDANT_ID = Identifier.of(MOD_ID, "attendant");
     public static Identifier TAOTIE_ID = Identifier.of(MOD_ID, "taotie");
     public static Identifier SILENCER_ID = Identifier.of(MOD_ID, "silencer");
+    public static Identifier BODYGUARD_ID = Identifier.of(MOD_ID, "bodyguard");
     // 炸弹死亡原因
     public static Identifier DEATH_REASON_BOMB = Identifier.of(MOD_ID, "bomb");
     // 刺客死亡原因
@@ -118,6 +120,8 @@ public class Noellesroles implements ModInitializer {
     public static Identifier DEATH_REASON_JESTER_TIMEOUT = Identifier.of(MOD_ID, "jester_timeout");
     // 饕餮吞噬死亡原因（游戏结束时被消化）
     public static Identifier DEATH_REASON_DIGESTED = Identifier.of(MOD_ID, "digested");
+    // 保镖牺牲死亡原因
+    public static Identifier DEATH_REASON_BODYGUARD_SACRIFICE = Identifier.of(MOD_ID, "bodyguard_sacrifice");
 
     public static Role SWAPPER = WatheRoles.registerRole(new Role(SWAPPER_ID, new Color(57, 4, 170).getRGB(),false,true, Role.MoodType.FAKE,Integer.MAX_VALUE,true));
     public static Role PHANTOM =WatheRoles.registerRole(new Role(PHANTOM_ID, new Color(80, 5, 5, 192).getRGB(),false,true, Role.MoodType.FAKE,Integer.MAX_VALUE,true));
@@ -152,6 +156,8 @@ public class Noellesroles implements ModInitializer {
     public static Role PROFESSOR = WatheRoles.registerRole(new Role(PROFESSOR_ID, new Color(70, 130, 180).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
     // 乘务员角色 - 无辜者阵营，开局获得一本书记录所有房间的乘客
     public static Role ATTENDANT = WatheRoles.registerRole(new Role(ATTENDANT_ID, new Color(100, 149, 237).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
+    // 保镖角色 - 无辜者阵营，保护连环杀手的目标，仅与连环杀手一起出现
+    public static Role BODYGUARD = WatheRoles.registerRole(new Role(BODYGUARD_ID, new Color(70, 130, 250).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false, ctx -> ctx.isRoleAssigned(SERIAL_KILLER)));
 
 
     // 小丑角色 - 中立阵营，被无辜者杀死时获胜
@@ -356,6 +362,24 @@ public class Noellesroles implements ModInitializer {
                 return KillPlayer.KillResult.cancel();
             }
 
+            // 保镖保护逻辑：如果受害者是保镖的保护目标且保镖在3格内，保镖牺牲自己保护目标
+            if (deathReason != DEATH_REASON_BODYGUARD_SACRIFICE) {
+                if (victim.getWorld() instanceof ServerWorld bodyguardWorld) {
+                    for (UUID bodyguardUuid : gameWorldComponent.getAllWithRole(BODYGUARD)) {
+                        PlayerEntity bodyguardPlayer = bodyguardWorld.getPlayerByUuid(bodyguardUuid);
+                        if (bodyguardPlayer != null && GameFunctions.isPlayerPlayingAndAlive(bodyguardPlayer)) {
+                            BodyguardPlayerComponent bodyguardComp = BodyguardPlayerComponent.KEY.get(bodyguardPlayer);
+                            if (bodyguardComp.isCurrentTarget(victim.getUuid()) && bodyguardPlayer.squaredDistanceTo(victim) <= 9.0) {
+                                // 记录保镖保护技能事件
+                                GameRecordManager.recordSkillUse((ServerPlayerEntity) bodyguardPlayer, BODYGUARD_ID, (ServerPlayerEntity) victim, null);
+                                GameFunctions.killPlayer((ServerPlayerEntity) bodyguardPlayer, true, killer, DEATH_REASON_BODYGUARD_SACRIFICE);
+                                return KillPlayer.KillResult.cancel();
+                            }
+                        }
+                    }
+                }
+            }
+
             // 被吞噬的玩家可以被杀死，但不生成尸体
             SwallowedPlayerComponent swallowedComp = SwallowedPlayerComponent.KEY.get(victim);
             if (swallowedComp.isSwallowed()) {
@@ -522,6 +546,10 @@ public class Noellesroles implements ModInitializer {
                 // 静语者开局冷却45秒
                 abilityPlayerComponent.cooldown = GameConstants.getInTicks(0, 45);
             }
+            if (role.equals(BODYGUARD)) {
+                BodyguardPlayerComponent bodyguardComp = BodyguardPlayerComponent.KEY.get(player);
+                bodyguardComp.reset();
+            }
         });
         ResetPlayer.EVENT.register(player -> {
             BartenderPlayerComponent.KEY.get(player).reset();
@@ -542,6 +570,7 @@ public class Noellesroles implements ModInitializer {
             TaotiePlayerComponent.KEY.get(player).reset();
             SwallowedPlayerComponent.KEY.get(player).reset();
             SilencedPlayerComponent.KEY.get(player).reset();
+            BodyguardPlayerComponent.KEY.get(player).reset();
         });
 
         // Bartender and Recaller get +50 coins when completing tasks

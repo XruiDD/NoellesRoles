@@ -276,5 +276,15 @@
   "replay.item_use.noellesroles.timed_bomb.transfer": "%s 将§e定时炸弹§r传递给了 %s",
   "replay.item_use.noellesroles.antidote": "%s 为 %s §a解除§r了毒素",
   "replay.item_use.noellesroles.iron_man_vial": "%s 为 %s 注射了§b铁人药剂§r",
-  "replay.platter_take.noellesroles.fine_drink": "%s 从餐盘取走了§d上等佳酿§r"
+  "replay.platter_take.noellesroles.fine_drink": "%s 从餐盘取走了§d上等佳酿§r",
+
+  "announcement.goals.bodyguard": "保护你的的目标！待在3格内，用生命守护目标！",
+  "announcement.role.bodyguard": "保镖",
+  "announcement.win.bodyguard": "乘客胜利！",
+  "tip.bodyguard.target": "保护: %s",
+  "tip.bodyguard.no_target": "暂无保护目标",
+  "death_reason.noellesroles.bodyguard_sacrifice": "为保护目标而牺牲",
+  "replay.death.noellesroles.bodyguard_sacrifice.killed": "%s 牺牲自己保护目标免受 %s 的攻击",
+  "replay.death.noellesroles.bodyguard_sacrifice.died": "%s 作为保镖牺牲了自己",
+  "replay.skill.noellesroles.bodyguard.target": "%s 作为§b保镖§r保护了 %s"
 }

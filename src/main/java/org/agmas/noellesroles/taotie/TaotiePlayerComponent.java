@@ -24,6 +24,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import org.agmas.noellesroles.Noellesroles;
 import org.agmas.noellesroles.pathogen.InfectedPlayerComponent;
+import org.agmas.noellesroles.bodyguard.BodyguardPlayerComponent;
 import org.agmas.noellesroles.professor.IronManPlayerComponent;
 import org.agmas.noellesroles.serialkiller.SerialKillerPlayerComponent;
 import dev.doctor4t.wathe.index.WatheSounds;
@@ -178,6 +179,24 @@ public class TaotiePlayerComponent implements AutoSyncedComponent, ServerTicking
             swallowCooldown = calculatedSwallowCooldown; // 正常冷却时间
             this.sync();
             return false;
+        }
+
+        // 保镖保护检查：如果目标是保镖的保护对象且保镖在3格内，保镖牺牲自己保护目标
+        if (target.getWorld() instanceof ServerWorld bodyguardWorld) {
+            GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(bodyguardWorld);
+            for (UUID bodyguardUuid : gameWorldComponent.getAllWithRole(Noellesroles.BODYGUARD)) {
+                PlayerEntity bodyguardPlayer = bodyguardWorld.getPlayerByUuid(bodyguardUuid);
+                if (bodyguardPlayer != null && GameFunctions.isPlayerPlayingAndAlive(bodyguardPlayer)) {
+                    BodyguardPlayerComponent bodyguardComp = BodyguardPlayerComponent.KEY.get(bodyguardPlayer);
+                    if (bodyguardComp.isCurrentTarget(target.getUuid()) && bodyguardPlayer.squaredDistanceTo(target) <= 9.0) {
+                        GameRecordManager.recordSkillUse((ServerPlayerEntity) bodyguardPlayer, Noellesroles.BODYGUARD_ID, target, null);
+                        GameFunctions.killPlayer((ServerPlayerEntity) bodyguardPlayer, true, taotie, Noellesroles.DEATH_REASON_BODYGUARD_SACRIFICE);
+                        swallowCooldown = calculatedSwallowCooldown;
+                        this.sync();
+                        return false;
+                    }
+                }
+            }
         }
 
         // Perform swallow

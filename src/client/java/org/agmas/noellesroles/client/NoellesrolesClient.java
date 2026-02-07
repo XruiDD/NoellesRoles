@@ -53,6 +53,7 @@ import org.agmas.noellesroles.packet.TaotieSwallowC2SPacket;
 import org.agmas.noellesroles.packet.SilencerSilenceC2SPacket;
 import org.agmas.noellesroles.client.music.WorldMusicManager;
 import org.agmas.noellesroles.reporter.ReporterPlayerComponent;
+import org.agmas.noellesroles.bodyguard.BodyguardPlayerComponent;
 import org.agmas.noellesroles.serialkiller.SerialKillerPlayerComponent;
 import org.lwjgl.glfw.GLFW;
 
@@ -192,6 +193,14 @@ public class NoellesrolesClient implements ClientModInitializer {
                 if (serialKillerComp.isCurrentTarget(player.getUuid())) {
                     // 当前目标 - 使用连环杀手颜色透视
                     return GetInstinctHighlight.HighlightResult.always(Noellesroles.SERIAL_KILLER.color());
+                }
+            }
+
+            // BODYGUARD: 保护目标始终高亮显示（透视效果）
+            if (gameWorldComponent.isRole(localPlayer, Noellesroles.BODYGUARD)) {
+                BodyguardPlayerComponent bodyguardComp = BodyguardPlayerComponent.KEY.get(localPlayer);
+                if (bodyguardComp.isCurrentTarget(player.getUuid())) {
+                    return GetInstinctHighlight.HighlightResult.always(Noellesroles.BODYGUARD.color());
                 }
             }
             return null;
