@@ -5,9 +5,8 @@ import de.maxhenkel.voicechat.api.VoicechatApi;
 import de.maxhenkel.voicechat.api.VoicechatConnection;
 import de.maxhenkel.voicechat.api.VoicechatPlugin;
 import de.maxhenkel.voicechat.api.VoicechatServerApi;
-import de.maxhenkel.voicechat.api.events.EventRegistration;
-import de.maxhenkel.voicechat.api.events.MicrophonePacketEvent;
-import de.maxhenkel.voicechat.api.events.RemoveGroupEvent;
+import de.maxhenkel.voicechat.api.events.*;
+import de.maxhenkel.voicechat.api.packets.Packet;
 import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.game.GameFunctions;
 import net.minecraft.entity.player.PlayerEntity;
@@ -141,7 +140,7 @@ public class NoellesrolesVoiceChatPlugin implements VoicechatPlugin {
      * - Players swallowed by the same Taotie
      * - The Taotie who swallowed them
      */
-    public void blockVoiceToSwallowedPlayers(MicrophonePacketEvent event) {
+    public <T extends Packet> void blockVoiceToSwallowedPlayers(SoundPacketEvent<T> event) {
         // Get recipient (the player who would receive this sound packet)
         if (event.getReceiverConnection() == null || event.getSenderConnection() == null){
             return;
@@ -158,10 +157,19 @@ public class NoellesrolesVoiceChatPlugin implements VoicechatPlugin {
         ServerPlayerEntity speaker = (ServerPlayerEntity) event.getSenderConnection().getPlayer().getPlayer();
         SwallowedPlayerComponent speakerSwallowed = SwallowedPlayerComponent.KEY.get(speaker);
 
+        boolean shouldBlock = isShouldBlockVoiceToSwallowed(speaker, speakerSwallowed, recipientSwallowed);
+
+        // Cancel the packet if it should be blocked
+        if (shouldBlock) {
+            event.cancel();
+        }
+    }
+
+    private static boolean isShouldBlockVoiceToSwallowed(ServerPlayerEntity speaker, SwallowedPlayerComponent speakerSwallowed, SwallowedPlayerComponent recipientSwallowed) {
         boolean shouldBlock = false;
 
         // Case 1: Speaker is a real spectator (not swallowed) - block
-        if (speaker.interactionManager.getGameMode().equals(GameMode.SPECTATOR) && !speakerSwallowed.isSwallowed()) {
+        if (speaker.isSpectator() && !speakerSwallowed.isSwallowed()) {
             shouldBlock = true;
         }
 
@@ -173,11 +181,7 @@ public class NoellesrolesVoiceChatPlugin implements VoicechatPlugin {
                 shouldBlock = true;
             }
         }
-
-        // Cancel the packet if it should be blocked
-        if (shouldBlock) {
-            event.cancel();
-        }
+        return shouldBlock;
     }
 
     /**
@@ -195,7 +199,7 @@ public class NoellesrolesVoiceChatPlugin implements VoicechatPlugin {
             UUID taotieUuid = swallowedComp.getSwallowedBy();
             if (taotieUuid != null) {
                 PlayerEntity taotie = speaker.getWorld().getPlayerByUuid(taotieUuid);
-                if (taotie != null && GameFunctions.isPlayerPlayingAndAlive(taotie)) {
+                if (GameFunctions.isPlayerPlayingAndAlive(taotie)) {
                     VoicechatConnection taotieCon = api.getConnectionOf(taotieUuid);
                     if (taotieCon != null) {
                         // Forward voice to Taotie at Taotie's position
@@ -236,32 +240,36 @@ public class NoellesrolesVoiceChatPlugin implements VoicechatPlugin {
 
         // Block silenced players from speaking
         SilencedPlayerComponent speakerSilenced = SilencedPlayerComponent.KEY.get(speaker);
-        if (speakerSilenced != null && speakerSilenced.isSilenced()) {
+        if (speakerSilenced.isSilenced()) {
             event.cancel();
-            return;
         }
-
-        // Block voice packets TO silenced players (they cannot hear)
+    }
+    public <T extends Packet> void blockVoiceToSilencedPlayers(SoundPacketEvent<T> event) {
         if (event.getReceiverConnection() != null
                 && event.getReceiverConnection().getPlayer() != null
                 && event.getReceiverConnection().getPlayer().getPlayer() != null) {
             ServerPlayerEntity recipient = (ServerPlayerEntity) event.getReceiverConnection().getPlayer().getPlayer();
             if (recipient != null) {
                 SilencedPlayerComponent recipientSilenced = SilencedPlayerComponent.KEY.get(recipient);
-                if (recipientSilenced != null && recipientSilenced.isSilenced()) {
+                if (recipientSilenced.isSilenced()) {
                     event.cancel();
                 }
             }
         }
     }
-
     @Override
     public void registerEvents(EventRegistration registration) {
         registration.registerEvent(MicrophonePacketEvent.class, this::paranoidEvent);
         registration.registerEvent(MicrophonePacketEvent.class, this::taotieVoiceEvent);
-        registration.registerEvent(MicrophonePacketEvent.class, this::blockVoiceToSwallowedPlayers);
         registration.registerEvent(MicrophonePacketEvent.class, this::silencerVoiceEvent);
         registration.registerEvent(RemoveGroupEvent.class, this::onGroupRemoved);
+
+        registration.registerEvent(EntitySoundPacketEvent.class, this::blockVoiceToSwallowedPlayers);
+        registration.registerEvent(LocationalSoundPacketEvent.class, this::blockVoiceToSwallowedPlayers);
+
+        registration.registerEvent(EntitySoundPacketEvent.class, this::blockVoiceToSilencedPlayers);
+        registration.registerEvent(LocationalSoundPacketEvent.class, this::blockVoiceToSilencedPlayers);
+
         VoicechatPlugin.super.registerEvents(registration);
     }
 }

@@ -24,7 +24,7 @@ public abstract class SwallowedPlayerSpectatorMixin {
     private void preventSwallowedPlayerSetCamera(Entity entity, CallbackInfo ci) {
         ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
         SwallowedPlayerComponent swallowedComp = SwallowedPlayerComponent.KEY.get(player);
-        if (swallowedComp.isSwallowed() && swallowedComp.getSwallowedBy() != entity.getUuid()) {
+        if (swallowedComp.isSwallowed() && !swallowedComp.getSwallowedBy().equals(entity.getUuid())) {
             ci.cancel();
         }
     }

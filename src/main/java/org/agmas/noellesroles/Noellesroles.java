@@ -19,6 +19,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
@@ -70,6 +71,7 @@ import org.agmas.noellesroles.silencer.SilencedPlayerComponent;
 import org.agmas.noellesroles.silencer.SilencerPlayerComponent;
 import org.agmas.noellesroles.bodyguard.BodyguardPlayerComponent;
 import org.agmas.noellesroles.poisoner.PoisonerShopHandler;
+import dev.doctor4t.wathe.compat.TrainVoicePlugin;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.WrittenBookContentComponent;
 import net.minecraft.item.Items;
@@ -270,6 +272,17 @@ public class Noellesroles implements ModInitializer {
         ServerWorldEvents.LOAD.register((server, world) -> {
             GameWorldComponent.KEY.get(world).setRoleEnabled(THE_INSANE_DAMNED_PARANOID_KILLER_OF_DOOM_DEATH_DESTRUCTION_AND_WAFFLES, false);
             GameWorldComponent.KEY.get(world).setRoleEnabled(AWESOME_BINGLUS, false);
+        });
+
+        // 修复：断线重连后清理语音群组
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+            ServerPlayerEntity player = handler.getPlayer();
+            server.execute(() -> {
+                SwallowedPlayerComponent swallowedComp = SwallowedPlayerComponent.KEY.get(player);
+                if (!swallowedComp.isSwallowed()) {
+                    TrainVoicePlugin.addPlayer(player.getUuid());
+                }
+            });
         });
 
         // Master key should drop on death
