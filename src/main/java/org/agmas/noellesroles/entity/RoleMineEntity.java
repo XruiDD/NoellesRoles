@@ -1,4 +1,4 @@
-package org.agmas.noellesroles.entities;
+package org.agmas.noellesroles.entity;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;

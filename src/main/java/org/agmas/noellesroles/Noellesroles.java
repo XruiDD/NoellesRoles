@@ -69,6 +69,7 @@ import org.agmas.noellesroles.packet.SilencerSilenceC2SPacket;
 import org.agmas.noellesroles.silencer.SilencedPlayerComponent;
 import org.agmas.noellesroles.silencer.SilencerPlayerComponent;
 import org.agmas.noellesroles.bodyguard.BodyguardPlayerComponent;
+import org.agmas.noellesroles.poisoner.PoisonerShopHandler;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.WrittenBookContentComponent;
 import net.minecraft.item.Items;
@@ -113,6 +114,7 @@ public class Noellesroles implements ModInitializer {
     public static Identifier TAOTIE_ID = Identifier.of(MOD_ID, "taotie");
     public static Identifier SILENCER_ID = Identifier.of(MOD_ID, "silencer");
     public static Identifier BODYGUARD_ID = Identifier.of(MOD_ID, "bodyguard");
+    public static Identifier POISONER_ID = Identifier.of(MOD_ID, "poisoner");
 
     // 炸弹死亡原因
     public static Identifier DEATH_REASON_BOMB = Identifier.of(MOD_ID, "bomb");
@@ -139,6 +141,8 @@ public class Noellesroles implements ModInitializer {
     public static Role SERIAL_KILLER = WatheRoles.registerRole(new Role(SERIAL_KILLER_ID, new Color(102, 34, 34).getRGB(), false, true, Role.MoodType.FAKE, Integer.MAX_VALUE, true));
     // 静语者角色 - 杀手阵营，可以让目标无法使用voicechat说话，且无法听到他人说话，持续60秒，冷却45秒
     public static Role SILENCER = WatheRoles.registerRole(new Role(SILENCER_ID, new Color(80, 70, 110).getRGB(), false, true, Role.MoodType.FAKE, Integer.MAX_VALUE, true));
+    // 毒师角色 - 杀手阵营，使用毒针和毒气弹
+    public static Role POISONER = WatheRoles.registerRole(new Role(POISONER_ID, new Color(30, 80, 20).getRGB(), false, true, Role.MoodType.FAKE, Integer.MAX_VALUE, true));
 
 
     public static HashMap<Role, RoleAnnouncementTexts.RoleAnnouncementText> roleRoleAnnouncementTextHashMap = new HashMap<>();
@@ -250,12 +254,13 @@ public class Noellesroles implements ModInitializer {
         BomberShopHandler.register();
         ScavengerShopHandler.register();
         TimekeeperShopHandler.register();
+        PoisonerShopHandler.register();
 
         // 注册 DLC 回放格式化器
         registerReplayFormatters();
 
         registerPackets();
-        //NoellesRolesEntities.init();
+        NoellesRolesEntities.init();
 
     }
 
@@ -551,6 +556,9 @@ public class Noellesroles implements ModInitializer {
             if (role.equals(BODYGUARD)) {
                 BodyguardPlayerComponent bodyguardComp = BodyguardPlayerComponent.KEY.get(player);
                 bodyguardComp.reset();
+            }
+            if (role.equals(POISONER)) {
+                player.getItemCooldownManager().set(ModItems.POISON_NEEDLE, GameConstants.getInTicks(1, 0)); // 1分钟初始冷却
             }
         });
         ResetPlayer.EVENT.register(player -> {
@@ -1484,6 +1492,8 @@ public class Noellesroles implements ModInitializer {
         Identifier timedBombId = Registries.ITEM.getId(ModItems.TIMED_BOMB);
         Identifier antidoteId = Registries.ITEM.getId(ModItems.ANTIDOTE);
         Identifier ironManVialId = Registries.ITEM.getId(ModItems.IRON_MAN_VIAL);
+        Identifier poisonNeedleId = Registries.ITEM.getId(ModItems.POISON_NEEDLE);
+        Identifier poisonGasBombId = Registries.ITEM.getId(ModItems.POISON_GAS_BOMB);
 
         // 上等佳酿 - 喝下 / 放置到餐盘
         ReplayRegistry.registerItemUseFormatter(fineDrinkId, (event, match, world) -> {
@@ -1533,6 +1543,28 @@ public class Noellesroles implements ModInitializer {
             Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
             Text targetText = ReplayGenerator.formatPlayerName(targetUuid, playerInfoCache);
             return Text.translatable("replay.item_use.noellesroles.iron_man_vial", actorText, targetText);
+        });
+
+        // 毒针 - 刺
+        ReplayRegistry.registerItemUseFormatter(poisonNeedleId, (event, match, world) -> {
+            var playerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
+            NbtCompound data = event.data();
+            UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+            UUID targetUuid = data.containsUuid("target") ? data.getUuid("target") : null;
+            if (actorUuid == null || targetUuid == null) return null;
+            Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
+            Text targetText = ReplayGenerator.formatPlayerName(targetUuid, playerInfoCache);
+            return Text.translatable("replay.item_use.noellesroles.poison_needle", actorText, targetText);
+        });
+
+        // 毒气弹 - 投掷
+        ReplayRegistry.registerItemUseFormatter(poisonGasBombId, (event, match, world) -> {
+            var playerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
+            NbtCompound data = event.data();
+            UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+            if (actorUuid == null) return null;
+            Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
+            return Text.translatable("replay.item_use.noellesroles.poison_gas_bomb", actorText);
         });
 
         // ===== 餐盘拿取格式化器 =====

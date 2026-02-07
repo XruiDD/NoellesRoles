@@ -5,6 +5,8 @@ import org.agmas.noellesroles.item.AntidoteItem;
 import org.agmas.noellesroles.item.FineDrinkItem;
 import org.agmas.noellesroles.item.TimedBombItem;
 import org.agmas.noellesroles.item.IronManVialItem;
+import org.agmas.noellesroles.item.PoisonNeedleItem;
+import org.agmas.noellesroles.item.PoisonGasBombItem;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
@@ -44,6 +46,14 @@ public class ModItems {
     public static final Item ANTIDOTE = register(
             new AntidoteItem(new Item.Settings().maxCount(1)),
             "antidote"
+    );
+    public static final Item POISON_NEEDLE = register(
+            new PoisonNeedleItem(new Item.Settings().maxCount(1)),
+            "poison_needle"
+    );
+    public static final Item POISON_GAS_BOMB = register(
+            new PoisonGasBombItem(new Item.Settings().maxCount(16)),
+            "poison_gas_bomb"
     );
 
     public static Item register(Item item, String id) {

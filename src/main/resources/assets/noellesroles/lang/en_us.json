@@ -212,5 +212,18 @@
   "death_reason.noellesroles.bodyguard_sacrifice": "sacrificed themselves to protect their target.",
   "replay.death.noellesroles.bodyguard_sacrifice.killed": "%s sacrificed themselves to protect against %s",
   "replay.death.noellesroles.bodyguard_sacrifice.died": "%s sacrificed themselves as a bodyguard",
-  "replay.skill.noellesroles.bodyguard.target": "%s §bprotected§r %s as a bodyguard"
+  "replay.skill.noellesroles.bodyguard.target": "%s §bprotected§r %s as a bodyguard",
+
+  "announcement.goals.poisoner": "Use poison needles and gas bombs to poison your enemies! You can also use poison vials and scorpions.",
+  "announcement.role.poisoner": "Poisoner",
+  "announcement.win.poisoner": "Killers Win!",
+
+  "item.noellesroles.poison_needle": "Poison Needle",
+  "item.noellesroles.poison_needle.tooltip": "Right-click a player to inject poison\n1 minute initial cooldown, 45s cooldown after use\nReusable",
+
+  "item.noellesroles.poison_gas_bomb": "Poison Gas Bomb",
+  "item.noellesroles.poison_gas_bomb.tooltip": "Right-click to throw a gas bomb\nReleases gas that spreads through open spaces\nGas cannot pass through blocks\nStaying in gas for 5s causes poisoning\nGas dissipates after 30s",
+
+  "replay.item_use.noellesroles.poison_needle": "%s stabbed %s with a §5poison needle§r",
+  "replay.item_use.noellesroles.poison_gas_bomb": "%s threw a §5poison gas bomb§r"
 }

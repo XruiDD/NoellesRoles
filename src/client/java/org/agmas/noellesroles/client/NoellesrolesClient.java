@@ -56,6 +56,10 @@ import org.agmas.noellesroles.client.music.WorldMusicManager;
 import org.agmas.noellesroles.reporter.ReporterPlayerComponent;
 import org.agmas.noellesroles.bodyguard.BodyguardPlayerComponent;
 import org.agmas.noellesroles.serialkiller.SerialKillerPlayerComponent;
+import org.agmas.noellesroles.NoellesRolesEntities;
+import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
+import net.minecraft.client.render.entity.FlyingItemEntityRenderer;
+import net.minecraft.client.render.entity.EmptyEntityRenderer;
 import org.lwjgl.glfw.GLFW;
 
 import java.awt.*;
@@ -89,6 +93,10 @@ public class NoellesrolesClient implements ClientModInitializer {
 
         // 注册世界BGM管理器
         WorldMusicManager.register();
+
+        // 注册实体渲染器
+        EntityRendererRegistry.register(NoellesRolesEntities.POISON_GAS_BOMB_ENTITY, FlyingItemEntityRenderer::new);
+        EntityRendererRegistry.register(NoellesRolesEntities.POISON_GAS_CLOUD_ENTITY, EmptyEntityRenderer::new);
 
         CanSeeMoney.EVENT.register(player -> {
             if (!GameFunctions.isPlayerPlayingAndAlive(player)) return null;

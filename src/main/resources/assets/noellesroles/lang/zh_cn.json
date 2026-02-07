@@ -288,5 +288,18 @@
   "death_reason.noellesroles.bodyguard_sacrifice": "为保护目标而牺牲",
   "replay.death.noellesroles.bodyguard_sacrifice.killed": "%s 牺牲自己保护目标免受 %s 的攻击",
   "replay.death.noellesroles.bodyguard_sacrifice.died": "%s 作为保镖牺牲了自己",
-  "replay.skill.noellesroles.bodyguard.target": "%s 作为§b保镖§r保护了 %s"
+  "replay.skill.noellesroles.bodyguard.target": "%s 作为§b保镖§r保护了 %s",
+
+  "announcement.goals.poisoner": "使用毒针和毒气弹让敌人中毒！你还可以使用毒药瓶和蝎子。",
+  "announcement.role.poisoner": "毒师",
+  "announcement.win.poisoner": "杀手胜利！",
+
+  "item.noellesroles.poison_needle": "毒针",
+  "item.noellesroles.poison_needle.tooltip": "右键点击玩家注入毒素\n开局冷却1分钟，后续冷却45秒\n可重复使用",
+
+  "item.noellesroles.poison_gas_bomb": "毒气弹",
+  "item.noellesroles.poison_gas_bomb.tooltip": "右键丢出毒气弹\n释放毒气可在空间内扩散\n毒气不能穿过方块\n在毒气中停留5秒将中毒\n30秒后毒气消散",
+
+  "replay.item_use.noellesroles.poison_needle": "%s 用§5毒针§r刺了 %s",
+  "replay.item_use.noellesroles.poison_gas_bomb": "%s 投掷了§5毒气弹§r"
 }
