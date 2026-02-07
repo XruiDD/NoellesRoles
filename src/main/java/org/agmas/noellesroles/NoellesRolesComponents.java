@@ -20,6 +20,7 @@ import org.agmas.noellesroles.serialkiller.SerialKillerPlayerComponent;
 import org.agmas.noellesroles.taotie.TaotiePlayerComponent;
 import org.agmas.noellesroles.taotie.SwallowedPlayerComponent;
 import org.agmas.noellesroles.silencer.SilencedPlayerComponent;
+import org.agmas.noellesroles.silencer.SilencerPlayerComponent;
 import org.agmas.noellesroles.bodyguard.BodyguardPlayerComponent;
 import org.agmas.noellesroles.music.WorldMusicComponent;
 import org.jetbrains.annotations.NotNull;
@@ -53,6 +54,7 @@ public class NoellesRolesComponents implements EntityComponentInitializer, World
         registry.beginRegistration(PlayerEntity.class, TaotiePlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(TaotiePlayerComponent::new);
         registry.beginRegistration(PlayerEntity.class, SwallowedPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(SwallowedPlayerComponent::new);
         registry.beginRegistration(PlayerEntity.class, SilencedPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(SilencedPlayerComponent::new);
+        registry.beginRegistration(PlayerEntity.class, SilencerPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(SilencerPlayerComponent::new);
         registry.beginRegistration(PlayerEntity.class, BodyguardPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(BodyguardPlayerComponent::new);
     }
 

@@ -67,6 +67,7 @@ import org.agmas.noellesroles.taotie.SwallowedPlayerComponent;
 import org.agmas.noellesroles.packet.TaotieSwallowC2SPacket;
 import org.agmas.noellesroles.packet.SilencerSilenceC2SPacket;
 import org.agmas.noellesroles.silencer.SilencedPlayerComponent;
+import org.agmas.noellesroles.silencer.SilencerPlayerComponent;
 import org.agmas.noellesroles.bodyguard.BodyguardPlayerComponent;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.WrittenBookContentComponent;
@@ -112,6 +113,7 @@ public class Noellesroles implements ModInitializer {
     public static Identifier TAOTIE_ID = Identifier.of(MOD_ID, "taotie");
     public static Identifier SILENCER_ID = Identifier.of(MOD_ID, "silencer");
     public static Identifier BODYGUARD_ID = Identifier.of(MOD_ID, "bodyguard");
+
     // 炸弹死亡原因
     public static Identifier DEATH_REASON_BOMB = Identifier.of(MOD_ID, "bomb");
     // 刺客死亡原因
@@ -570,6 +572,7 @@ public class Noellesroles implements ModInitializer {
             TaotiePlayerComponent.KEY.get(player).reset();
             SwallowedPlayerComponent.KEY.get(player).reset();
             SilencedPlayerComponent.KEY.get(player).reset();
+            SilencerPlayerComponent.KEY.get(player).reset();
             BodyguardPlayerComponent.KEY.get(player).reset();
         });
 
@@ -1319,6 +1322,7 @@ public class Noellesroles implements ModInitializer {
             ServerPlayerEntity silencer = context.player();
             GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(silencer.getWorld());
             AbilityPlayerComponent abilityPlayerComponent = AbilityPlayerComponent.KEY.get(silencer);
+            SilencerPlayerComponent silencerComp = SilencerPlayerComponent.KEY.get(silencer);
 
             // 验证角色和状态
             if (!gameWorldComponent.isRole(silencer, SILENCER)) return;
@@ -1326,13 +1330,48 @@ public class Noellesroles implements ModInitializer {
             if (SwallowedPlayerComponent.isPlayerSwallowed(silencer)) return;
             if (abilityPlayerComponent.cooldown > 0) return;
 
-            // 验证目标
+            // 检查是否已有标记目标
+            if (silencerComp.hasMarkedTarget()) {
+                // 已有标记 → 执行沉默（不判断瞄准/距离/视线）
+                ServerPlayerEntity target = (ServerPlayerEntity) silencer.getWorld().getPlayerByUuid(silencerComp.getMarkedTargetUuid());
+                // 清除标记
+                silencerComp.clearMark();
+
+                if (target == null) return;
+                if (!GameFunctions.isPlayerPlayingAndAlive(target)) return;
+                if (SwallowedPlayerComponent.isPlayerSwallowed(target)) return;
+
+                // 检查目标是否已被沉默
+                SilencedPlayerComponent silencedComp = SilencedPlayerComponent.KEY.get(target);
+                if (silencedComp.isSilenced()) return;
+
+                // 执行沉默
+                silencedComp.applySilence(silencer.getUuid());
+
+                // 设置冷却45秒
+                abilityPlayerComponent.setCooldown(GameConstants.getInTicks(0, 45));
+
+                // 给静语者发送成功提示
+                silencer.sendMessage(
+                    Text.translatable("tip.silencer.success", target.getName())
+                        .formatted(net.minecraft.util.Formatting.GRAY),
+                    true
+                );
+
+                // 记录技能使用
+                NbtCompound extra = new NbtCompound();
+                extra.putString("action", "silence");
+                GameRecordManager.recordSkillUse(silencer, SILENCER_ID, target, extra);
+                return;
+            }
+
+            // 没有有效标记 → 进行标记（需要瞄准目标）
             if (payload.targetPlayer() == null) return;
             ServerPlayerEntity target = (ServerPlayerEntity) silencer.getWorld().getPlayerByUuid(payload.targetPlayer());
             if (target == null) return;
             if (target.equals(silencer)) return;
             if (!GameFunctions.isPlayerPlayingAndAlive(target)) return;
-            if (SwallowedPlayerComponent.isPlayerSwallowed(target)) return; // 不能沉默被吞噬的玩家
+            if (SwallowedPlayerComponent.isPlayerSwallowed(target)) return;
 
             // 验证距离（3格内）
             double distance = silencer.squaredDistanceTo(target);
@@ -1343,25 +1382,24 @@ public class Noellesroles implements ModInitializer {
 
             // 检查目标是否已被沉默
             SilencedPlayerComponent silencedComp = SilencedPlayerComponent.KEY.get(target);
-            if (silencedComp.isSilenced()) return;
+            if (silencedComp.isSilenced()) {
+                silencer.sendMessage(
+                    Text.translatable("tip.silencer.already_silenced", target.getName())
+                        .formatted(net.minecraft.util.Formatting.GRAY),
+                    true
+                );
+                return;
+            }
 
-            // 执行沉默
-            silencedComp.applySilence(silencer.getUuid());
+            // 标记目标（通过组件，自动同步到客户端）
+            silencerComp.markTarget(target.getUuid(), target.getName().getString());
 
-            // 设置冷却45秒
-            abilityPlayerComponent.setCooldown(GameConstants.getInTicks(0, 45));
-
-            // 给静语者发送成功提示
+            // 给静语者发送标记提示
             silencer.sendMessage(
-                Text.translatable("tip.silencer.success", target.getName())
+                Text.translatable("tip.silencer.marked", target.getName())
                     .formatted(net.minecraft.util.Formatting.GRAY),
                 true
             );
-
-            // 记录技能使用
-            NbtCompound extra = new NbtCompound();
-            extra.putString("action", "silence");
-            GameRecordManager.recordSkillUse(silencer, SILENCER_ID, target, extra);
         });
     }
 

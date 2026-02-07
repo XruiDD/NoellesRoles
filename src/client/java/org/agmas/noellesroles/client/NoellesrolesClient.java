@@ -51,6 +51,7 @@ import org.agmas.noellesroles.taotie.SwallowedPlayerComponent;
 import org.agmas.noellesroles.taotie.TaotiePlayerComponent;
 import org.agmas.noellesroles.packet.TaotieSwallowC2SPacket;
 import org.agmas.noellesroles.packet.SilencerSilenceC2SPacket;
+import org.agmas.noellesroles.silencer.SilencerPlayerComponent;
 import org.agmas.noellesroles.client.music.WorldMusicManager;
 import org.agmas.noellesroles.reporter.ReporterPlayerComponent;
 import org.agmas.noellesroles.bodyguard.BodyguardPlayerComponent;
@@ -431,11 +432,17 @@ public class NoellesrolesClient implements ClientModInitializer {
                         return;
                     }
 
-                    // 静语者角色按G沉默准星目标
+                    // 静语者角色按G：第一次标记目标，第二次释放沉默
+                    // 静语者角色按G：第一次标记目标，第二次释放沉默
                     if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.SILENCER)) {
-                        if (crosshairTarget != null && crosshairTargetDistance <= 3.0) {
-                            AbilityPlayerComponent abilityComp = AbilityPlayerComponent.KEY.get(MinecraftClient.getInstance().player);
-                            if (abilityComp.getCooldown() <= 0) {
+                        AbilityPlayerComponent abilityComp = AbilityPlayerComponent.KEY.get(MinecraftClient.getInstance().player);
+                        if (abilityComp.getCooldown() <= 0) {
+                            SilencerPlayerComponent silencerComp = SilencerPlayerComponent.KEY.get(MinecraftClient.getInstance().player);
+                            if (silencerComp.hasMarkedTarget()) {
+                                // 已有标记 → 发送释放沉默请求（不判断瞄准）
+                                ClientPlayNetworking.send(new SilencerSilenceC2SPacket(silencerComp.getMarkedTargetUuid()));
+                            } else if (crosshairTarget != null && crosshairTargetDistance <= 3.0) {
+                                // 没有标记 → 发送标记请求
                                 ClientPlayNetworking.send(new SilencerSilenceC2SPacket(crosshairTarget.getUuid()));
                             }
                         }

@@ -17,8 +17,8 @@ import org.agmas.noellesroles.Noellesroles;
  */
 public class TimekeeperShopHandler {
 
-    // 30秒 = 30 * 20 = 600 ticks
-    private static final int TIME_REDUCTION_TICKS = 600;
+    // 45秒 = 45 * 20 = 900 ticks
+    private static final int TIME_REDUCTION_TICKS = 900;
     private static final int PRICE = 100;
 
     public static void register() {

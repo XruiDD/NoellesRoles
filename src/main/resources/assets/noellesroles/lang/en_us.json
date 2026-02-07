@@ -195,9 +195,11 @@
   "announcement.goals.silencer": "Shut them up! Silenced targets can't speak or hear others.",
   "announcement.role.silencer": "Silencer",
   "announcement.win.silencer": "Killers Win!",
-  "tip.silencer.silence": "Press %s to silence %s",
-  "tip.silencer.ready": "Ability ready! Aim at target and press [%s]",
+  "tip.silencer.mark": "Press %s to mark %s",
+  "tip.silencer.confirm": "Press %s to silence %s (%ss)",
+  "tip.silencer.ready": "Ability ready! Aim at target and press [%s] to mark",
   "tip.silencer.already_silenced": "%s is already silenced",
+  "tip.silencer.marked": "Marked %s, press again within 30s to silence",
   "tip.silencer.success": "You silenced %s",
 
   "replay.skill.noellesroles.silencer.target": "%s §7silenced§r %s",
