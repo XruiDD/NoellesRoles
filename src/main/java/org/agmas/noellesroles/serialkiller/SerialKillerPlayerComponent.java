@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
 import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
+import org.ladysnake.cca.api.v3.component.tick.ServerTickingComponent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +26,7 @@ import java.util.UUID;
  * 连环杀手玩家组件
  * 管理透视目标和击杀奖励
  */
-public class SerialKillerPlayerComponent implements AutoSyncedComponent {
+public class SerialKillerPlayerComponent implements AutoSyncedComponent, ServerTickingComponent {
     public static final ComponentKey<SerialKillerPlayerComponent> KEY = ComponentRegistry.getOrCreate(
             Identifier.of(Noellesroles.MOD_ID, "serial_killer"), SerialKillerPlayerComponent.class);
 
@@ -37,12 +38,17 @@ public class SerialKillerPlayerComponent implements AutoSyncedComponent {
     // 额外金钱奖励
     private static final int BONUS_MONEY = 100;
 
+    // 每隔多少 tick 检查一次目标有效性
+    private static final int CHECK_INTERVAL = 20;
+    private int checkTimer = 0;
+
     public SerialKillerPlayerComponent(PlayerEntity player) {
         this.player = player;
     }
 
     public void reset() {
         this.currentTarget = null;
+        this.checkTimer = 0;
         this.sync();
     }
 
@@ -55,37 +61,69 @@ public class SerialKillerPlayerComponent implements AutoSyncedComponent {
         return player == this.player;
     }
 
-    /**
-     * 在游戏开始时随机选择一个非杀手阵营的玩家作为目标
-     * @param gameWorldComponent 游戏世界组件
-     */
-    public void initializeTarget(GameWorldComponent gameWorldComponent) {
+    @Override
+    public void serverTick() {
         if (!(player.getWorld() instanceof ServerWorld serverWorld)) return;
+        if (!GameFunctions.isPlayerPlayingAndAlive(player)) return;
 
-        List<UUID> eligibleTargets = getEligibleTargets(gameWorldComponent, serverWorld);
+        GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(serverWorld);
+        if (!gameWorldComponent.isRole(player, Noellesroles.SERIAL_KILLER)) return;
 
-        if (!eligibleTargets.isEmpty()) {
-            Random random = new Random();
-            this.currentTarget = eligibleTargets.get(random.nextInt(eligibleTargets.size()));
-            this.sync();
+        if (++checkTimer < CHECK_INTERVAL) return;
+        checkTimer = 0;
 
-            // 记录目标分配
-            if (player instanceof ServerPlayerEntity serverPlayer) {
-                ServerPlayerEntity targetPlayer = serverWorld.getServer().getPlayerManager().getPlayer(this.currentTarget);
-                NbtCompound extra = new NbtCompound();
-                extra.putString("action", "assign");
-                GameRecordManager.recordSkillUse(serverPlayer, Noellesroles.SERIAL_KILLER_ID, targetPlayer, extra);
-            }
+        if (currentTarget != null) {
+            // 检查当前目标是否仍然有效
+            if (isTargetValid(currentTarget, gameWorldComponent, serverWorld)) return;
+
+            // 目标失效，寻找新目标
+            reassignTarget(gameWorldComponent, serverWorld);
+        } else {
+            // 没有目标，尝试寻找一个
+            assignTarget(gameWorldComponent, serverWorld);
         }
     }
 
     /**
-     * 当目标死亡时自动更换目标
-     * @param gameWorldComponent 游戏世界组件
+     * 检查目标是否仍然有效（存活、未被吞噬、非杀手阵营）
      */
-    public void onTargetDeath(GameWorldComponent gameWorldComponent) {
-        if (!(player.getWorld() instanceof ServerWorld serverWorld)) return;
+    private boolean isTargetValid(UUID targetUuid, GameWorldComponent gameWorldComponent, ServerWorld serverWorld) {
+        if (targetUuid.equals(player.getUuid())) return false;
 
+        PlayerEntity targetPlayer = serverWorld.getPlayerByUuid(targetUuid);
+        if (targetPlayer == null) return false;
+        if (!GameFunctions.isPlayerPlayingAndAlive(targetPlayer) || SwallowedPlayerComponent.isPlayerSwallowed(targetPlayer)) return false;
+
+        var role = gameWorldComponent.getRole(targetPlayer);
+        if (role == null || role == Noellesroles.UNDERCOVER) return false;
+        if (role.canUseKiller()) return false;
+
+        return true;
+    }
+
+    /**
+     * 尝试分配一个新目标（无前一个目标时）
+     */
+    private void assignTarget(GameWorldComponent gameWorldComponent, ServerWorld serverWorld) {
+        List<UUID> eligibleTargets = getEligibleTargets(gameWorldComponent, serverWorld);
+        if (eligibleTargets.isEmpty()) return;
+
+        Random random = new Random();
+        this.currentTarget = eligibleTargets.get(random.nextInt(eligibleTargets.size()));
+        this.sync();
+
+        if (player instanceof ServerPlayerEntity serverPlayer) {
+            ServerPlayerEntity targetPlayer = serverWorld.getServer().getPlayerManager().getPlayer(this.currentTarget);
+            NbtCompound extra = new NbtCompound();
+            extra.putString("action", "assign");
+            GameRecordManager.recordSkillUse(serverPlayer, Noellesroles.SERIAL_KILLER_ID, targetPlayer, extra);
+        }
+    }
+
+    /**
+     * 目标失效后重新分配新目标
+     */
+    private void reassignTarget(GameWorldComponent gameWorldComponent, ServerWorld serverWorld) {
         UUID previousTarget = this.currentTarget;
         List<UUID> eligibleTargets = getEligibleTargets(gameWorldComponent, serverWorld);
 
@@ -94,7 +132,6 @@ public class SerialKillerPlayerComponent implements AutoSyncedComponent {
             this.currentTarget = eligibleTargets.get(random.nextInt(eligibleTargets.size()));
             this.sync();
 
-            // 记录目标更换
             if (player instanceof ServerPlayerEntity serverPlayer) {
                 ServerPlayerEntity newTargetPlayer = serverWorld.getServer().getPlayerManager().getPlayer(this.currentTarget);
                 NbtCompound extra = new NbtCompound();
@@ -107,17 +144,25 @@ public class SerialKillerPlayerComponent implements AutoSyncedComponent {
         } else {
             this.currentTarget = null;
             this.sync();
-
-            // 记录无可用目标
-            if (player instanceof ServerPlayerEntity serverPlayer) {
-                NbtCompound extra = new NbtCompound();
-                extra.putString("action", "no_target");
-                if (previousTarget != null) {
-                    extra.putUuid("previous_target", previousTarget);
-                }
-                GameRecordManager.recordSkillUse(serverPlayer, Noellesroles.SERIAL_KILLER_ID, null, extra);
-            }
         }
+    }
+
+    /**
+     * 在游戏开始时随机选择一个非杀手阵营的玩家作为目标
+     * @param gameWorldComponent 游戏世界组件
+     */
+    public void initializeTarget(GameWorldComponent gameWorldComponent) {
+        if (!(player.getWorld() instanceof ServerWorld serverWorld)) return;
+        assignTarget(gameWorldComponent, serverWorld);
+    }
+
+    /**
+     * 当目标死亡时自动更换目标
+     * @param gameWorldComponent 游戏世界组件
+     */
+    public void onTargetDeath(GameWorldComponent gameWorldComponent) {
+        if (!(player.getWorld() instanceof ServerWorld serverWorld)) return;
+        reassignTarget(gameWorldComponent, serverWorld);
     }
 
     /**
@@ -128,6 +173,7 @@ public class SerialKillerPlayerComponent implements AutoSyncedComponent {
 
         for (UUID playerUuid : gameWorldComponent.getAllPlayers()) {
             if (playerUuid.equals(player.getUuid())) continue; // 不能选择自己
+            if (playerUuid.equals(currentTarget)) continue; // 排除当前（已失效的）目标
 
             PlayerEntity targetPlayer = serverWorld.getPlayerByUuid(playerUuid);
             if (targetPlayer == null) continue;
