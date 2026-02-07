@@ -9,6 +9,8 @@ import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
+import dev.doctor4t.wathe.game.GameConstants;
+import dev.doctor4t.wathe.index.WatheItems;
 import org.agmas.noellesroles.Noellesroles;
 import org.agmas.noellesroles.taotie.SwallowedPlayerComponent;
 import org.jetbrains.annotations.NotNull;
@@ -36,11 +38,14 @@ public class SerialKillerPlayerComponent implements AutoSyncedComponent, ServerT
     private UUID currentTarget;
 
     // 额外金钱奖励
-    private static final int BONUS_MONEY = 100;
+    private static final int BONUS_MONEY = 50;
 
     // 每隔多少 tick 检查一次目标有效性
     private static final int CHECK_INTERVAL = 20;
     private int checkTimer = 0;
+
+    // 击杀目标后的刀CD覆盖（延迟到下一tick执行，因为KillPlayer.AFTER在KnifeStabPayload设置CD之前触发）
+    private int pendingKnifeCd = 0;
 
     public SerialKillerPlayerComponent(PlayerEntity player) {
         this.player = player;
@@ -49,6 +54,7 @@ public class SerialKillerPlayerComponent implements AutoSyncedComponent, ServerT
     public void reset() {
         this.currentTarget = null;
         this.checkTimer = 0;
+        this.pendingKnifeCd = 0;
         this.sync();
     }
 
@@ -61,6 +67,13 @@ public class SerialKillerPlayerComponent implements AutoSyncedComponent, ServerT
         return player == this.player;
     }
 
+    /**
+     * 标记需要在下一tick覆盖刀CD为指定值
+     */
+    public void markKnifeCdOverride(int cd) {
+        this.pendingKnifeCd = cd;
+    }
+
     @Override
     public void serverTick() {
         if (!(player.getWorld() instanceof ServerWorld serverWorld)) return;
@@ -68,6 +81,12 @@ public class SerialKillerPlayerComponent implements AutoSyncedComponent, ServerT
 
         GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(serverWorld);
         if (!gameWorldComponent.isRole(player, Noellesroles.SERIAL_KILLER)) return;
+
+        // 将刀CD减半（延迟执行，确保在KnifeStabPayload设置CD之后）
+        if (pendingKnifeCd > 0) {
+            player.getItemCooldownManager().set(WatheItems.KNIFE, pendingKnifeCd);
+            pendingKnifeCd = 0;
+        }
 
         if (++checkTimer < CHECK_INTERVAL) return;
         checkTimer = 0;

@@ -688,7 +688,7 @@ public class Noellesroles implements ModInitializer {
             if (victim.getWorld() instanceof ServerWorld serverWorld) {
                 for (UUID uuid : gameComponent.getAllWithRole(SERIAL_KILLER)) {
                     PlayerEntity serialKiller = serverWorld.getPlayerByUuid(uuid);
-                    if (GameFunctions.isPlayerPlayingAndAlive(serialKiller)) {
+                    if (serialKiller != null && GameFunctions.isPlayerPlayingAndAlive(serialKiller)) {
                         SerialKillerPlayerComponent serialKillerComp = SerialKillerPlayerComponent.KEY.get(serialKiller);
 
                         // 如果被杀者是连环杀手的目标
@@ -696,6 +696,17 @@ public class Noellesroles implements ModInitializer {
                             // 如果是连环杀手亲自击杀的，给予额外金钱奖励
                             if (killer != null && killer.getUuid().equals(serialKiller.getUuid())) {
                                 PlayerShopComponent.KEY.get(killer).addToBalance(SerialKillerPlayerComponent.getBonusMoney());
+                                // 计算减半的刀CD并标记（在serverTick中执行，因为KnifeStabPayload会在AFTER之后设置CD）
+                                if (deathReason == GameConstants.DeathReasons.KNIFE) {
+                                    int totalPlayers = serverWorld.getPlayers().size();
+                                    int killerCount = gameComponent.getAllKillerTeamPlayers().size();
+                                    int killerRatio = gameComponent.getKillerDividend();
+                                    int excessPlayers = Math.max(0, totalPlayers - (killerCount * killerRatio));
+                                    int baseCooldown = GameConstants.ITEM_COOLDOWNS.get(WatheItems.KNIFE);
+                                    int cooldownReductionPerExcess = GameConstants.getInTicks(0, 5);
+                                    int adjustedCooldown = Math.max(GameConstants.getInTicks(0, 10), baseCooldown - (excessPlayers * cooldownReductionPerExcess));
+                                    serialKillerComp.markKnifeCdOverride(adjustedCooldown / 2);
+                                }
                             }
                             // 目标死亡，自动更换新目标
                             serialKillerComp.onTargetDeath(gameComponent);
