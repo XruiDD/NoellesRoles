@@ -370,7 +370,7 @@ public class Noellesroles implements ModInitializer {
             }
 
             // 保镖保护逻辑：如果受害者是保镖的保护目标且保镖在3格内，保镖牺牲自己保护目标
-            if (deathReason != DEATH_REASON_BODYGUARD_SACRIFICE) {
+            if (deathReason == GameConstants.DeathReasons.KNIFE) {
                 if (victim.getWorld() instanceof ServerWorld bodyguardWorld) {
                     for (UUID bodyguardUuid : gameWorldComponent.getAllWithRole(BODYGUARD)) {
                         PlayerEntity bodyguardPlayer = bodyguardWorld.getPlayerByUuid(bodyguardUuid);
@@ -378,7 +378,7 @@ public class Noellesroles implements ModInitializer {
                             BodyguardPlayerComponent bodyguardComp = BodyguardPlayerComponent.KEY.get(bodyguardPlayer);
                             if (bodyguardComp.isCurrentTarget(victim.getUuid()) && bodyguardPlayer.squaredDistanceTo(victim) <= 9.0) {
                                 // 记录保镖保护技能事件
-                                GameRecordManager.recordSkillUse((ServerPlayerEntity) bodyguardPlayer, BODYGUARD_ID, (ServerPlayerEntity) victim, null);
+                                GameRecordManager.recordSkillUse((ServerPlayerEntity) bodyguardPlayer, BODYGUARD_ID, victim, null);
                                 GameFunctions.killPlayer((ServerPlayerEntity) bodyguardPlayer, true, killer, DEATH_REASON_BODYGUARD_SACRIFICE);
                                 return KillPlayer.KillResult.cancel();
                             }
