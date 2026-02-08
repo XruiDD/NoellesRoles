@@ -129,6 +129,10 @@ public class Noellesroles implements ModInitializer {
     // 保镖牺牲死亡原因
     public static Identifier DEATH_REASON_BODYGUARD_SACRIFICE = Identifier.of(MOD_ID, "bodyguard_sacrifice");
 
+    // 下毒来源
+    public static Identifier POISON_SOURCE_NEEDLE = Identifier.of(MOD_ID, "needle");
+    public static Identifier POISON_SOURCE_GAS_BOMB = Identifier.of(MOD_ID, "gas_bomb");
+
     public static Role SWAPPER = WatheRoles.registerRole(new Role(SWAPPER_ID, new Color(57, 4, 170).getRGB(),false,true, Role.MoodType.FAKE,Integer.MAX_VALUE,true));
     public static Role PHANTOM =WatheRoles.registerRole(new Role(PHANTOM_ID, new Color(80, 5, 5, 192).getRGB(),false,true, Role.MoodType.FAKE,Integer.MAX_VALUE,true));
     public static Role MORPHLING =WatheRoles.registerRole(new Role(MORPHLING_ID, new Color(170, 2, 61).getRGB(),false,true, Role.MoodType.FAKE,Integer.MAX_VALUE,true));

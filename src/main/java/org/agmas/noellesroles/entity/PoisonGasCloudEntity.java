@@ -131,9 +131,7 @@ public class PoisonGasCloudEntity extends Entity {
                     if (poisonComp.poisonTicks <= 0) {
                         int poisonTime = PlayerPoisonComponent.clampTime.getLeft() +
                                 serverWorld.random.nextInt(PlayerPoisonComponent.clampTime.getRight() - PlayerPoisonComponent.clampTime.getLeft() + 1);
-                        NbtCompound recordExtra = new NbtCompound();
-                        recordExtra.putString("source", "gas_bomb");
-                        poisonComp.setPoisonTicks(poisonTime, ownerUuid, recordExtra);
+                        poisonComp.setPoisonTicks(poisonTime, ownerUuid, Noellesroles.POISON_SOURCE_GAS_BOMB);
                         exposureTicks.put(player.getUuid(), 0);
                     }
                 }

@@ -301,5 +301,10 @@
   "item.noellesroles.poison_gas_bomb.tooltip": "右键丢出毒气弹\n释放毒气可在空间内扩散\n毒气不能穿过方块\n在毒气中停留5秒将中毒\n30秒后毒气消散",
 
   "replay.item_use.noellesroles.poison_needle": "%s 用§5毒针§r刺了 %s",
-  "replay.item_use.noellesroles.poison_gas_bomb": "%s 投掷了§5毒气弹§r"
+  "replay.item_use.noellesroles.poison_gas_bomb": "%s 投掷了§5毒气弹§r",
+
+  "replay.poisoned.noellesroles.needle.by": "%s 被 %s 用§5毒针§r扎伤中毒",
+  "replay.poisoned.noellesroles.needle": "%s 被§5毒针§r扎伤中毒",
+  "replay.poisoned.noellesroles.gas_bomb.by": "%s 吸入了 %s 释放的§5毒气§r中毒",
+  "replay.poisoned.noellesroles.gas_bomb": "%s 吸入§5毒气§r中毒"
 }

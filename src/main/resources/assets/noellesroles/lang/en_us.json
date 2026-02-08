@@ -225,5 +225,10 @@
   "item.noellesroles.poison_gas_bomb.tooltip": "Right-click to throw a gas bomb\nReleases gas that spreads through open spaces\nGas cannot pass through blocks\nStaying in gas for 5s causes poisoning\nGas dissipates after 30s",
 
   "replay.item_use.noellesroles.poison_needle": "%s stabbed %s with a §5poison needle§r",
-  "replay.item_use.noellesroles.poison_gas_bomb": "%s threw a §5poison gas bomb§r"
+  "replay.item_use.noellesroles.poison_gas_bomb": "%s threw a §5poison gas bomb§r",
+
+  "replay.poisoned.noellesroles.needle.by": "%s was poisoned by %s with a §5poison needle§r",
+  "replay.poisoned.noellesroles.needle": "%s was poisoned by a §5poison needle§r",
+  "replay.poisoned.noellesroles.gas_bomb.by": "%s inhaled §5poison gas§r released by %s",
+  "replay.poisoned.noellesroles.gas_bomb": "%s inhaled §5poison gas§r"
 }

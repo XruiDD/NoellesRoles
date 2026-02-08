@@ -9,7 +9,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.Registries;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -65,9 +64,7 @@ public class PoisonNeedleItem extends Item {
             int poisonTicks = PlayerPoisonComponent.clampTime.getLeft() +
                     world.random.nextInt(PlayerPoisonComponent.clampTime.getRight() - PlayerPoisonComponent.clampTime.getLeft() + 1);
 
-            NbtCompound recordExtra = new NbtCompound();
-            recordExtra.putString("source", "needle");
-            PlayerPoisonComponent.KEY.get(target).setPoisonTicks(poisonTicks, user.getUuid(), recordExtra);
+            PlayerPoisonComponent.KEY.get(target).setPoisonTicks(poisonTicks, user.getUuid(), Noellesroles.POISON_SOURCE_NEEDLE);
 
             // 设置冷却
             user.getItemCooldownManager().set(this, USE_COOLDOWN_TICKS);
