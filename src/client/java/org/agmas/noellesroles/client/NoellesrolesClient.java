@@ -56,6 +56,7 @@ import org.agmas.noellesroles.client.music.WorldMusicManager;
 import org.agmas.noellesroles.reporter.ReporterPlayerComponent;
 import org.agmas.noellesroles.bodyguard.BodyguardPlayerComponent;
 import org.agmas.noellesroles.serialkiller.SerialKillerPlayerComponent;
+import org.agmas.noellesroles.survivalmaster.SurvivalMasterPlayerComponent;
 import org.agmas.noellesroles.NoellesRolesEntities;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.client.render.entity.FlyingItemEntityRenderer;
@@ -217,6 +218,11 @@ public class NoellesrolesClient implements ClientModInitializer {
                 if (bodyguardComp.isCurrentTarget(player.getUuid())) {
                     return GetInstinctHighlight.HighlightResult.always(Noellesroles.BODYGUARD.color());
                 }
+            }
+
+            // 如果目标是生存大师，阻止被杀手本能高亮
+            if (gameWorldComponent.isRole(player, Noellesroles.SURVIVAL_MASTER)) {
+                return GetInstinctHighlight.HighlightResult.skip();
             }
             return null;
         });

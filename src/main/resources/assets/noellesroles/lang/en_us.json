@@ -243,5 +243,19 @@
 
   "replay.death.noellesroles.throwing_axe.killed": "%s was cleaved by %s's §cthrowing axe§r",
   "replay.death.noellesroles.throwing_axe.died": "%s was cleaved by a §cthrowing axe§r",
-  "replay.item_use.noellesroles.throwing_axe": "%s threw a §cthrowing axe§r"
+  "replay.item_use.noellesroles.throwing_axe": "%s threw a §cthrowing axe§r",
+
+  "announcement.goals.survival_master": "You are invisible to killer instinct! When conditions are met, Survival Moment activates — survive 120 seconds to win!",
+  "announcement.role.survival_master": "Survival Master",
+  "announcement.win.survival_master": "Passengers Win!",
+  "tip.survival_master.moment_active": "Survival Moment! Hold on! %s seconds remaining",
+
+  "title.noellesroles.survival_moment": "Survival Moment",
+  "subtitle.noellesroles.survival_moment": "The Survival Master has vanished into the shadows. Killers must find them before time runs out.",
+  "tip.noellesroles.survival_moment_countdown": "Find and kill the Survival Master! Time remaining: %s seconds",
+  "tip.noellesroles.survival_moment_ended": "Survival Moment has ended",
+
+  "replay.death_blocked.survival_moment": "%s was immune to assassination during §dSurvival Moment§r",
+  "replay.global.noellesroles.survival_moment_start": "%s triggered §dSurvival Moment§r",
+  "replay.global.noellesroles.survival_moment_end": "%s's §dSurvival Moment§r ended"
 }

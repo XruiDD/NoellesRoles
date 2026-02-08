@@ -320,5 +320,19 @@
 
   "replay.death.noellesroles.throwing_axe.killed": "%s 被 %s 的§c飞斧§r贯穿击杀",
   "replay.death.noellesroles.throwing_axe.died": "%s 被§c飞斧§r贯穿击杀",
-  "replay.item_use.noellesroles.throwing_axe": "%s 投掷了§c飞斧§r"
+  "replay.item_use.noellesroles.throwing_axe": "%s 投掷了§c飞斧§r",
+
+  "announcement.goals.survival_master": "你无法被杀手本能察觉！当条件满足时，进入生存时刻，在120秒内存活即可获胜！",
+  "announcement.role.survival_master": "生存大师",
+  "announcement.win.survival_master": "乘客胜利！",
+  "tip.survival_master.moment_active": "生存时刻！坚持住！剩余 %s 秒",
+
+  "title.noellesroles.survival_moment": "生存时刻",
+  "subtitle.noellesroles.survival_moment": "生存大师已隐入暗处，杀手们必须在限定时间内找到他",
+  "tip.noellesroles.survival_moment_countdown": "你必须找出并杀掉生存大师！剩余时间: %s秒",
+  "tip.noellesroles.survival_moment_ended": "生存时刻已结束",
+
+  "replay.death_blocked.survival_moment": "%s 在§d生存时刻§r中免疫刺客刺杀",
+  "replay.global.noellesroles.survival_moment_start": "%s 触发§d生存时刻§r",
+  "replay.global.noellesroles.survival_moment_end": "%s 的§d生存时刻§r结束"
 }

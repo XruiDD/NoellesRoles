@@ -73,6 +73,7 @@ import org.agmas.noellesroles.silencer.SilencerPlayerComponent;
 import org.agmas.noellesroles.bodyguard.BodyguardPlayerComponent;
 import org.agmas.noellesroles.poisoner.PoisonerShopHandler;
 import org.agmas.noellesroles.bandit.BanditShopHandler;
+import org.agmas.noellesroles.survivalmaster.SurvivalMasterPlayerComponent;
 import dev.doctor4t.wathe.compat.TrainVoicePlugin;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.WrittenBookContentComponent;
@@ -120,6 +121,7 @@ public class Noellesroles implements ModInitializer {
     public static Identifier BODYGUARD_ID = Identifier.of(MOD_ID, "bodyguard");
     public static Identifier POISONER_ID = Identifier.of(MOD_ID, "poisoner");
     public static Identifier BANDIT_ID = Identifier.of(MOD_ID, "bandit");
+    public static Identifier SURVIVAL_MASTER_ID = Identifier.of(MOD_ID, "survival_master");
 
     // 炸弹死亡原因
     public static Identifier DEATH_REASON_BOMB = Identifier.of(MOD_ID, "bomb");
@@ -177,6 +179,8 @@ public class Noellesroles implements ModInitializer {
     public static Role ATTENDANT = WatheRoles.registerRole(new Role(ATTENDANT_ID, new Color(100, 149, 237).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
     // 保镖角色 - 无辜者阵营，保护连环杀手的目标，仅与连环杀手一起出现
     public static Role BODYGUARD = WatheRoles.registerRole(new Role(BODYGUARD_ID, new Color(70, 130, 250).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false, ctx -> ctx.isRoleAssigned(SERIAL_KILLER)));
+    // 生存大师角色 - 无辜者阵营，无法被杀手本能察觉，触发生存时刻后杀手必须在120秒内找到并杀死他
+    public static Role SURVIVAL_MASTER = WatheRoles.registerRole(new Role(SURVIVAL_MASTER_ID, new Color(50, 180, 160).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
 
 
     // 小丑角色 - 中立阵营，被无辜者杀死时获胜
@@ -235,6 +239,15 @@ public class Noellesroles implements ModInitializer {
                     TaotiePlayerComponent taotieComp = TaotiePlayerComponent.KEY.get(taotie);
                     taotieComp.checkAndTriggerMoment(taotieAliveCount);
                 }
+            }
+        }
+
+        // 检查是否应该触发生存时刻
+        for (UUID uuid : gameComponent.getAllWithRole(SURVIVAL_MASTER)) {
+            PlayerEntity survivalMaster = serverWorld.getPlayerByUuid(uuid);
+            if (GameFunctions.isPlayerPlayingAndAlive(survivalMaster)) {
+                SurvivalMasterPlayerComponent survivalComp = SurvivalMasterPlayerComponent.KEY.get(survivalMaster);
+                survivalComp.checkAndTriggerMoment(serverWorld);
             }
         }
     }
@@ -331,6 +344,24 @@ public class Noellesroles implements ModInitializer {
                         var event = GameRecordManager.event("death_blocked")
                             .actor(serverVictim)
                             .put("block_reason", "taotie_moment")
+                            .put("death_reason", deathReason.toString());
+                        if (killer instanceof ServerPlayerEntity serverKiller) {
+                            event.target(serverKiller);
+                        }
+                        event.record();
+                    }
+                    return KillPlayer.KillResult.cancel();
+                }
+            }
+
+            // 生存时刻时生存大师免疫被刺客刺杀
+            if (gameWorldComponent.isRole(victim, SURVIVAL_MASTER)) {
+                SurvivalMasterPlayerComponent survivalComp = SurvivalMasterPlayerComponent.KEY.get(victim);
+                if (survivalComp.isSurvivalMomentActive() && deathReason == DEATH_REASON_ASSASSINATED) {
+                    if (victim instanceof ServerPlayerEntity serverVictim) {
+                        var event = GameRecordManager.event("death_blocked")
+                            .actor(serverVictim)
+                            .put("block_reason", "survival_moment")
                             .put("death_reason", deathReason.toString());
                         if (killer instanceof ServerPlayerEntity serverKiller) {
                             event.target(serverKiller);
@@ -590,6 +621,11 @@ public class Noellesroles implements ModInitializer {
                 BodyguardPlayerComponent bodyguardComp = BodyguardPlayerComponent.KEY.get(player);
                 bodyguardComp.reset();
             }
+            if (role.equals(SURVIVAL_MASTER)) {
+                SurvivalMasterPlayerComponent survivalComp = SurvivalMasterPlayerComponent.KEY.get(player);
+                survivalComp.reset();
+                survivalComp.initializeForGame(gameWorldComponent.getAllKillerTeamPlayers().size());
+            }
             if (role.equals(POISONER)) {
                 player.getItemCooldownManager().set(ModItems.POISON_NEEDLE, GameConstants.getInTicks(1, 0)); // 1分钟初始冷却
             }
@@ -615,6 +651,7 @@ public class Noellesroles implements ModInitializer {
             SilencedPlayerComponent.KEY.get(player).reset();
             SilencerPlayerComponent.KEY.get(player).reset();
             BodyguardPlayerComponent.KEY.get(player).reset();
+            SurvivalMasterPlayerComponent.KEY.get(player).reset();
         });
 
         // Bartender and Recaller get +50 coins when completing tasks
@@ -627,6 +664,17 @@ public class Noellesroles implements ModInitializer {
             }
         });
         CheckWinCondition.EVENT.register((world, gameComponent, currentStatus) -> {
+            // 生存时刻完成 → 乘客胜利
+            for (UUID uuid : gameComponent.getAllWithRole(SURVIVAL_MASTER)) {
+                PlayerEntity survivalMaster = world.getPlayerByUuid(uuid);
+                if (GameFunctions.isPlayerPlayingAndAlive(survivalMaster)) {
+                    SurvivalMasterPlayerComponent survivalComp = SurvivalMasterPlayerComponent.KEY.get(survivalMaster);
+                    if (survivalComp.hasSurvivalMomentCompleted()) {
+                        return CheckWinCondition.WinResult.allow(GameFunctions.WinStatus.PASSENGERS);
+                    }
+                }
+            }
+
             for (UUID uuid : gameComponent.getAllWithRole(VULTURE)) {
                 PlayerEntity vulture = world.getPlayerByUuid(uuid);
                 if (GameFunctions.isPlayerPlayingAndAlive(vulture)) {
@@ -865,6 +913,12 @@ public class Noellesroles implements ModInitializer {
             if (gameComponent.isRole(victim, CORRUPT_COP)) {
                 CorruptCopPlayerComponent corruptCopComp = CorruptCopPlayerComponent.KEY.get(victim);
                 corruptCopComp.endCorruptCopMoment();
+            }
+
+            // 生存大师被杀时结束生存时刻
+            if (gameComponent.isRole(victim, SURVIVAL_MASTER)) {
+                SurvivalMasterPlayerComponent survivalComp = SurvivalMasterPlayerComponent.KEY.get(victim);
+                survivalComp.endSurvivalMoment();
             }
 
             // 饕餮被杀时释放所有被吞玩家并结束饕餮时刻
