@@ -203,13 +203,9 @@ public class NoellesrolesClient implements ClientModInitializer {
                 }
             }
 
-            // SERIAL_KILLER: 当前目标始终高亮显示（透视效果）
-            if (gameWorldComponent.isRole(localPlayer, Noellesroles.SERIAL_KILLER)) {
-                SerialKillerPlayerComponent serialKillerComp = SerialKillerPlayerComponent.KEY.get(localPlayer);
-                if (serialKillerComp.isCurrentTarget(player.getUuid())) {
-                    // 当前目标 - 使用连环杀手颜色透视
-                    return GetInstinctHighlight.HighlightResult.always(Noellesroles.SERIAL_KILLER.color());
-                }
+            // 如果目标是生存大师，阻止被杀手本能高亮
+            if (gameWorldComponent.isRole(player, Noellesroles.SURVIVAL_MASTER)) {
+                return GetInstinctHighlight.HighlightResult.skip();
             }
 
             // BODYGUARD: 保护目标始终高亮显示（透视效果）
@@ -220,9 +216,13 @@ public class NoellesrolesClient implements ClientModInitializer {
                 }
             }
 
-            // 如果目标是生存大师，阻止被杀手本能高亮
-            if (gameWorldComponent.isRole(player, Noellesroles.SURVIVAL_MASTER)) {
-                return GetInstinctHighlight.HighlightResult.skip();
+            // SERIAL_KILLER: 当前目标始终高亮显示（透视效果）
+            if (gameWorldComponent.isRole(localPlayer, Noellesroles.SERIAL_KILLER)) {
+                SerialKillerPlayerComponent serialKillerComp = SerialKillerPlayerComponent.KEY.get(localPlayer);
+                if (serialKillerComp.isCurrentTarget(player.getUuid())) {
+                    // 当前目标 - 使用连环杀手颜色透视
+                    return GetInstinctHighlight.HighlightResult.always(Noellesroles.SERIAL_KILLER.color());
+                }
             }
             return null;
         });
