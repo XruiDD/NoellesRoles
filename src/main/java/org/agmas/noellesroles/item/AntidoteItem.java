@@ -9,7 +9,6 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUsage;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.Registries;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -17,6 +16,7 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.UseAction;
 import net.minecraft.world.World;
 
@@ -25,8 +25,8 @@ import java.util.UUID;
 public class AntidoteItem extends Item {
     // Charge time: 1.5 seconds = 30 ticks
     private static final int USE_TIME = 30;
-    // Cooldown after use: 5 minutes = 5 * 60 * 20 ticks
-    private static final int COOLDOWN_TICKS = 5 * 60 * 20;
+    // Cooldown after use: 5 minutes = 3 * 60 * 20 ticks
+    private static final int COOLDOWN_TICKS = 3 * 60 * 20;
     // Initial cooldown at game start: 2 minutes = 2 * 60 * 20 ticks
     public static final int INITIAL_COOLDOWN_TICKS = 2 * 60 * 20;
     // Max distance to target: 3 blocks
@@ -69,6 +69,34 @@ public class AntidoteItem extends Item {
         user.setCurrentHand(hand);
 
         return ActionResult.CONSUME;
+    }
+
+    @Override
+    public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
+        ItemStack stack = user.getStackInHand(hand);
+
+        if (user.getItemCooldownManager().isCoolingDown(this)) {
+            return TypedActionResult.fail(stack);
+        }
+
+        if (!GameFunctions.isPlayerAliveAndSurvival(user)) {
+            return TypedActionResult.pass(stack);
+        }
+
+        // Check if self is poisoned
+        PlayerPoisonComponent poisonComp = PlayerPoisonComponent.KEY.get(user);
+        if (poisonComp.poisonTicks <= 0) {
+            return TypedActionResult.pass(stack);
+        }
+
+        // Store self UUID as target
+        NbtCompound nbt = new NbtCompound();
+        nbt.putUuid("target", user.getUuid());
+        stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
+
+        user.setCurrentHand(hand);
+
+        return TypedActionResult.consume(stack);
     }
 
     @Override
