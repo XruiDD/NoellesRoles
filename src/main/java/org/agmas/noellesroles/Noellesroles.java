@@ -374,14 +374,22 @@ public class Noellesroles implements ModInitializer {
                 victim.getWorld().playSound(null, victim.getBlockPos(), WatheSounds.ITEM_PSYCHO_ARMOUR, SoundCategory.MASTER, 5.0F, 1.0F);
                 // 记录铁人药水保护生效
                 if (victim instanceof ServerPlayerEntity serverVictim) {
-                    var event = GameRecordManager.event("death_blocked")
+                    var deathBlockedEvent = GameRecordManager.event("death_blocked")
                         .actor(serverVictim)
                         .put("block_reason", "iron_man_buff")
                         .put("death_reason", deathReason.toString());
                     if (killer instanceof ServerPlayerEntity serverKiller) {
-                        event.target(serverKiller);
+                        deathBlockedEvent.target(serverKiller);
                     }
-                    event.record();
+                    deathBlockedEvent.record();
+
+                    var ironManEvent = GameRecordManager.event("iron_man_activated")
+                        .actor(serverVictim)
+                        .put("action", "block_damage");
+                    if (killer instanceof ServerPlayerEntity serverKiller) {
+                        ironManEvent.target(serverKiller);
+                    }
+                    ironManEvent.record();
                 }
                 ironManComp.removeBuff();
                 return KillPlayer.KillResult.cancel();
@@ -1465,13 +1473,35 @@ public class Noellesroles implements ModInitializer {
 
             Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
 
+            // 铁人药剂由专属 iron_man_activated 事件处理，此处返回null避免重复
+            if ("iron_man_buff".equals(blockReason)) return null;
+
             // 根据 block_reason 选择翻译键
             String translationKey = switch (blockReason) {
                 case "corrupt_cop_moment" -> "replay.death_blocked.corrupt_cop_moment";
                 case "taotie_moment" -> "replay.death_blocked.taotie_moment";
                 case "jester_stasis" -> "replay.death_blocked.jester_stasis";
-                case "iron_man_buff" -> "replay.death_blocked.iron_man_buff";
                 default -> "replay.death_blocked.unknown";
+            };
+
+            return Text.translatable(translationKey, actorText);
+        });
+
+        // iron_man_activated 铁人药剂生效格式化器
+        ReplayRegistry.registerFormatter("iron_man_activated", (event, match, world) -> {
+            var playerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
+            NbtCompound data = event.data();
+            UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+            String action = data.getString("action");
+
+            if (actorUuid == null) return null;
+
+            Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
+
+            String translationKey = switch (action) {
+                case "block_swallow" -> "replay.iron_man_activated.block_swallow";
+                case "block_damage" -> "replay.iron_man_activated.block_damage";
+                default -> "replay.iron_man_activated.block_damage";
             };
 
             return Text.translatable(translationKey, actorText);

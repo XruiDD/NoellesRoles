@@ -243,7 +243,8 @@
   "replay.global.noellesroles.corrupt_cop_moment_end": "%s 的§d黑警时刻§r结束",
   "replay.global.noellesroles.taotie_moment_start": "%s 触发§d饕餮时刻§r",
   "replay.global.noellesroles.taotie_moment_end": "%s 的§d饕餮时刻§r结束",
-  "replay.death_blocked.iron_man_buff": "%s 的§e铁人药剂§r抵挡了致命伤害",
+  "replay.iron_man_activated.block_damage": "%s 的§e铁人药剂§r抵挡了致命伤害",
+  "replay.iron_man_activated.block_swallow": "%s 的§e铁人药剂§r抵挡了§6饕餮§r的吞噬",
   "replay.death_blocked.unknown": "%s 免疫了死亡",
 
   "replay.voodoo_chain_death": "%s 死亡，§5巫毒诅咒§r触发，目标 %s",

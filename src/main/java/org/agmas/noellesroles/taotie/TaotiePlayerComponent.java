@@ -176,6 +176,12 @@ public class TaotiePlayerComponent implements AutoSyncedComponent, ServerTicking
             ironManComp.removeBuff();
             target.getWorld().playSound(null, target.getBlockPos(),
                 WatheSounds.ITEM_PSYCHO_ARMOUR, SoundCategory.MASTER, 5.0F, 1.0F);
+            // 记录铁人药水抵挡吞噬
+            GameRecordManager.event("iron_man_activated")
+                .actor(target)
+                .target(taotie)
+                .put("action", "block_swallow")
+                .record();
             swallowCooldown = calculatedSwallowCooldown; // 正常冷却时间
             this.sync();
             return false;
