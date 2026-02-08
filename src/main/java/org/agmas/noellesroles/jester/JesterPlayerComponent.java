@@ -105,6 +105,9 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
                 NbtCompound extra = new NbtCompound();
                 extra.putInt("stasis_ticks", ticks);
                 extra.putInt("psycho_armour", this.psychoArmour);
+                if (this.targetKiller != null) {
+                    extra.putUuid("trigger", this.targetKiller);
+                }
                 GameRecordManager.recordGlobalEvent(serverWorld, EVENT_STASIS_START, serverJester, extra);
             }
 
@@ -143,6 +146,9 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
                 if (player instanceof ServerPlayerEntity serverPlayer) {
                     NbtCompound extra = new NbtCompound();
                     extra.putInt("armour", this.psychoArmour);
+                    if (this.targetKiller != null) {
+                        extra.putUuid("trigger", this.targetKiller);
+                    }
                     GameRecordManager.recordGlobalEvent(serverWorld, EVENT_MOMENT_START, serverPlayer, extra);
                 }
                 for (ServerPlayerEntity p : serverWorld.getPlayers()) {

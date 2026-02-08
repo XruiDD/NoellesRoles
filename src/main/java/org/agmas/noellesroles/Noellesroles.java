@@ -14,6 +14,7 @@ import dev.doctor4t.wathe.index.WatheItems;
 import dev.doctor4t.wathe.index.WatheSounds;
 import dev.doctor4t.wathe.record.GameRecordManager;
 import dev.doctor4t.wathe.record.replay.ReplayGenerator;
+import dev.doctor4t.wathe.record.replay.ReplayEventFormatter;
 import dev.doctor4t.wathe.record.replay.ReplayRegistry;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -1432,6 +1433,27 @@ public class Noellesroles implements ModInitializer {
      * 注册 DLC 回放格式化器
      */
     private void registerReplayFormatters() {
+        // 小丑时刻/禁锢 全局事件格式化器（显示触发者）
+        ReplayEventFormatter jesterTriggerFormatter = (event, match, world) -> {
+            var playerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
+            NbtCompound data = event.data();
+            UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+            if (actorUuid == null) return null;
+
+            Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
+            String eventId = data.getString("event");
+            Identifier id = Identifier.tryParse(eventId);
+            String translationKey = id != null ? "replay.global." + id.getNamespace() + "." + id.getPath() : "replay.global.unknown";
+
+            if (data.containsUuid("trigger")) {
+                Text triggerText = ReplayGenerator.formatPlayerName(data.getUuid("trigger"), playerInfoCache);
+                return Text.translatable(translationKey, actorText, triggerText);
+            }
+            return Text.translatable(translationKey, actorText);
+        };
+        ReplayRegistry.registerGlobalEventFormatter(Identifier.of(MOD_ID, "jester_moment_start"), jesterTriggerFormatter);
+        ReplayRegistry.registerGlobalEventFormatter(Identifier.of(MOD_ID, "jester_stasis_start"), jesterTriggerFormatter);
+
         // death_blocked 格式化器
         ReplayRegistry.registerFormatter("death_blocked", (event, match, world) -> {
             var playerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
