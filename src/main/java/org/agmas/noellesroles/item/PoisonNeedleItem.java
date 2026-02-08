@@ -46,11 +46,11 @@ public class PoisonNeedleItem extends Item {
             return ActionResult.PASS;
         }
 
-        if (!world.isClient) {
-            if (user.getItemCooldownManager().isCoolingDown(this)) {
-                return ActionResult.PASS;
-            }
+        if (user.getItemCooldownManager().isCoolingDown(this)) {
+            return ActionResult.PASS;
+        }
 
+        if (!world.isClient) {
             if (!GameFunctions.isPlayerAliveAndSurvival(target)) {
                 return ActionResult.PASS;
             }
@@ -73,10 +73,8 @@ public class PoisonNeedleItem extends Item {
             if (user instanceof ServerPlayerEntity serverUser) {
                 GameRecordManager.recordItemUse(serverUser, Registries.ITEM.getId(this), (ServerPlayerEntity) target, null);
             }
-
-            return ActionResult.CONSUME;
         }
 
-        return ActionResult.PASS;
+        return ActionResult.SUCCESS;
     }
 }

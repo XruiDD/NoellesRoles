@@ -68,7 +68,7 @@ public abstract class DefenseVialApplyMixin {
 
                         // 记录从餐盘拿取上等佳酿（原模组的 recordPlatterTake 被绕过）
                         if (player instanceof ServerPlayerEntity serverPlayer) {
-                            GameRecordManager.recordPlatterTake(serverPlayer, Registries.ITEM.getId(ModItems.FINE_DRINK), pos);
+                            GameRecordManager.recordPlatterTake(serverPlayer, Registries.ITEM.getId(ModItems.FINE_DRINK), pos, null);
                         }
 
                         player.playSoundToPlayer(SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.BLOCKS, 1f, 1f);
