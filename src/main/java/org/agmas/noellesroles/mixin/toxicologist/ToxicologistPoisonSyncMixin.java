@@ -19,7 +19,7 @@ public class ToxicologistPoisonSyncMixin {
     @Inject(method = "shouldSyncWith", at = @At("HEAD"), cancellable = true)
     private void syncWithToxicologist(ServerPlayerEntity player, CallbackInfoReturnable<Boolean> cir) {
         GameWorldComponent gameWorld = GameWorldComponent.KEY.get(player.getWorld());
-        if (gameWorld.isRole(player, Noellesroles.TOXICOLOGIST)) {
+        if (gameWorld.isRole(player, Noellesroles.TOXICOLOGIST) || gameWorld.isRole(player, Noellesroles.POISONER)) {
             cir.setReturnValue(true);
         }
     }

@@ -174,8 +174,12 @@ public class NoellesrolesClient implements ClientModInitializer {
             if (gameWorldComponent.isRole(localPlayer, Noellesroles.TOXICOLOGIST)) {
                 if (localPlayer.canSee(player)) {
                     PlayerPoisonComponent comp = PlayerPoisonComponent.KEY.get(player);
-                    if (comp.poisonTicks > 0) return  GetInstinctHighlight.HighlightResult.always(Color.RED.getRGB());
+                    if (comp.poisonTicks > 0) return  GetInstinctHighlight.HighlightResult.always(Noellesroles.TOXICOLOGIST.color());
                 }
+            }
+            if (gameWorldComponent.isRole(localPlayer, Noellesroles.POISONER)) {
+                PlayerPoisonComponent comp = PlayerPoisonComponent.KEY.get(player);
+                if (comp.poisonTicks > 0) return  GetInstinctHighlight.HighlightResult.always(Noellesroles.POISONER.color());
             }
 
             // PATHOGEN: 只有已感染的玩家显示绿色高亮（不再透视未感染玩家）
