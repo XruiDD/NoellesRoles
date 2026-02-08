@@ -230,5 +230,18 @@
   "replay.poisoned.noellesroles.needle.by": "%s was poisoned by %s with a §5poison needle§r",
   "replay.poisoned.noellesroles.needle": "%s was poisoned by a §5poison needle§r",
   "replay.poisoned.noellesroles.gas_bomb.by": "%s inhaled §5poison gas§r released by %s",
-  "replay.poisoned.noellesroles.gas_bomb": "%s inhaled §5poison gas§r"
+  "replay.poisoned.noellesroles.gas_bomb": "%s inhaled §5poison gas§r",
+
+  "announcement.goals.bandit": "Use throwing axes to kill from range! Hold longer for further throws, penetrates through players!",
+  "announcement.role.bandit": "Bandit",
+  "announcement.win.bandit": "Killers Win!",
+
+  "item.noellesroles.throwing_axe": "Throwing Axe",
+  "item.noellesroles.throwing_axe.tooltip": "Hold right-click to charge, release to throw\nLonger charge = further distance\nPenetrates through multiple players, instant kill",
+
+  "death_reason.noellesroles.throwing_axe": "Cleaved by a throwing axe",
+
+  "replay.death.noellesroles.throwing_axe.killed": "%s was cleaved by %s's §cthrowing axe§r",
+  "replay.death.noellesroles.throwing_axe.died": "%s was cleaved by a §cthrowing axe§r",
+  "replay.item_use.noellesroles.throwing_axe": "%s threw a §cthrowing axe§r"
 }

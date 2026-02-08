@@ -7,6 +7,7 @@ import org.agmas.noellesroles.item.TimedBombItem;
 import org.agmas.noellesroles.item.IronManVialItem;
 import org.agmas.noellesroles.item.PoisonNeedleItem;
 import org.agmas.noellesroles.item.PoisonGasBombItem;
+import org.agmas.noellesroles.item.ThrowingAxeItem;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
@@ -54,6 +55,10 @@ public class ModItems {
     public static final Item POISON_GAS_BOMB = register(
             new PoisonGasBombItem(new Item.Settings().maxCount(16)),
             "poison_gas_bomb"
+    );
+    public static final Item THROWING_AXE = register(
+            new ThrowingAxeItem(new Item.Settings().maxCount(1)),
+            "throwing_axe"
     );
 
     public static Item register(Item item, String id) {

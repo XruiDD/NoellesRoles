@@ -72,6 +72,7 @@ import org.agmas.noellesroles.silencer.SilencedPlayerComponent;
 import org.agmas.noellesroles.silencer.SilencerPlayerComponent;
 import org.agmas.noellesroles.bodyguard.BodyguardPlayerComponent;
 import org.agmas.noellesroles.poisoner.PoisonerShopHandler;
+import org.agmas.noellesroles.bandit.BanditShopHandler;
 import dev.doctor4t.wathe.compat.TrainVoicePlugin;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.WrittenBookContentComponent;
@@ -118,6 +119,7 @@ public class Noellesroles implements ModInitializer {
     public static Identifier SILENCER_ID = Identifier.of(MOD_ID, "silencer");
     public static Identifier BODYGUARD_ID = Identifier.of(MOD_ID, "bodyguard");
     public static Identifier POISONER_ID = Identifier.of(MOD_ID, "poisoner");
+    public static Identifier BANDIT_ID = Identifier.of(MOD_ID, "bandit");
 
     // 炸弹死亡原因
     public static Identifier DEATH_REASON_BOMB = Identifier.of(MOD_ID, "bomb");
@@ -129,6 +131,8 @@ public class Noellesroles implements ModInitializer {
     public static Identifier DEATH_REASON_DIGESTED = Identifier.of(MOD_ID, "digested");
     // 保镖牺牲死亡原因
     public static Identifier DEATH_REASON_BODYGUARD_SACRIFICE = Identifier.of(MOD_ID, "bodyguard_sacrifice");
+    // 投掷斧死亡原因
+    public static Identifier DEATH_REASON_THROWING_AXE = Identifier.of(MOD_ID, "throwing_axe");
 
     // 下毒来源
     public static Identifier POISON_SOURCE_NEEDLE = Identifier.of(MOD_ID, "needle");
@@ -150,6 +154,8 @@ public class Noellesroles implements ModInitializer {
     public static Role SILENCER = WatheRoles.registerRole(new Role(SILENCER_ID, new Color(80, 70, 110).getRGB(), false, true, Role.MoodType.FAKE, Integer.MAX_VALUE, true));
     // 毒师角色 - 杀手阵营，使用毒针和毒气弹
     public static Role POISONER = WatheRoles.registerRole(new Role(POISONER_ID, new Color(30, 80, 20).getRGB(), false, true, Role.MoodType.FAKE, Integer.MAX_VALUE, true));
+    // 强盗角色 - 杀手阵营，使用投掷斧远程贯穿击杀
+    public static Role BANDIT = WatheRoles.registerRole(new Role(BANDIT_ID, new Color(90, 100, 40).getRGB(), false, true, Role.MoodType.FAKE, Integer.MAX_VALUE, true));
 
 
     public static HashMap<Role, RoleAnnouncementTexts.RoleAnnouncementText> roleRoleAnnouncementTextHashMap = new HashMap<>();
@@ -262,6 +268,7 @@ public class Noellesroles implements ModInitializer {
         ScavengerShopHandler.register();
         TimekeeperShopHandler.register();
         PoisonerShopHandler.register();
+        BanditShopHandler.register();
 
         // 注册 DLC 回放格式化器
         registerReplayFormatters();
@@ -938,6 +945,15 @@ public class Noellesroles implements ModInitializer {
                 }
             }
             return DoorInteraction.DoorInteractionResult.PASS;
+        });
+
+        // 游戏结束时清理投掷斧实体
+        GameEvents.ON_FINISH_FINALIZE.register((world, gameComponent) -> {
+            if (world instanceof ServerWorld serverWorld) {
+                for (var entity : serverWorld.getEntitiesByType(TypeFilter.equals(org.agmas.noellesroles.entity.ThrowingAxeEntity.class), e -> true)) {
+                    entity.discard();
+                }
+            }
         });
 
         // 游戏胜利确定时，杀死所有被饕餮吞噬的玩家
@@ -1647,6 +1663,18 @@ public class Noellesroles implements ModInitializer {
             Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
             return Text.translatable("replay.platter_take.noellesroles.fine_drink", actorText);
         });
+
+        // 投掷斧 - 使用
+        Identifier throwingAxeId = Registries.ITEM.getId(ModItems.THROWING_AXE);
+        ReplayRegistry.registerItemUseFormatter(throwingAxeId, (event, match, world) -> {
+            var playerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
+            NbtCompound data = event.data();
+            UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+            if (actorUuid == null) return null;
+            Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
+            return Text.translatable("replay.item_use.noellesroles.throwing_axe", actorText);
+        });
+
     }
 
 }

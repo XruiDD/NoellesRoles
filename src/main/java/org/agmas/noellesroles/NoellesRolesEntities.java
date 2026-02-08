@@ -8,6 +8,7 @@ import net.minecraft.util.Identifier;
 import org.agmas.noellesroles.entity.RoleMineEntity;
 import org.agmas.noellesroles.entity.PoisonGasBombEntity;
 import org.agmas.noellesroles.entity.PoisonGasCloudEntity;
+import org.agmas.noellesroles.entity.ThrowingAxeEntity;
 
 public class NoellesRolesEntities {
     public static final EntityType<RoleMineEntity> ROLE_MINE_ENTITY_ENTITY_TYPE = Registry.register(
@@ -26,6 +27,12 @@ public class NoellesRolesEntities {
             Registries.ENTITY_TYPE,
             Identifier.of(Noellesroles.MOD_ID, "poison_gas_cloud"),
             EntityType.Builder.create(PoisonGasCloudEntity::new, SpawnGroup.MISC).dimensions(0.5f, 0.5f).build("poison_gas_cloud")
+    );
+
+    public static final EntityType<ThrowingAxeEntity> THROWING_AXE_ENTITY = Registry.register(
+            Registries.ENTITY_TYPE,
+            Identifier.of(Noellesroles.MOD_ID, "throwing_axe"),
+            EntityType.Builder.<ThrowingAxeEntity>create(ThrowingAxeEntity::new, SpawnGroup.MISC).dimensions(0.5f, 0.5f).build("throwing_axe")
     );
 
     public static void init() {}

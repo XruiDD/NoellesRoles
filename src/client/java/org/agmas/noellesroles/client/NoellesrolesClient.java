@@ -60,6 +60,7 @@ import org.agmas.noellesroles.NoellesRolesEntities;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.client.render.entity.FlyingItemEntityRenderer;
 import net.minecraft.client.render.entity.EmptyEntityRenderer;
+import org.agmas.noellesroles.client.renderer.ThrowingAxeEntityRenderer;
 import org.lwjgl.glfw.GLFW;
 
 import java.awt.*;
@@ -97,6 +98,7 @@ public class NoellesrolesClient implements ClientModInitializer {
         // 注册实体渲染器
         EntityRendererRegistry.register(NoellesRolesEntities.POISON_GAS_BOMB_ENTITY, FlyingItemEntityRenderer::new);
         EntityRendererRegistry.register(NoellesRolesEntities.POISON_GAS_CLOUD_ENTITY, EmptyEntityRenderer::new);
+        EntityRendererRegistry.register(NoellesRolesEntities.THROWING_AXE_ENTITY, ThrowingAxeEntityRenderer::new);
 
         CanSeeMoney.EVENT.register(player -> {
             if (!GameFunctions.isPlayerPlayingAndAlive(player)) return null;

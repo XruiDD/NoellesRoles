@@ -45,5 +45,18 @@
 
   "item.noellesroles.master_key": "Мастер-ключ",
 
-  "death_reason.noellesroles.voodoo": "от магии вуду."
+  "death_reason.noellesroles.voodoo": "от магии вуду.",
+
+  "announcement.goals.bandit": "Используйте метательные топоры для дальних убийств! Чем дольше зарядка, тем дальше бросок. Пробивает насквозь!",
+  "announcement.role.bandit": "Бандит",
+  "announcement.win.bandit": "Убийцы победили!",
+
+  "item.noellesroles.throwing_axe": "Метательный топор",
+  "item.noellesroles.throwing_axe.tooltip": "Зажмите ПКМ для зарядки, отпустите для броска\nЧем дольше зарядка, тем дальше полёт\nПробивает несколько игроков, мгновенное убийство",
+
+  "death_reason.noellesroles.throwing_axe": "рассечён метательным топором",
+
+  "replay.death.noellesroles.throwing_axe.killed": "%s был рассечён §cметательным топором§r %s",
+  "replay.death.noellesroles.throwing_axe.died": "%s был рассечён §cметательным топором§r",
+  "replay.item_use.noellesroles.throwing_axe": "%s метнул §cметательный топор§r"
 }

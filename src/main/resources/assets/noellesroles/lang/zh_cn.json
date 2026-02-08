@@ -307,5 +307,18 @@
   "replay.poisoned.noellesroles.needle.by": "%s 被 %s 用§5毒针§r扎伤中毒",
   "replay.poisoned.noellesroles.needle": "%s 被§5毒针§r扎伤中毒",
   "replay.poisoned.noellesroles.gas_bomb.by": "%s 吸入了 %s 释放的§5毒气§r中毒",
-  "replay.poisoned.noellesroles.gas_bomb": "%s 吸入§5毒气§r中毒"
+  "replay.poisoned.noellesroles.gas_bomb": "%s 吸入§5毒气§r中毒",
+
+  "announcement.goals.bandit": "使用飞斧远程击杀目标！蓄力越久飞得越远，可贯穿多人！",
+  "announcement.role.bandit": "强盗",
+  "announcement.win.bandit": "杀手胜利！",
+
+  "item.noellesroles.throwing_axe": "飞斧",
+  "item.noellesroles.throwing_axe.tooltip": "长按右键蓄力，松开投掷\n蓄力越久投掷距离越远\n可贯穿多个玩家，一击必杀",
+
+  "death_reason.noellesroles.throwing_axe": "被飞斧贯穿",
+
+  "replay.death.noellesroles.throwing_axe.killed": "%s 被 %s 的§c飞斧§r贯穿击杀",
+  "replay.death.noellesroles.throwing_axe.died": "%s 被§c飞斧§r贯穿击杀",
+  "replay.item_use.noellesroles.throwing_axe": "%s 投掷了§c飞斧§r"
 }
