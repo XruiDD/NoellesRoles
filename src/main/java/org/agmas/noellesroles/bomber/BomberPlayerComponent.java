@@ -9,6 +9,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.particle.ItemStackParticleEffect;
 import net.minecraft.particle.ParticleTypes;
+import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.sound.SoundEvents;
@@ -18,6 +19,7 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
+import dev.doctor4t.wathe.cca.GameWorldComponent;
 import org.agmas.noellesroles.ModSounds;
 import org.agmas.noellesroles.Noellesroles;
 import org.agmas.noellesroles.taotie.SwallowedPlayerComponent;
@@ -25,6 +27,7 @@ import org.agmas.noellesroles.taotie.TaotiePlayerComponent;
 import org.jetbrains.annotations.NotNull;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
+import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
 import org.ladysnake.cca.api.v3.component.tick.ServerTickingComponent;
 
 
@@ -37,7 +40,7 @@ import static org.agmas.noellesroles.ModItems.TIMED_BOMB;
  * 炸弹客玩家组件
  * 管理炸弹状态：放置、滴滴声、传递冷却、爆炸
  */
-public class BomberPlayerComponent implements ServerTickingComponent {
+public class BomberPlayerComponent implements AutoSyncedComponent, ServerTickingComponent {
     public static final ComponentKey<BomberPlayerComponent> KEY = ComponentRegistry.getOrCreate(
             Identifier.of(Noellesroles.MOD_ID, "bomber"), BomberPlayerComponent.class);
 
@@ -68,7 +71,28 @@ public class BomberPlayerComponent implements ServerTickingComponent {
         this.player = player;
     }
 
+    public void sync() {
+        KEY.sync(this.player);
+    }
+
+    @Override
+    public boolean shouldSyncWith(ServerPlayerEntity player) {
+        GameWorldComponent gameWorld = GameWorldComponent.KEY.get(player.getWorld());
+        return gameWorld.isRole(player, Noellesroles.BOMBER);
+    }
+
+    @Override
+    public void writeSyncPacket(RegistryByteBuf buf, ServerPlayerEntity recipient) {
+        buf.writeBoolean(this.hasBomb);
+    }
+
+    @Override
+    public void applySyncPacket(RegistryByteBuf buf) {
+        this.hasBomb = buf.readBoolean();
+    }
+
     public void reset() {
+        boolean wasHasBomb = this.hasBomb;
         if(hasBomb){
             removeBombFromInventory(player);
         }
@@ -79,6 +103,9 @@ public class BomberPlayerComponent implements ServerTickingComponent {
         this.isBeeping = false;
         this.bomberUuid = null;
         this.lastDisplayedSeconds = -1;
+        if (wasHasBomb) {
+            this.sync();
+        }
     }
 
     /**
@@ -93,6 +120,7 @@ public class BomberPlayerComponent implements ServerTickingComponent {
         this.bomberUuid = bomber.getUuid();
         this.transferCooldown = 0;
         this.lastDisplayedSeconds = -1;
+        this.sync();
         if (bomber instanceof ServerPlayerEntity serverBomber && player instanceof ServerPlayerEntity target) {
             NbtCompound extra = new NbtCompound();
             extra.putString("action", "place");
@@ -136,6 +164,7 @@ public class BomberPlayerComponent implements ServerTickingComponent {
         targetComponent.bomberUuid = this.bomberUuid;
         targetComponent.transferCooldown = TRANSFER_COOLDOWN_TICKS;
         targetComponent.lastDisplayedSeconds = -1;
+        targetComponent.sync();
 
         // 清除自己的炸弹
         this.hasBomb = false;
@@ -143,6 +172,7 @@ public class BomberPlayerComponent implements ServerTickingComponent {
         this.beepTimer = 0;
         this.isBeeping = false;
         this.lastDisplayedSeconds = -1;
+        this.sync();
 
         // 移除自己物品栏中的炸弹物品
         removeBombFromInventory(this.player);
@@ -278,6 +308,7 @@ public class BomberPlayerComponent implements ServerTickingComponent {
         this.beepTimer = 0;
         this.isBeeping = false;
         this.lastDisplayedSeconds = -1;
+        this.sync();
     }
 
     public UUID getBomberUuid() {

@@ -81,7 +81,7 @@
   "announcement.win.corrupt_cop": "Corrupt Cop Wins!",
   "game.win.corrupt_cop": "Justice has been served... my way.",
 
-  "announcement.goals.bomber": "Plant bombs on players! You cannot buy knife or gun.",
+  "announcement.goals.bomber": "Plant bombs on players! You cannot buy knife or gun. You can see players carrying your timed bomb through walls.",
   "announcement.role.bomber": "Bomber",
   "announcement.win.bomber": "Killers Win!",
 

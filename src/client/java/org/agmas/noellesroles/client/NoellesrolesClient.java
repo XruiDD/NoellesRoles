@@ -56,6 +56,7 @@ import org.agmas.noellesroles.client.music.WorldMusicManager;
 import org.agmas.noellesroles.reporter.ReporterPlayerComponent;
 import org.agmas.noellesroles.bodyguard.BodyguardPlayerComponent;
 import org.agmas.noellesroles.serialkiller.SerialKillerPlayerComponent;
+import org.agmas.noellesroles.bomber.BomberPlayerComponent;
 import org.agmas.noellesroles.survivalmaster.SurvivalMasterPlayerComponent;
 import org.agmas.noellesroles.NoellesRolesEntities;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
@@ -144,6 +145,14 @@ public class NoellesrolesClient implements ClientModInitializer {
                 var comp = CorruptCopPlayerComponent.KEY.get(localPlayer);
                 if (comp.canSeePlayersThroughWalls()){
                     return GetInstinctHighlight.HighlightResult.always(Noellesroles.CORRUPT_COP.color());
+                }
+            }
+
+            // BOMBER: 本能透视 - 无需按键即可看到携带定时炸弹的玩家
+            if (gameWorldComponent.isRole(localPlayer, Noellesroles.BOMBER)) {
+                BomberPlayerComponent comp = BomberPlayerComponent.KEY.get(player);
+                if (comp.hasBomb()) {
+                    return GetInstinctHighlight.HighlightResult.always(Noellesroles.BOMBER.color());
                 }
             }
 
