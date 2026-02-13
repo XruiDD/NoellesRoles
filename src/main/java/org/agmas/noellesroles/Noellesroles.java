@@ -460,9 +460,6 @@ public class Noellesroles implements ModInitializer {
         }));
         CanSeePoison.EVENT.register((player)->{
             GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(player.getWorld());
-            if (gameWorldComponent.isRole((PlayerEntity) player, Noellesroles.BARTENDER)) {
-                return true;
-            }
             if (gameWorldComponent.isRole((PlayerEntity) player, Noellesroles.TOXICOLOGIST)) {
                 return true;
             }
