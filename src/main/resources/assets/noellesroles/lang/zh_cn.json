@@ -114,7 +114,7 @@
   "tip.pathogen.compass": "%s %s米%s",
   "tip.pathogen.no_target": "你的视距范围内没有目标了",
 
-  "announcement.goals.bomber": "在玩家身上放置炸弹！你无法购买一般的武器。",
+  "announcement.goals.bomber": "在玩家身上放置炸弹！你无法购买一般的武器。你可以透视看到携带定时炸弹的玩家。",
   "announcement.role.bomber": "炸弹客",
   "announcement.win.bomber": "杀手胜利！",
 
