@@ -1,8 +1,10 @@
 package org.agmas.noellesroles.silencer;
 
+import dev.doctor4t.wathe.cca.PlayerMoodComponent;
 import dev.doctor4t.wathe.game.GameConstants;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.util.Identifier;
 import org.agmas.noellesroles.Noellesroles;
@@ -87,6 +89,16 @@ public class SilencedPlayerComponent implements Component, ServerTickingComponen
     public void serverTick() {
         if (this.silenceTicks > 0) {
             this.silenceTicks--;
+
+            // Double SAN drain: apply the same drain again (tasks.size() * MOOD_DRAIN)
+            if (this.player instanceof ServerPlayerEntity) {
+                PlayerMoodComponent moodComp = PlayerMoodComponent.KEY.get(this.player);
+                int taskCount = moodComp.tasks.size();
+                if (taskCount > 0) {
+                    moodComp.setMood(moodComp.getMood() - taskCount * GameConstants.MOOD_DRAIN);
+                }
+            }
+
             // Clear silencer reference when silence ends
             if (this.silenceTicks <= 0) {
                 this.silencedBy = null;

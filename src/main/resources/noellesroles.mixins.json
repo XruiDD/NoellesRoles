@@ -17,7 +17,9 @@
     "taotie.SpectatorTeleportMixin",
     "taotie.SwallowedPlayerEntityMixin",
     "taotie.SwallowedPlayerSpectatorMixin",
-    "taotie.SwallowedPlayerSkyVisibilityMixin"
+    "taotie.SwallowedPlayerSkyVisibilityMixin",
+    "silencer.SilencedEatingMixin",
+    "silencer.SilencedDrinkingMixin"
   ],
   "injectors": {
     "defaultRequire": 1
