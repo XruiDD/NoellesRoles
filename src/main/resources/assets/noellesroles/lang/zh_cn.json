@@ -221,7 +221,7 @@
 
   "death_reason.noellesroles.digested": "被饕餮消化",
 
-  "announcement.goals.silencer": "让目标闭嘴！被沉默的人无法说话也无法听到别人说话。",
+  "announcement.goals.silencer": "让目标闭嘴！被沉默的人无法说话、无法听到别人说话、无法进食或饮酒，且心情值会加速下降。",
   "announcement.role.silencer": "静语者",
   "announcement.win.silencer": "杀手胜利！",
   "tip.silencer.mark": "按 %s 标记 %s",
@@ -230,6 +230,8 @@
   "tip.silencer.already_silenced": "%s 已被沉默",
   "tip.silencer.marked": "已标记 %s，30秒内再次按下释放",
   "tip.silencer.success": "你沉默了 %s",
+  "tip.silenced.cannot_eat": "你被沉默了，无法进食！",
+  "tip.silenced.cannot_drink": "你被沉默了，无法饮酒！",
 
   "replay.skill.noellesroles.silencer.target": "%s §7沉默§r了 %s",
 

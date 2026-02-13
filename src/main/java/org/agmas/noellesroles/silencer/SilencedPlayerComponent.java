@@ -1,8 +1,10 @@
 package org.agmas.noellesroles.silencer;
 
+import dev.doctor4t.wathe.cca.PlayerMoodComponent;
 import dev.doctor4t.wathe.game.GameConstants;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.util.Identifier;
 import org.agmas.noellesroles.Noellesroles;
@@ -27,6 +29,10 @@ public class SilencedPlayerComponent implements Component, ServerTickingComponen
 
     // 60 seconds silence duration
     public static final int SILENCE_DURATION_TICKS = GameConstants.getInTicks(1, 0);
+
+    // Extra SAN drain while silenced: equivalent to 2 additional active tasks
+    // Over 60s silence, this drains ~0.5 (50% of the mood bar)
+    public static final float SILENCE_EXTRA_MOOD_DRAIN = 2f * GameConstants.MOOD_DRAIN;
 
     private final PlayerEntity player;
     private int silenceTicks = 0;
@@ -87,6 +93,13 @@ public class SilencedPlayerComponent implements Component, ServerTickingComponen
     public void serverTick() {
         if (this.silenceTicks > 0) {
             this.silenceTicks--;
+
+            // Accelerated SAN drain for silenced players
+            if (this.player instanceof ServerPlayerEntity) {
+                PlayerMoodComponent moodComp = PlayerMoodComponent.KEY.get(this.player);
+                moodComp.setMood(moodComp.getMood() - SILENCE_EXTRA_MOOD_DRAIN);
+            }
+
             // Clear silencer reference when silence ends
             if (this.silenceTicks <= 0) {
                 this.silencedBy = null;

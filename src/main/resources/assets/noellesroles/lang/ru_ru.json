@@ -58,5 +58,8 @@
 
   "replay.death.noellesroles.throwing_axe.killed": "%s был рассечён §cметательным топором§r %s",
   "replay.death.noellesroles.throwing_axe.died": "%s был рассечён §cметательным топором§r",
-  "replay.item_use.noellesroles.throwing_axe": "%s метнул §cметательный топор§r"
+  "replay.item_use.noellesroles.throwing_axe": "%s метнул §cметательный топор§r",
+
+  "tip.silenced.cannot_eat": "Вы заглушены и не можете есть!",
+  "tip.silenced.cannot_drink": "Вы заглушены и не можете пить!"
 }
