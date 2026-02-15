@@ -62,5 +62,15 @@
             }
         ],
         "subtitle": "subtitles.noellesroles.ambient.corrupt_cop_moment"
+    },
+    "music.jester_moment": {
+        "sounds": [
+            {
+                "name": "noellesroles:ambient/haoyunlai",
+                "stream": true,
+                "volume": 0.7
+            }
+        ],
+        "subtitle": "subtitles.noellesroles.ambient.jester_moment"
     }
 }

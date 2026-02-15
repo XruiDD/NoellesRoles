@@ -13,6 +13,8 @@ public class ModSounds {
     public static final SoundEvent CORRUPT_COP_MOMENT_1 = registerSound("music.corrupt_cop_moment_1");
     public static final SoundEvent CORRUPT_COP_MOMENT_2 = registerSound("music.corrupt_cop_moment_2");
     public static final SoundEvent CORRUPT_COP_EXECUTION = registerSound("ambient.corrupt_cop_execution");
+    // 小丑时刻BGM
+    public static final SoundEvent JESTER_MOMENT = registerSound("music.jester_moment");
 
     private static SoundEvent registerSound(String name) {
         Identifier id = Identifier.of(Noellesroles.MOD_ID, name);

@@ -37,8 +37,12 @@ public class WorldMusicManager {
                 40
         ));
 
-        // 未来可以在这里添加更多BGM类型
-        // 例如：特殊事件BGM、节日BGM等
+        // 注册小丑时刻BGM
+        AmbienceUtil.registerBackgroundAmbience(new BackgroundAmbience(
+                ModSounds.JESTER_MOMENT,
+                player -> isPlaying(MusicMomentType.JESTER_MOMENT, 1),
+                40
+        ));
     }
 
     /**

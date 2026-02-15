@@ -13,7 +13,12 @@ public enum MusicMomentType {
     /**
      * 黑警时刻
      */
-    CORRUPT_COP_MOMENT;
+    CORRUPT_COP_MOMENT,
+
+    /**
+     * 小丑时刻
+     */
+    JESTER_MOMENT;
 
     /**
      * 从字符串获取类型

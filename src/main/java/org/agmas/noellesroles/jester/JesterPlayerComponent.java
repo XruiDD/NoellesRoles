@@ -23,6 +23,8 @@ import net.minecraft.util.Identifier;
 import java.util.UUID;
 import org.agmas.noellesroles.ModSounds;
 import org.agmas.noellesroles.Noellesroles;
+import org.agmas.noellesroles.music.MusicMomentType;
+import org.agmas.noellesroles.music.WorldMusicComponent;
 import org.jetbrains.annotations.NotNull;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
@@ -66,8 +68,13 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
         this.stasisTicks = 0;
         this.psychoArmour = 0;
         this.targetKiller = null;
-        // 如果正在疯魔模式中，停止疯魔模式
+        // 如果正在疯魔模式中，停止疯魔模式和BGM
         if (this.inPsychoMode) {
+            // 停止小丑时刻BGM
+            if (player.getWorld() != null) {
+                WorldMusicComponent worldMusic = WorldMusicComponent.KEY.get(player.getWorld());
+                worldMusic.stopMusic();
+            }
             // 记录疯魔模式被中断（被杀死），排除超时情况（超时时 psychoModeTicks <= 0，已单独记录）
             if (this.psychoModeTicks > 0 && player instanceof ServerPlayerEntity serverPlayer && player.getWorld() instanceof ServerWorld serverWorld) {
                 NbtCompound extra = new NbtCompound();
@@ -77,7 +84,7 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
             }
             this.inPsychoMode = false;
             PlayerPsychoComponent psychoComponent = PlayerPsychoComponent.KEY.get(this.player);
-            psychoComponent.stopPsycho();
+            psychoComponent.stopPsycho(false);
         }
         this.psychoModeTicks = 0;
         this.sync();
@@ -134,12 +141,16 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
         if (this.psychoArmour <= 0) return;
 
         PlayerPsychoComponent psychoComponent = PlayerPsychoComponent.KEY.get(this.player);
-        if (psychoComponent.startPsycho()) {
+        if (psychoComponent.startPsycho(false)) {
             // 设置疯魔模式持续3分钟（3 * 60 * 20 = 3600 ticks）
             this.psychoModeTicks = 3600;
             psychoComponent.setPsychoTicks(Integer.MAX_VALUE);
             psychoComponent.setArmour(this.psychoArmour);
             this.inPsychoMode = true;
+
+            // 播放小丑时刻BGM
+            WorldMusicComponent worldMusic = WorldMusicComponent.KEY.get(this.player.getWorld());
+            worldMusic.startMusic(MusicMomentType.JESTER_MOMENT, 1);
 
             // Broadcast Jester Psycho Mode to all players with Title
             if (player.getWorld() instanceof ServerWorld serverWorld) {
