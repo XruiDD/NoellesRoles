@@ -241,6 +241,7 @@ public class NoellesrolesClient implements ClientModInitializer {
         GetInstinctHighlight.EVENT.register(entity -> {
             if (!(entity instanceof PlayerBodyEntity)) return null;
             if (MinecraftClient.getInstance().player == null) return null;
+            if (!WatheClient.isPlayerPlayingAndAlive()) return null;
             GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(
                     MinecraftClient.getInstance().player.getWorld()
             );
@@ -439,6 +440,7 @@ public class NoellesrolesClient implements ClientModInitializer {
                     }
 
                     if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.VULTURE)) {
+                        if (!GameFunctions.isPlayerPlayingAndAlive(MinecraftClient.getInstance().player) || SwallowedPlayerComponent.isPlayerSwallowed(MinecraftClient.getInstance().player)) return;
                         if (targetBody == null) return;
                         ClientPlayNetworking.send(new VultureEatC2SPacket(targetBody.getUuid()));
                         return;

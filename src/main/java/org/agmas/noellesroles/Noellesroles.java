@@ -383,7 +383,7 @@ public class Noellesroles implements ModInitializer {
 
             if (gameWorldComponent.isRole(victim, JESTER)) {
                 JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(victim);
-                if (jesterComponent.inStasis) {
+                if (jesterComponent.inStasis && deathReason != GameConstants.DeathReasons.FELL_OUT_OF_TRAIN && deathReason != GameConstants.DeathReasons.ESCAPED) {
                     // 记录小丑禁锢免疫死亡
                     if (victim instanceof ServerPlayerEntity serverVictim) {
                         var event = GameRecordManager.event("death_blocked")

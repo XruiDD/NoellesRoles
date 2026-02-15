@@ -43,7 +43,7 @@ public abstract class CoronerHudMixin {
     @Inject(method = "renderHud", at = @At("TAIL"))
     private static void renderCoronerHud(TextRenderer renderer, ClientPlayerEntity player, DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
         GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(player.getWorld());
-        if (NoellesrolesClient.targetBody != null) {
+        if (NoellesrolesClient.targetBody != null && WatheClient.isPlayerAliveAndInSurvival() && !SwallowedPlayerComponent.isPlayerSwallowed(player)) {
             boolean isVulture = gameWorldComponent.isRole(player, Noellesroles.VULTURE);
             boolean isCoroner = gameWorldComponent.isRole(player, Noellesroles.CORONER);
             if (isVulture || isCoroner) {
@@ -52,7 +52,7 @@ public abstract class CoronerHudMixin {
                 context.getMatrices().scale(0.6F, 0.6F, 1.0F);
                 if(isCoroner){
                     PlayerMoodComponent moodComponent = PlayerMoodComponent.KEY.get(player);
-                    if (moodComponent.isLowerThanMid() && WatheClient.isPlayerAliveAndInSurvival() && !SwallowedPlayerComponent.isPlayerSwallowed(player)) {
+                    if (moodComponent.isLowerThanMid()) {
                         Text name = Text.translatable("hud.coroner.sanity_requirements");
                         context.drawTextWithShadow(renderer, name, -renderer.getWidth(name) / 2, 32, Colors.YELLOW);
                         context.getMatrices().pop();
@@ -62,7 +62,7 @@ public abstract class CoronerHudMixin {
                 // 秃鹫专属提示
                 if (isVulture) {
                     AbilityPlayerComponent abilityPlayerComponent = AbilityPlayerComponent.KEY.get(player);
-                    if (abilityPlayerComponent.getCooldown() <= 0 && WatheClient.isPlayerAliveAndInSurvival() && !SwallowedPlayerComponent.isPlayerSwallowed(MinecraftClient.getInstance().player)) {
+                    if (abilityPlayerComponent.getCooldown() <= 0) {
                         Text eatPrompt = Text.translatable("hud.vulture.eat", NoellesrolesClient.abilityBind.getBoundKeyLocalizedText()).withColor(Colors.RED);
                         context.drawTextWithShadow(renderer, eatPrompt, -renderer.getWidth(eatPrompt) / 2, 32, Colors.WHITE);
                     }
