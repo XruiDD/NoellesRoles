@@ -136,6 +136,7 @@ public class Noellesroles implements ModInitializer {
     // 投掷斧死亡原因
     public static Identifier DEATH_REASON_THROWING_AXE = Identifier.of(MOD_ID, "throwing_axe");
 
+
     // 下毒来源
     public static Identifier POISON_SOURCE_NEEDLE = Identifier.of(MOD_ID, "needle");
     public static Identifier POISON_SOURCE_GAS_BOMB = Identifier.of(MOD_ID, "gas_bomb");
@@ -282,6 +283,11 @@ public class Noellesroles implements ModInitializer {
         TimekeeperShopHandler.register();
         PoisonerShopHandler.register();
         BanditShopHandler.register();
+
+        // 毒师手持毒针时允许攻击玩家
+        AllowPlayerPunching.EVENT.register((attacker, victim) ->
+                attacker.getMainHandStack().isOf(ModItems.POISON_NEEDLE)
+        );
 
         // 注册 DLC 回放格式化器
         registerReplayFormatters();
@@ -1713,6 +1719,22 @@ public class Noellesroles implements ModInitializer {
             if (actorUuid == null) return null;
             Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
             return Text.translatable("replay.platter_take.noellesroles.fine_drink", actorText);
+        });
+
+        // 催化剂
+        Identifier catalystId = Registries.ITEM.getId(ModItems.CATALYST);
+        ReplayRegistry.registerItemUseFormatter(catalystId, (event, match, world) -> {
+            var playerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
+            NbtCompound data = event.data();
+            UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+            if (actorUuid == null) return null;
+            Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
+            UUID targetUuid = data.containsUuid("target") ? data.getUuid("target") : null;
+            if (targetUuid != null) {
+                Text targetText = ReplayGenerator.formatPlayerName(targetUuid, playerInfoCache);
+                return Text.translatable("replay.item_use.noellesroles.catalyst", actorText, targetText);
+            }
+            return Text.translatable("replay.item_use.noellesroles.catalyst.no_target", actorText);
         });
 
         // 投掷斧 - 使用

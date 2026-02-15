@@ -229,6 +229,11 @@
   "replay.item_use.noellesroles.poison_needle": "%s stabbed %s with a §5poison needle§r",
   "replay.item_use.noellesroles.poison_gas_bomb": "%s threw a §5poison gas bomb§r",
 
+  "item.noellesroles.catalyst": "Catalyst",
+  "item.noellesroles.catalyst.tooltip": "Use on a poisoned player: death in 5s\nAlso resets Poison Needle cooldown\nUsing on air or non-poisoned only resets cooldown",
+  "replay.item_use.noellesroles.catalyst": "%s used §5catalyst§r on %s",
+  "replay.item_use.noellesroles.catalyst.no_target": "%s used §5catalyst§r",
+
   "replay.poisoned.noellesroles.needle.by": "%s was poisoned by %s with a §5poison needle§r",
   "replay.poisoned.noellesroles.needle": "%s was poisoned by a §5poison needle§r",
   "replay.poisoned.noellesroles.gas_bomb.by": "%s inhaled §5poison gas§r released by %s",

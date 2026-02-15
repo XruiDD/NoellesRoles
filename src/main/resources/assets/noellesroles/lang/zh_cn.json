@@ -306,6 +306,11 @@
   "replay.item_use.noellesroles.poison_needle": "%s 用§5毒针§r刺了 %s",
   "replay.item_use.noellesroles.poison_gas_bomb": "%s 投掷了§5毒气弹§r",
 
+  "item.noellesroles.catalyst": "催化剂",
+  "item.noellesroles.catalyst.tooltip": "对中毒玩家使用：5秒内毒发身亡\n同时重置毒针冷却\n对空气或非中毒玩家使用仅重置冷却",
+  "replay.item_use.noellesroles.catalyst": "%s 对 %s 使用了§5催化剂§r",
+  "replay.item_use.noellesroles.catalyst.no_target": "%s 使用了§5催化剂§r",
+
   "replay.poisoned.noellesroles.needle.by": "%s 被 %s 用§5毒针§r扎伤中毒",
   "replay.poisoned.noellesroles.needle": "%s 被§5毒针§r扎伤中毒",
   "replay.poisoned.noellesroles.gas_bomb.by": "%s 吸入了 %s 释放的§5毒气§r中毒",

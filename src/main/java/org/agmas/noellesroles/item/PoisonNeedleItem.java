@@ -60,11 +60,14 @@ public class PoisonNeedleItem extends Item {
                 return ActionResult.PASS;
             }
 
-            // 随机中毒时间 800-1400 ticks
-            int poisonTicks = PlayerPoisonComponent.clampTime.getLeft() +
-                    world.random.nextInt(PlayerPoisonComponent.clampTime.getRight() - PlayerPoisonComponent.clampTime.getLeft() + 1);
+            // 固定中毒时间 40秒 (800 ticks)，已中毒则加速
+            int baseTicks = 20 * 40;
+            PlayerPoisonComponent poisonComp = PlayerPoisonComponent.KEY.get(target);
+            int poisonTicks = poisonComp.poisonTicks > 0
+                    ? Math.max(1, poisonComp.poisonTicks - baseTicks)
+                    : baseTicks;
 
-            PlayerPoisonComponent.KEY.get(target).setPoisonTicks(poisonTicks, user.getUuid(), Noellesroles.POISON_SOURCE_NEEDLE);
+            poisonComp.setPoisonTicks(poisonTicks, user.getUuid(), Noellesroles.POISON_SOURCE_NEEDLE);
 
             // 设置冷却
             user.getItemCooldownManager().set(this, USE_COOLDOWN_TICKS);

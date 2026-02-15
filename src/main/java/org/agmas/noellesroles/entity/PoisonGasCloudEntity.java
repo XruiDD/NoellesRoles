@@ -128,12 +128,13 @@ public class PoisonGasCloudEntity extends Entity {
 
                 if (ticks >= EXPOSURE_THRESHOLD) {
                     PlayerPoisonComponent poisonComp = PlayerPoisonComponent.KEY.get(player);
-                    if (poisonComp.poisonTicks <= 0) {
-                        int poisonTime = PlayerPoisonComponent.clampTime.getLeft() +
-                                serverWorld.random.nextInt(PlayerPoisonComponent.clampTime.getRight() - PlayerPoisonComponent.clampTime.getLeft() + 1);
-                        poisonComp.setPoisonTicks(poisonTime, ownerUuid, Noellesroles.POISON_SOURCE_GAS_BOMB);
-                        exposureTicks.put(player.getUuid(), 0);
-                    }
+                    // 固定中毒时间 20秒 (400 ticks)，已中毒则加速
+                    int baseTicks = 20 * 20;
+                    int poisonTime = poisonComp.poisonTicks > 0
+                            ? Math.max(1, poisonComp.poisonTicks - baseTicks)
+                            : baseTicks;
+                    poisonComp.setPoisonTicks(poisonTime, ownerUuid, Noellesroles.POISON_SOURCE_GAS_BOMB);
+                    exposureTicks.put(player.getUuid(), 0);
                 }
             } else {
                 exposureTicks.put(player.getUuid(), 0);
