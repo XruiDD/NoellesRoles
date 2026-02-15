@@ -1,9 +1,12 @@
 package org.agmas.noellesroles.recaller;
 
+import net.minecraft.entity.EntityStatuses;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 import org.agmas.noellesroles.Noellesroles;
 import org.jetbrains.annotations.NotNull;
@@ -50,7 +53,17 @@ public class RecallerPlayerComponent implements AutoSyncedComponent {
 
 
     public void teleport() {
-        player.teleport(x,y,z,true);
+        if (player instanceof ServerPlayerEntity serverPlayer) {
+            // 传送前在原位播放粒子和音效
+            serverPlayer.getWorld().sendEntityStatus(serverPlayer, EntityStatuses.ADD_PORTAL_PARTICLES);
+            serverPlayer.getWorld().playSound(null, serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ(),
+                    SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1.0F, 1.0F);
+            // 无条件传送（不走 LivingEntity.teleport 的安全检查）
+            serverPlayer.requestTeleport(x, y, z);
+            // 传送后在目标位置再播放一次音效
+            serverPlayer.getWorld().playSound(null, x, y, z,
+                    SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1.0F, 1.0F);
+        }
         placed = false;
         this.sync();
     }

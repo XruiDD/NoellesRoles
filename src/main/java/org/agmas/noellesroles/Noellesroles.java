@@ -22,6 +22,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.entity.EntityStatuses;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
@@ -1157,6 +1158,11 @@ public class Noellesroles implements ModInitializer {
 
                                 Set<PositionFlag> movementFlags = EnumSet.noneOf(PositionFlag.class);
                                 boolean swapped = false;
+                                // 传送前在两个玩家的原位置播放粒子和音效
+                                world1.sendEntityStatus(player1, EntityStatuses.ADD_PORTAL_PARTICLES);
+                                world1.playSound(null, x1, y1, z1, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1.0F, 1.0F);
+                                world2.sendEntityStatus(player2, EntityStatuses.ADD_PORTAL_PARTICLES);
+                                world2.playSound(null, x2, y2, z2, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1.0F, 1.0F);
                                 if (player1.teleport(world2, x2, y2, z2, movementFlags, yaw2, pitch2)) {
                                     AbilityPlayerComponent abilityPlayerComponent = AbilityPlayerComponent.KEY.get(context.player());
                                     abilityPlayerComponent.cooldown = GameConstants.getInTicks(1, 0);
@@ -1174,6 +1180,9 @@ public class Noellesroles implements ModInitializer {
                                     }
                                 }
                                 if (swapped) {
+                                    // 传送后在目标位置播放音效（player1 现在在 pos2，player2 现在在 pos1）
+                                    world2.playSound(null, x2, y2, z2, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1.0F, 1.0F);
+                                    world1.playSound(null, x1, y1, z1, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1.0F, 1.0F);
                                     NbtCompound extra = new NbtCompound();
                                     extra.putString("action", "swap");
                                     extra.putUuid("target1", player1.getUuid());
