@@ -35,14 +35,15 @@ public abstract class MorphlingScreenMixin extends LimitedHandledScreen<PlayerSc
     void b(CallbackInfo ci) {
         GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(player.getWorld());
         if (gameWorldComponent.isRole(player,Noellesroles.MORPHLING)) {
-            List<UUID> lives = gameWorldComponent.getAllAlivePlayers();
+            List<UUID> allPlayers = gameWorldComponent.getAllPlayers();
             List<UUID> entries = new ArrayList<>(WatheClient.PLAYER_ENTRIES_CACHE.keySet());
-            entries.removeIf(uuid -> !lives.contains(uuid) || uuid.equals(player.getUuid()));
+            entries.removeIf(uuid -> !allPlayers.contains(uuid) || uuid.equals(player.getUuid()));
 
             for(int i = 0; i < entries.size(); ++i) {
                 int x = PlayerSelectWidget.calculateGridX(((LimitedInventoryScreen)(Object)this).width, entries.size(), i);
                 int y = PlayerSelectWidget.calculateGridY(((LimitedInventoryScreen)(Object)this).height, entries.size(), i);
-                MorphlingPlayerWidget child = new MorphlingPlayerWidget(((LimitedInventoryScreen)(Object)this), x, y, entries.get(i), i);
+                boolean isDead = gameWorldComponent.isPlayerDead(entries.get(i));
+                MorphlingPlayerWidget child = new MorphlingPlayerWidget(((LimitedInventoryScreen)(Object)this), x, y, entries.get(i), i, isDead);
                 addDrawableChild(child);
             }
         }

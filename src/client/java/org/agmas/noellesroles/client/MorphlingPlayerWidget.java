@@ -18,14 +18,16 @@ import java.util.UUID;
 
 public class MorphlingPlayerWidget extends PlayerSelectWidget {
     private final UUID disguiseTargetUuid;
+    private final boolean isDead;
 
-    public MorphlingPlayerWidget(LimitedInventoryScreen screen, int x, int y, @NotNull UUID disguiseTargetUuid, int index) {
+    public MorphlingPlayerWidget(LimitedInventoryScreen screen, int x, int y, @NotNull UUID disguiseTargetUuid, int index, boolean isDead) {
         super(screen, x, y, disguiseTargetUuid, getNameText(disguiseTargetUuid), (a) -> {
             if (MorphlingPlayerComponent.KEY.get(MinecraftClient.getInstance().player).getMorphTicks() == 0) {
                 ClientPlayNetworking.send(new MorphC2SPacket(disguiseTargetUuid));
             }
         });
         this.disguiseTargetUuid = disguiseTargetUuid;
+        this.isDead = isDead;
     }
 
     @Override
@@ -39,7 +41,7 @@ public class MorphlingPlayerWidget extends PlayerSelectWidget {
 
     @Override
     protected ShopEntry.Type getBackgroundType() {
-        return ShopEntry.Type.POISON;
+        return isDead ? ShopEntry.Type.WEAPON : ShopEntry.Type.POISON;
     }
 
     @Override

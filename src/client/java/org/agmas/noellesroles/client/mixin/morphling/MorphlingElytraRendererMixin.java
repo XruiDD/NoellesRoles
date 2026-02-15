@@ -46,6 +46,11 @@ public class MorphlingElytraRendererMixin {
                 if (target instanceof AbstractClientPlayerEntity) {
                     return ((AbstractClientPlayerEntity) target).getSkinTextures();
                 }
+                // 目标不在世界中（已死亡），回退到缓存
+                var cachedEntry = WatheClient.PLAYER_ENTRIES_CACHE.get(disguiseUuid);
+                if (cachedEntry != null) {
+                    return cachedEntry.getSkinTextures();
+                }
             }
         }
 

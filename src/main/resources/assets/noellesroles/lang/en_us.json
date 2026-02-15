@@ -66,6 +66,8 @@
   "tip.phantom.active": "Invisible! %ss remaining",
   "tip.morphling": "Open inventory to morph!",
   "tip.morphling.active": "Morphed! %ss remaining",
+  "tip.morphling.corpse_active": "Corpse mode active (Press G to disable)",
+  "tip.morphling.corpse_hint": "Press G to play dead",
   "tip.recaller.place": "Use %s to save your location!",
   "tip.recaller.teleport": "Use %s to teleport!",
   "tip.vulture": "%s/%s bodies eaten.",
