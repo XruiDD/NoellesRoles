@@ -1101,6 +1101,7 @@ public class Noellesroles implements ModInitializer {
                     extra.putUuid("body_uuid", body.getUuid());
                     if (bodyPlayerUuid != null) {
                         extra.putUuid("body_player_uuid", bodyPlayerUuid);
+                        extra.putUuid("target", bodyPlayerUuid);
                     }
                     GameRecordManager.putPos(extra, "body_pos", bodyPos);
                     GameRecordManager.recordSkillUse(context.player(), VULTURE_ID, recordTarget, extra);
