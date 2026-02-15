@@ -1088,6 +1088,9 @@ public class Noellesroles implements ModInitializer {
                         serverWorld.spawnParticles(ParticleTypes.SOUL, pos.x, pos.y + 0.5, pos.z, 10, 0.2, 0.2, 0.2, 0.01);
                     }
 
+                    // 吃掉尸体后获得速度加成
+                    context.player().addStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, GameConstants.getInTicks(0, 10), 2, false, false, true));
+
                     // 移除尸体
                     body.discard();
                     ServerPlayerEntity recordTarget = null;
