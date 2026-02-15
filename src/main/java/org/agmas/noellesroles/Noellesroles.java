@@ -46,6 +46,7 @@ import org.agmas.noellesroles.morphling.MorphlingPlayerComponent;
 import org.agmas.noellesroles.packet.AbilityC2SPacket;
 import org.agmas.noellesroles.packet.AssassinGuessRoleC2SPacket;
 import org.agmas.noellesroles.packet.MorphC2SPacket;
+import org.agmas.noellesroles.packet.MorphCorpseToggleC2SPacket;
 import org.agmas.noellesroles.packet.SwapperC2SPacket;
 import org.agmas.noellesroles.packet.VultureEatC2SPacket;
 import org.agmas.noellesroles.recaller.RecallerPlayerComponent;
@@ -268,6 +269,7 @@ public class Noellesroles implements ModInitializer {
         ModItems.init();
         ModSounds.init();
         PayloadTypeRegistry.playC2S().register(MorphC2SPacket.ID, MorphC2SPacket.CODEC);
+        PayloadTypeRegistry.playC2S().register(MorphCorpseToggleC2SPacket.ID, MorphCorpseToggleC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(AbilityC2SPacket.ID, AbilityC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(SwapperC2SPacket.ID, SwapperC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(VultureEatC2SPacket.ID, VultureEatC2SPacket.CODEC);
@@ -1041,9 +1043,8 @@ public class Noellesroles implements ModInitializer {
             if (payload.player() == null) return;
             if (abilityPlayerComponent.cooldown > 0) return;
             PlayerEntity abilityTarget = context.player().getWorld().getPlayerByUuid(payload.player());
-            if (abilityTarget == null) return;
 
-            if (gameWorldComponent.isRole(context.player(), VOODOO) && GameFunctions.isPlayerPlayingAndAlive(context.player()) && !SwallowedPlayerComponent.isPlayerSwallowed(context.player())) {
+            if (abilityTarget != null && gameWorldComponent.isRole(context.player(), VOODOO) && GameFunctions.isPlayerPlayingAndAlive(context.player()) && !SwallowedPlayerComponent.isPlayerSwallowed(context.player())) {
                 abilityPlayerComponent.cooldown = GameConstants.getInTicks(0, 30);
                 abilityPlayerComponent.sync();
                 VoodooPlayerComponent voodooPlayerComponent = (VoodooPlayerComponent) VoodooPlayerComponent.KEY.get(context.player());
@@ -1052,7 +1053,9 @@ public class Noellesroles implements ModInitializer {
                 GameRecordManager.recordSkillUse(context.player(), VOODOO_ID, recordTarget, null);
 
             }
-            if (gameWorldComponent.isRole(context.player(), MORPHLING) && GameFunctions.isPlayerPlayingAndAlive(context.player()) && !SwallowedPlayerComponent.isPlayerSwallowed(context.player())) {
+            // 变形者允许变形为已死亡玩家（旁观者），只需目标在线即可
+            if (abilityTarget != null && gameWorldComponent.isRole(context.player(), MORPHLING) && GameFunctions.isPlayerPlayingAndAlive(context.player()) && !SwallowedPlayerComponent.isPlayerSwallowed(context.player())) {
+                if (!gameWorldComponent.getAllPlayers().contains(payload.player())) return;
                 MorphlingPlayerComponent morphlingPlayerComponent = (MorphlingPlayerComponent) MorphlingPlayerComponent.KEY.get(context.player());
                 // 服务端验证冷却是否结束，防止作弊
                 if (morphlingPlayerComponent.getMorphTicks() != 0) return;
@@ -1063,6 +1066,14 @@ public class Noellesroles implements ModInitializer {
                 extra.putUuid("disguise_as", payload.player());
                 GameRecordManager.recordSkillUse(context.player(), MORPHLING_ID, recordTarget, extra);
             }
+        });
+        ServerPlayNetworking.registerGlobalReceiver(MorphCorpseToggleC2SPacket.ID, (payload, context) -> {
+            GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(context.player().getWorld());
+            if (!gameWorldComponent.isRole(context.player(), MORPHLING)) return;
+            if (!GameFunctions.isPlayerPlayingAndAlive(context.player())) return;
+
+            MorphlingPlayerComponent comp = MorphlingPlayerComponent.KEY.get(context.player());
+            comp.toggleCorpseMode();
         });
         ServerPlayNetworking.registerGlobalReceiver(Noellesroles.VULTURE_PACKET, (payload, context) -> {
             GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(context.player().getWorld());

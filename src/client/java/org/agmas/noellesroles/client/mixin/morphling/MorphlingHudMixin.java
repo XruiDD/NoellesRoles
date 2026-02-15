@@ -29,20 +29,24 @@ public abstract class MorphlingHudMixin {
             int drawY = context.getScaledWindowHeight();
             int morphTicks = morphlingPlayerComponent.getMorphTicks();
 
+            // 换皮变形状态提示
             Text line;
             if (morphTicks > 0) {
-                // 变形中，显示变形剩余时间
                 line = Text.translatable("tip.morphling.active", morphTicks / 20);
             } else if (morphTicks < 0) {
-                // 冷却中，显示冷却倒计时
                 line = Text.translatable("tip.noellesroles.cooldown", (-morphTicks) / 20);
             } else {
-                // 准备就绪，显示提示
                 line = Text.translatable("tip.morphling");
             }
 
             drawY -= getTextRenderer().getWrappedLinesHeight(line, 999999);
             context.drawTextWithShadow(getTextRenderer(), line, context.getScaledWindowWidth() - getTextRenderer().getWidth(line), drawY, Noellesroles.MORPHLING.color());
+
+            // 尸体模式提示（一行显示状态+操作）
+            Text corpseHint = Text.translatable(morphlingPlayerComponent.corpseMode
+                    ? "tip.morphling.corpse_active" : "tip.morphling.corpse_hint");
+            drawY -= getTextRenderer().getWrappedLinesHeight(corpseHint, 999999);
+            context.drawTextWithShadow(getTextRenderer(), corpseHint, context.getScaledWindowWidth() - getTextRenderer().getWidth(corpseHint), drawY, Noellesroles.MORPHLING.color());
         }
     }
 }

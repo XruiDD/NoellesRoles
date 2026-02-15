@@ -42,7 +42,9 @@ import org.agmas.noellesroles.client.gui.JesterTimeRenderer;
 import org.agmas.noellesroles.client.screen.AssassinScreen;
 import org.agmas.noellesroles.corruptcop.CorruptCopPlayerComponent;
 import org.agmas.noellesroles.jester.JesterPlayerComponent;
+import org.agmas.noellesroles.morphling.MorphlingPlayerComponent;
 import org.agmas.noellesroles.packet.AbilityC2SPacket;
+import org.agmas.noellesroles.packet.MorphCorpseToggleC2SPacket;
 import org.agmas.noellesroles.packet.VultureEatC2SPacket;
 import org.agmas.noellesroles.packet.ReporterMarkC2SPacket;
 import org.agmas.noellesroles.pathogen.InfectedPlayerComponent;
@@ -447,6 +449,12 @@ public class NoellesrolesClient implements ClientModInitializer {
                         if (crosshairTarget != null && crosshairTargetDistance <= 3.0) {
                             ClientPlayNetworking.send(new ReporterMarkC2SPacket(crosshairTarget.getUuid()));
                         }
+                        return;
+                    }
+
+                    // 变形者角色按G：切换尸体模式（独立于换皮变形）
+                    if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.MORPHLING)) {
+                        ClientPlayNetworking.send(new MorphCorpseToggleC2SPacket());
                         return;
                     }
 

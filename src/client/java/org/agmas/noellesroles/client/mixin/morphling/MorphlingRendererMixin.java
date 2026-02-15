@@ -3,8 +3,6 @@ package org.agmas.noellesroles.client.mixin.morphling;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import dev.doctor4t.wathe.client.WatheClient;
-import net.fabricmc.loader.impl.util.log.Log;
-import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.PlayerListEntry;
@@ -56,7 +54,13 @@ public abstract class MorphlingRendererMixin {
                     return;
                 }
             } else {
-                Log.info(LogCategory.GENERAL, "Morphling disguise entity not found (null) for UUID: " + disguiseUuid);
+                // 目标不在世界中（已死亡为旁观者），回退到缓存获取贴图
+                PlayerListEntry cachedEntry = WatheClient.PLAYER_ENTRIES_CACHE.get(disguiseUuid);
+                if (cachedEntry != null) {
+                    cir.setReturnValue(cachedEntry.getSkinTextures().texture());
+                    cir.cancel();
+                    return;
+                }
             }
             MinecraftClient client = MinecraftClient.getInstance();
             if (client.player != null && disguiseUuid.equals(client.player.getUuid())) {
@@ -93,7 +97,11 @@ public abstract class MorphlingRendererMixin {
             if (disguiseEntity != null) {
                 return disguiseEntity.getSkinTextures();
             } else {
-                Log.info(LogCategory.GENERAL, "Morphling disguise entity is null in renderArm");
+                // 目标不在世界中（已死亡），回退到缓存
+                PlayerListEntry cachedEntry = WatheClient.PLAYER_ENTRIES_CACHE.get(disguiseUuid);
+                if (cachedEntry != null) {
+                    return cachedEntry.getSkinTextures();
+                }
             }
         }
         return original.call(instance);
