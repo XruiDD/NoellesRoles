@@ -3,6 +3,7 @@
   "minVersion": "0.8",
   "package": "org.agmas.noellesroles.mixin",
   "compatibilityLevel": "JAVA_21",
+  "priority": 1100,
   "mixins": [
     "bartender.CocktailItemMixin",
     "bartender.DefenseVialApplyMixin",
@@ -19,7 +20,8 @@
     "taotie.SwallowedPlayerSpectatorMixin",
     "taotie.SwallowedPlayerSkyVisibilityMixin",
     "silencer.SilencedEatingMixin",
-    "silencer.SilencedDrinkingMixin"
+    "silencer.SilencedDrinkingMixin",
+    "morphling.MorphlingCorpseCollisionMixin"
   ],
   "injectors": {
     "defaultRequire": 1
