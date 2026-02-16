@@ -623,6 +623,9 @@ public class Noellesroles implements ModInitializer {
                 // 静语者开局冷却45秒
                 abilityPlayerComponent.cooldown = GameConstants.getInTicks(0, 45);
             }
+            if (role.equals(UNDERCOVER)) {
+                player.giveItemStack(WatheItems.WALKIE_TALKIE.getDefaultStack());
+            }
             if (role.equals(BODYGUARD)) {
                 BodyguardPlayerComponent bodyguardComp = BodyguardPlayerComponent.KEY.get(player);
                 bodyguardComp.reset();
