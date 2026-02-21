@@ -1,8 +1,6 @@
 package org.agmas.noellesroles.item;
 
-import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.cca.PlayerMoodComponent;
-import dev.doctor4t.wathe.cca.PlayerPsychoComponent;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.LivingEntity;
@@ -23,6 +21,8 @@ import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.UseAction;
 import net.minecraft.world.World;
 import org.agmas.noellesroles.ModEffects;
+import org.agmas.noellesroles.bartender.BartenderPlayerComponent;
+import org.agmas.noellesroles.professor.IronManPlayerComponent;
 
 import org.agmas.noellesroles.mixin.bartender.ItemCooldownEntryAccessor;
 import org.agmas.noellesroles.mixin.bartender.ItemCooldownManagerAccessor;
@@ -77,10 +77,11 @@ public class BaseSpiritItem extends Item {
 
             if (hasIce) {
                 // 冰块消除 debuff，调制品效果立即生效
-                applyIngredientEffects(player, ingredients);
+                applyIngredientEffectsStatic(player, ingredients);
             } else if (!ingredients.isEmpty()) {
-                // 有调制品但无冰块：debuff 结束后生效（3秒后）
-                scheduleIngredientEffects(player, ingredients, DEBUFF_DURATION);
+                // 有调制品但无冰块：通过 BartenderPlayerComponent 延迟生效
+                BartenderPlayerComponent comp = BartenderPlayerComponent.KEY.get(player);
+                comp.schedulePendingEffects(ingredients, DEBUFF_DURATION);
             }
 
             stack.decrement(1);
@@ -89,63 +90,9 @@ public class BaseSpiritItem extends Item {
     }
 
     /**
-     * 延迟应用调制品效果（debuff结束后）
+     * 立即应用调制品效果（公开静态方法，供 BartenderPlayerComponent 延迟调用）
      */
-    private void scheduleIngredientEffects(ServerPlayerEntity player, List<String> ingredients, int delayTicks) {
-        // 使用一个不可见的状态效果作为计时器，在效果结束时触发
-        // 更简单的方式：给予调制品效果但延迟开始
-        // Minecraft 不支持延迟效果，所以我们用更长的持续时间并在 debuff 时间后开始
-        for (String ingredient : ingredients) {
-            switch (ingredient) {
-                case "rum" -> {
-                    // 6s 速度I，延迟 debuff 时间后生效
-                    // 总时长 = debuff + 效果时长，隐藏前 debuff 时间
-                    player.addStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, delayTicks + 6 * 20, 0, false, false, true));
-                    // 额外恢复 20% san
-                    PlayerMoodComponent moodComponent = PlayerMoodComponent.KEY.get(player);
-                    moodComponent.setMood(Math.min(1.0f, moodComponent.getMood() + 0.2f));
-                }
-                case "gin" -> {
-                    // 夜视效果：6s，每次2s间隔1.5s（需要特殊处理，这里先给6s夜视）
-                    player.addStatusEffect(new StatusEffectInstance(StatusEffects.NIGHT_VISION, delayTicks + 6 * 20, 0, false, false, true));
-                    // 额外恢复 20% san
-                    PlayerMoodComponent moodComponent2 = PlayerMoodComponent.KEY.get(player);
-                    moodComponent2.setMood(Math.min(1.0f, moodComponent2.getMood() + 0.2f));
-                }
-                case "vodka" -> {
-                    // 15s 亢奋效果
-                    player.addStatusEffect(new StatusEffectInstance(ModEffects.EUPHORIA, delayTicks + 15 * 20, 0, false, false, true));
-                    // 立即减少所有物品 20% 冷却
-                    reduceAllCooldowns(player);
-                    // 额外恢复 20% san（亢奋效果结束时在EuphoriaEffect中额外恢复）
-                    PlayerMoodComponent moodComponent3 = PlayerMoodComponent.KEY.get(player);
-                    moodComponent3.setMood(Math.min(1.0f, moodComponent3.getMood() + 0.2f));
-                }
-                case "tequila" -> {
-                    // 12s 无碰撞体积效果
-                    player.addStatusEffect(new StatusEffectInstance(ModEffects.NO_COLLISION, delayTicks + 12 * 20, 0, false, false, true));
-                    // 额外恢复 20% san
-                    PlayerMoodComponent moodComponent4 = PlayerMoodComponent.KEY.get(player);
-                    moodComponent4.setMood(Math.min(1.0f, moodComponent4.getMood() + 0.2f));
-                }
-                case "whiskey" -> {
-                    // 12s 限时护盾（1层，参考 Psycho Mode 护盾）
-                    applyWhiskeyShield(player, delayTicks + 12 * 20);
-                    // 额外恢复 20% san
-                    PlayerMoodComponent moodComponent5 = PlayerMoodComponent.KEY.get(player);
-                    moodComponent5.setMood(Math.min(1.0f, moodComponent5.getMood() + 0.2f));
-                }
-                case "ice_cube" -> {
-                    // 冰块在这个分支不会出现（已在上面处理）
-                }
-            }
-        }
-    }
-
-    /**
-     * 立即应用调制品效果（冰块消除debuff时）
-     */
-    private void applyIngredientEffects(ServerPlayerEntity player, List<String> ingredients) {
+    public static void applyIngredientEffectsStatic(ServerPlayerEntity player, List<String> ingredients) {
         for (String ingredient : ingredients) {
             switch (ingredient) {
                 case "rum" -> {
@@ -171,9 +118,8 @@ public class BaseSpiritItem extends Item {
                     moodComponent4.setMood(Math.min(1.0f, moodComponent4.getMood() + 0.2f));
                 }
                 case "whiskey" -> {
-                    // 12s 限时护盾（1层，参考 Psycho Mode 护盾）
+                    // 限时护盾：使用铁人药剂机制，12s 后自动移除
                     applyWhiskeyShield(player, 12 * 20);
-                    // 额外恢复 20% san
                     PlayerMoodComponent moodComponent5 = PlayerMoodComponent.KEY.get(player);
                     moodComponent5.setMood(Math.min(1.0f, moodComponent5.getMood() + 0.2f));
                 }
@@ -185,27 +131,23 @@ public class BaseSpiritItem extends Item {
     }
 
     /**
-     * 给予威士忌护盾（利用 Psycho Mode 的护盾机制）
+     * 给予威士忌护盾（使用铁人药剂机制，限时）
      */
-    private void applyWhiskeyShield(ServerPlayerEntity player, int durationTicks) {
-        PlayerPsychoComponent psychoComp = PlayerPsychoComponent.KEY.get(player);
-        // 如果已经在疯魔模式中，只增加护甲层数
-        if (psychoComp.getPsychoTicks() > 0) {
-            psychoComp.setArmour(psychoComp.getArmour() + 1);
-        } else {
-            // 设置护盾时间和层数，手动增加 psychosActive 计数
-            GameWorldComponent gameWorld = GameWorldComponent.KEY.get(player.getWorld());
-            gameWorld.setPsychosActive(gameWorld.getPsychosActive() + 1);
-            psychoComp.setPsychoTicks(durationTicks);
-            psychoComp.setArmour(1);
+    private static void applyWhiskeyShield(ServerPlayerEntity player, int durationTicks) {
+        IronManPlayerComponent ironMan = IronManPlayerComponent.KEY.get(player);
+        if (!ironMan.hasBuff()) {
+            ironMan.applyBuff();
         }
+        // 通过 BartenderPlayerComponent 计时，到期自动移除
+        BartenderPlayerComponent comp = BartenderPlayerComponent.KEY.get(player);
+        comp.startWhiskeyShield(durationTicks);
     }
 
     /**
      * 伏特加效果：立即减少玩家背包内所有物品 20% 的冷却时间（按最大冷却时间计算）
      */
     @SuppressWarnings("unchecked")
-    private void reduceAllCooldowns(ServerPlayerEntity player) {
+    private static void reduceAllCooldowns(ServerPlayerEntity player) {
         ItemCooldownManagerAccessor accessor = (ItemCooldownManagerAccessor) player.getItemCooldownManager();
         int currentTick = accessor.getTick();
         Map<Item, ?> entries = accessor.getEntries();
@@ -259,6 +201,10 @@ public class BaseSpiritItem extends Item {
         if (current.size() >= MAX_INGREDIENTS) {
             return false;
         }
+        // 每种调制品只能添加一次
+        if (current.contains(ingredientId)) {
+            return false;
+        }
         current.add(ingredientId);
 
         NbtCompound nbt;
@@ -278,6 +224,21 @@ public class BaseSpiritItem extends Item {
         return true;
     }
 
+    /**
+     * 获取调制品对应的显示颜色
+     */
+    private static Formatting getIngredientColor(String ingredientId) {
+        return switch (ingredientId) {
+            case "rum" -> Formatting.GOLD;
+            case "gin" -> Formatting.GREEN;
+            case "vodka" -> Formatting.AQUA;
+            case "tequila" -> Formatting.YELLOW;
+            case "whiskey" -> Formatting.RED;
+            case "ice_cube" -> Formatting.WHITE;
+            default -> Formatting.GRAY;
+        };
+    }
+
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
         List<String> ingredients = getIngredients(stack);
@@ -285,7 +246,7 @@ public class BaseSpiritItem extends Item {
             tooltip.add(Text.translatable("item.noellesroles.base_spirit.ingredients").formatted(Formatting.GRAY));
             for (String ingredient : ingredients) {
                 String translationKey = "item.noellesroles." + ingredient;
-                tooltip.add(Text.literal("  ").append(Text.translatable(translationKey).formatted(Formatting.AQUA)));
+                tooltip.add(Text.literal("  ").append(Text.translatable(translationKey).formatted(getIngredientColor(ingredient))));
             }
         }
         int remaining = MAX_INGREDIENTS - ingredients.size();
