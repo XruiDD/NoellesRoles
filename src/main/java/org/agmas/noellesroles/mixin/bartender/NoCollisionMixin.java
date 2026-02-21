@@ -1,5 +1,7 @@
 package org.agmas.noellesroles.mixin.bartender;
 
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import org.agmas.noellesroles.ModEffects;
@@ -11,26 +13,25 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
  * 拥有无碰撞效果的玩家可以穿过其他玩家。
- * 注入 collidesWith（Wathe 使用的碰撞方法）、isCollidable、isPushable 和 pushAwayFrom，
- * 全面覆盖碰撞检测。
+ * 使用 @WrapMethod 在 Wathe 的 @WrapMethod 外层拦截碰撞检测。
  */
 @Mixin(Entity.class)
 public abstract class NoCollisionMixin {
 
     /**
-     * collidesWith 是 Wathe 实际使用的碰撞判定方法。
-     * 如果自己或对方有 NO_COLLISION 效果，返回 false 以穿过。
+     * Wathe 使用 @WrapMethod 包裹 collidesWith，在游戏进行中强制玩家间碰撞返回 true。
+     * 我们也使用 @WrapMethod，在 Wathe 外层执行，在 Wathe 强制返回 true 之前拦截。
      */
-    @Inject(method = "collidesWith", at = @At("HEAD"), cancellable = true)
-    private void noCollisionCollidesWith(Entity other, CallbackInfoReturnable<Boolean> cir) {
+    @WrapMethod(method = "collidesWith")
+    private boolean noellesroles$noCollisionCollidesWith(Entity other, Operation<Boolean> original) {
         Entity self = (Entity) (Object) this;
         if (self instanceof LivingEntity living && living.hasStatusEffect(ModEffects.NO_COLLISION)) {
-            cir.setReturnValue(false);
-            return;
+            return false;
         }
         if (other instanceof LivingEntity otherLiving && otherLiving.hasStatusEffect(ModEffects.NO_COLLISION)) {
-            cir.setReturnValue(false);
+            return false;
         }
+        return original.call(other);
     }
 
     @Inject(method = "isCollidable", at = @At("HEAD"), cancellable = true)

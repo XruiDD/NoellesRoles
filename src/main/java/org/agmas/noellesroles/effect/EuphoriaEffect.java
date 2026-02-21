@@ -5,9 +5,7 @@ import dev.doctor4t.wathe.cca.PlayerStaminaComponent;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectCategory;
-import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.server.network.ServerPlayerEntity;
-import org.agmas.noellesroles.ModEffects;
 
 public class EuphoriaEffect extends StatusEffect {
     public EuphoriaEffect() {
@@ -23,7 +21,7 @@ public class EuphoriaEffect extends StatusEffect {
     public boolean applyUpdateEffect(LivingEntity entity, int amplifier) {
         if (!(entity instanceof ServerPlayerEntity player)) return true;
 
-        // 锁定体力为无限（设为 MAX_VALUE 触发 Wathe 的 isInfiniteStamina()，跳过耐力消耗）
+        // 锁定体力为无限（绑定亢奋效果本身，无论来源）
         PlayerStaminaComponent stamina = PlayerStaminaComponent.KEY.get(player);
         stamina.setSprintingTicks(Integer.MAX_VALUE);
         stamina.setExhausted(false);
@@ -33,23 +31,6 @@ public class EuphoriaEffect extends StatusEffect {
             player.getItemCooldownManager().update();
         }
 
-        // 检查效果是否即将结束（剩余1tick）
-        StatusEffectInstance instance = player.getStatusEffect(ModEffects.EUPHORIA);
-        if (instance != null && instance.getDuration() <= 1) {
-            onEuphoriaEnd(player);
-        }
-
         return true;
-    }
-
-    private void onEuphoriaEnd(ServerPlayerEntity player) {
-        // 清空体力，设为0
-        PlayerStaminaComponent stamina = PlayerStaminaComponent.KEY.get(player);
-        stamina.setSprintingTicks(0);
-        stamina.setExhausted(true);
-
-        // 额外恢复 20% san
-        PlayerMoodComponent moodComponent = PlayerMoodComponent.KEY.get(player);
-        moodComponent.setMood(Math.min(1.0f, moodComponent.getMood() + 0.2f));
     }
 }

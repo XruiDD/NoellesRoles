@@ -1,6 +1,8 @@
 package org.agmas.noellesroles.bartender;
 
 import dev.doctor4t.wathe.cca.GameWorldComponent;
+import dev.doctor4t.wathe.cca.PlayerMoodComponent;
+import dev.doctor4t.wathe.cca.PlayerStaminaComponent;
 import dev.doctor4t.wathe.game.GameConstants;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
@@ -10,6 +12,7 @@ import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
+import org.agmas.noellesroles.ModEffects;
 import org.agmas.noellesroles.Noellesroles;
 import org.agmas.noellesroles.item.BaseSpiritItem;
 import org.jetbrains.annotations.NotNull;
@@ -34,11 +37,15 @@ public class BartenderPlayerComponent implements AutoSyncedComponent, ServerTick
     // 威士忌护盾倒计时
     private int whiskeyShieldTicks = 0;
 
+    // 伏特加亢奋标记：效果结束后清空体力
+    private boolean vodkaEuphoriaActive = false;
+
     public void reset() {
         this.glowTicks = 0;
         this.pendingEffectDelay = 0;
         this.pendingIngredients.clear();
         this.whiskeyShieldTicks = 0;
+        this.vodkaEuphoriaActive = false;
         this.sync();
     }
 
@@ -56,6 +63,13 @@ public class BartenderPlayerComponent implements AutoSyncedComponent, ServerTick
     public void schedulePendingEffects(List<String> ingredients, int delayTicks) {
         this.pendingIngredients = new ArrayList<>(ingredients);
         this.pendingEffectDelay = delayTicks;
+    }
+
+    /**
+     * 标记伏特加亢奋激活（效果结束后会清空体力 + 恢复 san）
+     */
+    public void setVodkaEuphoriaActive(boolean active) {
+        this.vodkaEuphoriaActive = active;
     }
 
     /**
@@ -79,6 +93,23 @@ public class BartenderPlayerComponent implements AutoSyncedComponent, ServerTick
             if (this.pendingEffectDelay == 0 && this.player instanceof ServerPlayerEntity serverPlayer) {
                 BaseSpiritItem.applyIngredientEffectsStatic(serverPlayer, this.pendingIngredients);
                 this.pendingIngredients.clear();
+            }
+        }
+
+        // 伏特加亢奋结束检测：效果消失后清空体力
+        if (this.vodkaEuphoriaActive && this.player instanceof ServerPlayerEntity serverPlayer) {
+            if (!serverPlayer.hasStatusEffect(ModEffects.EUPHORIA)) {
+                // 亢奋效果结束，清空体力
+                PlayerStaminaComponent stamina = PlayerStaminaComponent.KEY.get(serverPlayer);
+                stamina.setSprintingTicks(0);
+                stamina.setExhausted(true);
+                // 3s 缓慢II
+                serverPlayer.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+                        net.minecraft.entity.effect.StatusEffects.SLOWNESS, 3 * 20, 1, false, false, true));
+                // 额外恢复 20% san
+                PlayerMoodComponent moodComponent = PlayerMoodComponent.KEY.get(serverPlayer);
+                moodComponent.setMood(Math.min(1.0f, moodComponent.getMood() + 0.2f));
+                this.vodkaEuphoriaActive = false;
             }
         }
 
@@ -126,6 +157,7 @@ public class BartenderPlayerComponent implements AutoSyncedComponent, ServerTick
         tag.putInt("glowTicks", this.glowTicks);
         tag.putInt("pendingEffectDelay", this.pendingEffectDelay);
         tag.putInt("whiskeyShieldTicks", this.whiskeyShieldTicks);
+        tag.putBoolean("vodkaEuphoriaActive", this.vodkaEuphoriaActive);
         if (!this.pendingIngredients.isEmpty()) {
             NbtList list = new NbtList();
             for (String id : this.pendingIngredients) {
@@ -139,6 +171,7 @@ public class BartenderPlayerComponent implements AutoSyncedComponent, ServerTick
         this.glowTicks = tag.contains("glowTicks") ? tag.getInt("glowTicks") : 0;
         this.pendingEffectDelay = tag.contains("pendingEffectDelay") ? tag.getInt("pendingEffectDelay") : 0;
         this.whiskeyShieldTicks = tag.contains("whiskeyShieldTicks") ? tag.getInt("whiskeyShieldTicks") : 0;
+        this.vodkaEuphoriaActive = tag.contains("vodkaEuphoriaActive") && tag.getBoolean("vodkaEuphoriaActive");
         this.pendingIngredients.clear();
         if (tag.contains("pendingIngredients")) {
             NbtList list = tag.getList("pendingIngredients", NbtString.STRING_TYPE);

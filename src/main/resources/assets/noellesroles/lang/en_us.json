@@ -277,5 +277,8 @@
 
   "replay.death_blocked.survival_moment": "%s was immune to assassination during §dSurvival Moment§r",
   "replay.global.noellesroles.survival_moment_start": "%s triggered §dSurvival Moment§r",
-  "replay.global.noellesroles.survival_moment_end": "%s's §dSurvival Moment§r ended"
+  "replay.global.noellesroles.survival_moment_end": "%s's §dSurvival Moment§r ended",
+
+  "effect.noellesroles.euphoria": "Stimulation",
+  "effect.noellesroles.no_collision": "No Collision"
 }
