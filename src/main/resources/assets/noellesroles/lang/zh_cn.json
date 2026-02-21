@@ -356,6 +356,6 @@
   "replay.global.noellesroles.survival_moment_start": "%s 触发§d生存时刻§r",
   "replay.global.noellesroles.survival_moment_end": "%s 的§d生存时刻§r结束",
 
-  "effect.noellesroles.euphoria": "亢奋",
+  "effect.noellesroles.stimulation": "亢奋",
   "effect.noellesroles.no_collision": "无碰撞"
 }

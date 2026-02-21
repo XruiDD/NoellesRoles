@@ -106,10 +106,10 @@ public class BaseSpiritItem extends Item {
                     moodComponent2.setMood(Math.min(1.0f, moodComponent2.getMood() + 0.2f));
                 }
                 case "vodka" -> {
-                    player.addStatusEffect(new StatusEffectInstance(ModEffects.EUPHORIA, 15 * 20, 0, false, false, true));
+                    player.addStatusEffect(new StatusEffectInstance(ModEffects.STIMULATION, 15 * 20, 0, false, false, true));
                     // 标记伏特加亢奋（效果结束后清空体力）
                     BartenderPlayerComponent comp = BartenderPlayerComponent.KEY.get(player);
-                    comp.setVodkaEuphoriaActive(true);
+                    comp.setVodkaStimulationActive(true);
                     // 立即减少所有物品 20% 冷却
                     reduceAllCooldowns(player);
                     PlayerMoodComponent moodComponent3 = PlayerMoodComponent.KEY.get(player);

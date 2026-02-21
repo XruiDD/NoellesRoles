@@ -29,7 +29,8 @@
     "voodoo.VoodoScreenMixin",
     "vulture.VultureHudMixin",
     "silencer.SilencerHudMixin",
-    "bartender.EuphoriaVignetteHudMixin"
+    "bartender.StimulationVignetteHudMixin",
+    "bartender.StimulationMoodMixin"
   ],
   "injectors": {
     "defaultRequire": 1

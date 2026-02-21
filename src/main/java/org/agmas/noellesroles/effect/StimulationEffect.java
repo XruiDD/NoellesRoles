@@ -7,8 +7,8 @@ import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectCategory;
 import net.minecraft.server.network.ServerPlayerEntity;
 
-public class EuphoriaEffect extends StatusEffect {
-    public EuphoriaEffect() {
+public class StimulationEffect extends StatusEffect {
+    public StimulationEffect() {
         super(StatusEffectCategory.BENEFICIAL, 0xFF4500); // 橙红色
     }
 

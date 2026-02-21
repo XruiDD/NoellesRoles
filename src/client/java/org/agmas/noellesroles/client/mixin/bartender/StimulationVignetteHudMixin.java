@@ -18,15 +18,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * 带有呼吸动画（sin 波调整透明度）。
  */
 @Mixin(InGameHud.class)
-public class EuphoriaVignetteHudMixin {
+public class StimulationVignetteHudMixin {
 
     @Inject(method = "render", at = @At("TAIL"))
-    private void renderEuphoriaVignette(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
+    private void renderStimulationVignette(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.player == null) return;
 
-        StatusEffectInstance euphoria = client.player.getStatusEffect(ModEffects.EUPHORIA);
-        if (euphoria == null) return;
+        StatusEffectInstance stimulation = client.player.getStatusEffect(ModEffects.STIMULATION);
+        if (stimulation == null) return;
 
         int width = context.getScaledWindowWidth();
         int height = context.getScaledWindowHeight();
