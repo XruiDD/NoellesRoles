@@ -25,7 +25,8 @@
     "silencer.SilencedDrinkingMixin",
     "morphling.MorphlingCorpseCollisionMixin",
     "bartender.ItemCooldownManagerAccessor",
-    "bartender.ItemCooldownEntryAccessor"
+    "bartender.ItemCooldownEntryAccessor",
+    "bartender.GinBlindnessBlockMixin"
   ],
   "injectors": {
     "defaultRequire": 1

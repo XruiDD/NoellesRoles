@@ -102,6 +102,10 @@ public class BaseSpiritItem extends Item {
                 }
                 case "gin" -> {
                     player.addStatusEffect(new StatusEffectInstance(StatusEffects.NIGHT_VISION, 6 * 20, 0, false, false, true));
+                    // 移除失明（包括熄灯施加的失明），并标记夜视期间持续压制
+                    player.removeStatusEffect(StatusEffects.BLINDNESS);
+                    BartenderPlayerComponent ginComp = BartenderPlayerComponent.KEY.get(player);
+                    ginComp.setGinNightVisionActive(true);
                     PlayerMoodComponent moodComponent2 = PlayerMoodComponent.KEY.get(player);
                     moodComponent2.setMood(Math.min(1.0f, moodComponent2.getMood() + 0.2f));
                 }

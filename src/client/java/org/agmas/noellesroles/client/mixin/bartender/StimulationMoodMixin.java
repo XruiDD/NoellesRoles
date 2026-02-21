@@ -34,7 +34,7 @@ public abstract class StimulationMoodMixin {
     private static final int STIMULATION_MAX_TICKS = 15 * 20; // 300 ticks = 15 seconds
 
     @Unique
-    private static final int STIMULATION_BAR_COLOR = 0xFFD700; // gold yellow
+    private static final int STIMULATION_BAR_COLOR = 0xFFFF00; // bright yellow
 
     @Inject(method = "renderCivilian", at = @At("HEAD"), cancellable = true)
     private static void renderStimulationMood(TextRenderer renderer, DrawContext context, float previousMood, CallbackInfo ci) {

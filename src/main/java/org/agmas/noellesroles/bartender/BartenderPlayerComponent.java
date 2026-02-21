@@ -40,12 +40,16 @@ public class BartenderPlayerComponent implements AutoSyncedComponent, ServerTick
     // 伏特加亢奋标记：效果结束后清空体力
     private boolean vodkaStimulationActive = false;
 
+    // 杜松子酒夜视标记：夜视期间压制熄灯失明
+    private boolean ginNightVisionActive = false;
+
     public void reset() {
         this.glowTicks = 0;
         this.pendingEffectDelay = 0;
         this.pendingIngredients.clear();
         this.whiskeyShieldTicks = 0;
         this.vodkaStimulationActive = false;
+        this.ginNightVisionActive = false;
         this.sync();
     }
 
@@ -70,6 +74,17 @@ public class BartenderPlayerComponent implements AutoSyncedComponent, ServerTick
      */
     public void setVodkaStimulationActive(boolean active) {
         this.vodkaStimulationActive = active;
+    }
+
+    /**
+     * 标记杜松子酒夜视激活（夜视期间压制熄灯失明）
+     */
+    public void setGinNightVisionActive(boolean active) {
+        this.ginNightVisionActive = active;
+    }
+
+    public boolean isGinNightVisionActive() {
+        return this.ginNightVisionActive;
     }
 
     /**
@@ -110,6 +125,17 @@ public class BartenderPlayerComponent implements AutoSyncedComponent, ServerTick
                 PlayerMoodComponent moodComponent = PlayerMoodComponent.KEY.get(serverPlayer);
                 moodComponent.setMood(Math.min(1.0f, moodComponent.getMood() + 0.2f));
                 this.vodkaStimulationActive = false;
+            }
+        }
+
+        // 杜松子酒夜视：压制熄灯失明
+        if (this.ginNightVisionActive && this.player instanceof ServerPlayerEntity serverPlayer2) {
+            if (serverPlayer2.hasStatusEffect(net.minecraft.entity.effect.StatusEffects.NIGHT_VISION)) {
+                // 夜视仍在，移除熄灯系统施加的失明
+                serverPlayer2.removeStatusEffect(net.minecraft.entity.effect.StatusEffects.BLINDNESS);
+            } else {
+                // 夜视已结束，停止压制，熄灯系统下一 tick 自动恢复失明
+                this.ginNightVisionActive = false;
             }
         }
 
@@ -158,6 +184,7 @@ public class BartenderPlayerComponent implements AutoSyncedComponent, ServerTick
         tag.putInt("pendingEffectDelay", this.pendingEffectDelay);
         tag.putInt("whiskeyShieldTicks", this.whiskeyShieldTicks);
         tag.putBoolean("vodkaStimulationActive", this.vodkaStimulationActive);
+        tag.putBoolean("ginNightVisionActive", this.ginNightVisionActive);
         if (!this.pendingIngredients.isEmpty()) {
             NbtList list = new NbtList();
             for (String id : this.pendingIngredients) {
@@ -172,6 +199,7 @@ public class BartenderPlayerComponent implements AutoSyncedComponent, ServerTick
         this.pendingEffectDelay = tag.contains("pendingEffectDelay") ? tag.getInt("pendingEffectDelay") : 0;
         this.whiskeyShieldTicks = tag.contains("whiskeyShieldTicks") ? tag.getInt("whiskeyShieldTicks") : 0;
         this.vodkaStimulationActive = tag.contains("vodkaStimulationActive") && tag.getBoolean("vodkaStimulationActive");
+        this.ginNightVisionActive = tag.contains("ginNightVisionActive") && tag.getBoolean("ginNightVisionActive");
         this.pendingIngredients.clear();
         if (tag.contains("pendingIngredients")) {
             NbtList list = tag.getList("pendingIngredients", NbtString.STRING_TYPE);

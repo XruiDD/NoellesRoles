@@ -8,6 +8,6 @@ import net.minecraft.entity.effect.StatusEffectCategory;
  */
 public class NoCollisionEffect extends StatusEffect {
     public NoCollisionEffect() {
-        super(StatusEffectCategory.BENEFICIAL, 0x00CED1); // 深青色
+        super(StatusEffectCategory.BENEFICIAL, 0xFFFFFF); // 白色
     }
 }

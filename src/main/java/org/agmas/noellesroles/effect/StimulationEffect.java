@@ -9,7 +9,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 
 public class StimulationEffect extends StatusEffect {
     public StimulationEffect() {
-        super(StatusEffectCategory.BENEFICIAL, 0xFF4500); // 橙红色
+        super(StatusEffectCategory.BENEFICIAL, 0xFFFF00); // 黄色
     }
 
     @Override
