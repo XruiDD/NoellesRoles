@@ -55,6 +55,17 @@
   "hud.vulture.eat": "Press %s to eat!",
 
 
+  "item.noellesroles.base_spirit": "Base Spirit",
+  "item.noellesroles.base_spirit.ingredients": "Ingredients:",
+  "item.noellesroles.base_spirit.slots_remaining": "%d slots remaining",
+  "item.noellesroles.rum": "Rum",
+  "item.noellesroles.gin": "Gin",
+  "item.noellesroles.vodka": "Vodka",
+  "item.noellesroles.tequila": "Tequila",
+  "item.noellesroles.whiskey": "Whiskey",
+  "item.noellesroles.ice_cube": "Ice Cube",
+  "item.noellesroles.ingredient.tooltip": "Right-click on a base spirit to mix in",
+
   "item.noellesroles.master_key": "Master Key",
   "item.noellesroles.neutral_master_key": "Neutral Master Key",
   "item.noellesroles.defense_vial": "Defense Vial",

@@ -43,6 +43,17 @@
   "announcement.win.coroner": "Пассажиры победили!",
   "hud.coroner.sanity_requirements": "Необходимо 50% рассудка, чтобы использовать эту способность",
 
+  "item.noellesroles.base_spirit": "Базовый спирт",
+  "item.noellesroles.base_spirit.ingredients": "Ингредиенты:",
+  "item.noellesroles.base_spirit.slots_remaining": "Осталось слотов: %d",
+  "item.noellesroles.rum": "Ром",
+  "item.noellesroles.gin": "Джин",
+  "item.noellesroles.vodka": "Водка",
+  "item.noellesroles.tequila": "Текила",
+  "item.noellesroles.whiskey": "Виски",
+  "item.noellesroles.ice_cube": "Кубик льда",
+  "item.noellesroles.ingredient.tooltip": "ПКМ по базовому спирту, чтобы добавить",
+
   "item.noellesroles.master_key": "Мастер-ключ",
 
   "death_reason.noellesroles.voodoo": "от магии вуду.",

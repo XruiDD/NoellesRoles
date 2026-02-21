@@ -70,6 +70,17 @@
   "item.noellesroles.defense_vial": "防御药剂",
   "item.noellesroles.defense_vial.tooltip": "右键点击饮品托盘使用\n清除托盘上的所有毒药\n饮用被防御饮品的人可额外承受一击。",
 
+  "item.noellesroles.base_spirit": "基酒",
+  "item.noellesroles.base_spirit.ingredients": "已调制：",
+  "item.noellesroles.base_spirit.slots_remaining": "剩余 %d 个调制槽位",
+  "item.noellesroles.rum": "朗姆酒",
+  "item.noellesroles.gin": "杜松子酒",
+  "item.noellesroles.vodka": "伏特加",
+  "item.noellesroles.tequila": "龙舌兰",
+  "item.noellesroles.whiskey": "威士忌",
+  "item.noellesroles.ice_cube": "冰块",
+  "item.noellesroles.ingredient.tooltip": "右键点击基酒以添加调制",
+
   "item.noellesroles.fine_drink": "上等佳酿",
   "item.noellesroles.fine_drink.tooltip": "饮用后恢复满心情值\n可放入餐盘供他人取用",
 

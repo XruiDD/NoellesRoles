@@ -29,7 +29,6 @@ public abstract class IngredientMixingMixin {
 
     @Inject(method = "onSlotClick", at = @At("HEAD"), cancellable = true)
     private void onIngredientMixing(int slotIndex, int button, SlotActionType actionType, PlayerEntity player, CallbackInfo ci) {
-        if (player.getWorld().isClient) return;
         if (slotIndex < 0) return;
         if (actionType != SlotActionType.PICKUP || button != 1) return; // 只处理右键点击
 
@@ -45,10 +44,13 @@ public abstract class IngredientMixingMixin {
         ItemStack targetStack = slot.getStack();
         if (!targetStack.isOf(ModItems.BASE_SPIRIT)) return;
 
-        // 尝试添加调制品
-        if (BaseSpiritItem.addIngredient(targetStack, ingredientItem.getIngredientId())) {
-            cursorStack.decrement(1);
-            ci.cancel(); // 取消默认的槽位点击行为
+        // 客户端和服务端都需要 cancel 以防止不同步
+        // 实际逻辑只在服务端执行
+        if (!player.getWorld().isClient) {
+            if (BaseSpiritItem.addIngredient(targetStack, ingredientItem.getIngredientId())) {
+                cursorStack.decrement(1);
+            }
         }
+        ci.cancel();
     }
 }
