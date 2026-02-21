@@ -24,8 +24,12 @@ import net.minecraft.util.UseAction;
 import net.minecraft.world.World;
 import org.agmas.noellesroles.ModEffects;
 
+import org.agmas.noellesroles.mixin.bartender.ItemCooldownEntryAccessor;
+import org.agmas.noellesroles.mixin.bartender.ItemCooldownManagerAccessor;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class BaseSpiritItem extends Item {
     public static final int MAX_INGREDIENTS = 3;
@@ -111,6 +115,8 @@ public class BaseSpiritItem extends Item {
                 case "vodka" -> {
                     // 15s 亢奋效果
                     player.addStatusEffect(new StatusEffectInstance(ModEffects.EUPHORIA, delayTicks + 15 * 20, 0, false, false, true));
+                    // 立即减少所有物品 20% 冷却
+                    reduceAllCooldowns(player);
                     // 额外恢复 20% san（亢奋效果结束时在EuphoriaEffect中额外恢复）
                     PlayerMoodComponent moodComponent3 = PlayerMoodComponent.KEY.get(player);
                     moodComponent3.setMood(Math.min(1.0f, moodComponent3.getMood() + 0.2f));
@@ -154,6 +160,8 @@ public class BaseSpiritItem extends Item {
                 }
                 case "vodka" -> {
                     player.addStatusEffect(new StatusEffectInstance(ModEffects.EUPHORIA, 15 * 20, 0, false, false, true));
+                    // 立即减少所有物品 20% 冷却
+                    reduceAllCooldowns(player);
                     PlayerMoodComponent moodComponent3 = PlayerMoodComponent.KEY.get(player);
                     moodComponent3.setMood(Math.min(1.0f, moodComponent3.getMood() + 0.2f));
                 }
@@ -190,6 +198,37 @@ public class BaseSpiritItem extends Item {
             gameWorld.setPsychosActive(gameWorld.getPsychosActive() + 1);
             psychoComp.setPsychoTicks(durationTicks);
             psychoComp.setArmour(1);
+        }
+    }
+
+    /**
+     * 伏特加效果：立即减少玩家背包内所有物品 20% 的冷却时间（按最大冷却时间计算）
+     */
+    @SuppressWarnings("unchecked")
+    private void reduceAllCooldowns(ServerPlayerEntity player) {
+        ItemCooldownManagerAccessor accessor = (ItemCooldownManagerAccessor) player.getItemCooldownManager();
+        int currentTick = accessor.getTick();
+        Map<Item, ?> entries = accessor.getEntries();
+
+        for (Map.Entry<Item, ?> entry : new ArrayList<>(entries.entrySet())) {
+            ItemCooldownEntryAccessor entryAccessor = (ItemCooldownEntryAccessor) entry.getValue();
+            int startTick = entryAccessor.getStartTick();
+            int endTick = entryAccessor.getEndTick();
+
+            if (endTick <= currentTick) continue; // 已过期
+
+            int maxDuration = endTick - startTick;
+            int reduction = (int) (maxDuration * 0.2);
+            int newEndTick = endTick - reduction;
+
+            if (newEndTick <= currentTick) {
+                // 冷却已完全消除
+                player.getItemCooldownManager().remove(entry.getKey());
+            } else {
+                // 设置新的冷却时间
+                int newRemaining = newEndTick - currentTick;
+                player.getItemCooldownManager().set(entry.getKey(), newRemaining);
+            }
         }
     }
 

@@ -28,7 +28,8 @@
     "taotie.SpectatorHudMixin",
     "voodoo.VoodoScreenMixin",
     "vulture.VultureHudMixin",
-    "silencer.SilencerHudMixin"
+    "silencer.SilencerHudMixin",
+    "bartender.EuphoriaVignetteHudMixin"
   ],
   "injectors": {
     "defaultRequire": 1
