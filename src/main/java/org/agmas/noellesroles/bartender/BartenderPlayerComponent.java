@@ -70,6 +70,25 @@ public class BartenderPlayerComponent implements AutoSyncedComponent, ServerTick
     }
 
     /**
+     * 立即生效待处理的调制品效果（用于连续喝酒时清空队列）
+     */
+    public void flushPendingEffects() {
+        if (this.pendingEffectDelay > 0 && !this.pendingIngredients.isEmpty()
+                && this.player instanceof ServerPlayerEntity serverPlayer) {
+            BaseSpiritItem.applyIngredientEffectsStatic(serverPlayer, this.pendingIngredients);
+            this.pendingIngredients.clear();
+            this.pendingEffectDelay = 0;
+        }
+    }
+
+    /**
+     * 是否有正在等待生效的调制品
+     */
+    public boolean hasPendingEffects() {
+        return this.pendingEffectDelay > 0 && !this.pendingIngredients.isEmpty();
+    }
+
+    /**
      * 标记伏特加亢奋激活（效果结束后会清空体力 + 恢复 san）
      */
     public void setVodkaStimulationActive(boolean active) {

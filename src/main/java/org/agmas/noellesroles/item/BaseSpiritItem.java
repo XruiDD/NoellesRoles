@@ -64,11 +64,19 @@ public class BaseSpiritItem extends Item {
     public ItemStack finishUsing(ItemStack stack, World world, LivingEntity user) {
         if (!world.isClient && user instanceof ServerPlayerEntity player) {
             List<String> ingredients = getIngredients(stack);
-
-            // 基酒 debuff: 3s 缓慢II + 失明
             boolean hasIce = ingredients.contains("ice_cube");
 
-            if (!hasIce) {
+            // 检查是否有待处理的效果，如果有则立即生效
+            BartenderPlayerComponent comp = BartenderPlayerComponent.KEY.get(player);
+            if (comp.hasPendingEffects()) {
+                comp.flushPendingEffects();
+            }
+
+            // 检查当前调制品中是否有已激活的效果（连续喝同一调剂）
+            boolean hasActiveEffect = hasAnyActiveIngredientEffect(player, ingredients);
+
+            // 基酒 debuff: 3s 缓慢II + 失明（有冰块或重复调剂时跳过）
+            if (!hasIce && !hasActiveEffect) {
                 player.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, DEBUFF_DURATION, 1, false, false, true));
                 player.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, DEBUFF_DURATION, 0, false, false, true));
             }
@@ -78,18 +86,35 @@ public class BaseSpiritItem extends Item {
             float currentMood = moodComponent.getMood();
             moodComponent.setMood(Math.min(1.0f, currentMood + 0.2f));
 
-            if (hasIce) {
-                // 冰块消除 debuff，调制品效果立即生效
+            if (hasIce || hasActiveEffect) {
+                // 冰块消除 debuff 或重复调剂：效果立即生效
                 applyIngredientEffectsStatic(player, ingredients);
             } else if (!ingredients.isEmpty()) {
                 // 有调制品但无冰块：通过 BartenderPlayerComponent 延迟生效
-                BartenderPlayerComponent comp = BartenderPlayerComponent.KEY.get(player);
                 comp.schedulePendingEffects(ingredients, DEBUFF_DURATION);
             }
 
             stack.decrement(1);
         }
         return stack;
+    }
+
+    /**
+     * 检查玩家是否已有当前调制品中任一效果处于激活状态
+     */
+    private static boolean hasAnyActiveIngredientEffect(ServerPlayerEntity player, List<String> ingredients) {
+        for (String ingredient : ingredients) {
+            boolean active = switch (ingredient) {
+                case "rum" -> player.hasStatusEffect(StatusEffects.SPEED);
+                case "gin" -> player.hasStatusEffect(StatusEffects.NIGHT_VISION);
+                case "vodka" -> player.hasStatusEffect(ModEffects.STIMULATION);
+                case "tequila" -> player.hasStatusEffect(ModEffects.NO_COLLISION);
+                case "whiskey" -> IronManPlayerComponent.KEY.get(player).hasBuff();
+                default -> false;
+            };
+            if (active) return true;
+        }
+        return false;
     }
 
     /**

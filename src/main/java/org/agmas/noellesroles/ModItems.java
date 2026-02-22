@@ -74,27 +74,27 @@ public class ModItems {
             "base_spirit"
     );
     public static final Item RUM = register(
-            new IngredientItem(new Item.Settings().maxCount(16), "rum"),
+            new IngredientItem(new Item.Settings().maxCount(1), "rum"),
             "rum"
     );
     public static final Item GIN = register(
-            new IngredientItem(new Item.Settings().maxCount(16), "gin"),
+            new IngredientItem(new Item.Settings().maxCount(1), "gin"),
             "gin"
     );
     public static final Item VODKA = register(
-            new IngredientItem(new Item.Settings().maxCount(16), "vodka"),
+            new IngredientItem(new Item.Settings().maxCount(1), "vodka"),
             "vodka"
     );
     public static final Item TEQUILA = register(
-            new IngredientItem(new Item.Settings().maxCount(16), "tequila"),
+            new IngredientItem(new Item.Settings().maxCount(1), "tequila"),
             "tequila"
     );
     public static final Item WHISKEY = register(
-            new IngredientItem(new Item.Settings().maxCount(16), "whiskey"),
+            new IngredientItem(new Item.Settings().maxCount(1), "whiskey"),
             "whiskey"
     );
     public static final Item ICE_CUBE = register(
-            new IngredientItem(new Item.Settings().maxCount(16), "ice_cube"),
+            new IngredientItem(new Item.Settings().maxCount(1), "ice_cube"),
             "ice_cube"
     );
 
