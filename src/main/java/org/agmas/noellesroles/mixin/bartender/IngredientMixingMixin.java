@@ -48,7 +48,9 @@ public abstract class IngredientMixingMixin {
         // 实际逻辑只在服务端执行
         if (!player.getWorld().isClient) {
             if (BaseSpiritItem.addIngredient(targetStack, ingredientItem.getIngredientId())) {
-                cursorStack.decrement(1);
+                if (!player.isCreative()) {
+                    cursorStack.decrement(1);
+                }
             }
         }
         ci.cancel();

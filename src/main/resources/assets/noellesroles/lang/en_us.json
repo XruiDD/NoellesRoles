@@ -65,6 +65,12 @@
   "item.noellesroles.whiskey": "Whiskey",
   "item.noellesroles.ice_cube": "Ice Cube",
   "item.noellesroles.ingredient.tooltip": "Right-click on a base spirit to mix in",
+  "item.noellesroles.rum.effect": "Speed I (6s) + 20% Mood recovery",
+  "item.noellesroles.gin.effect": "Night Vision (6s) + Remove Blindness + 20% Mood",
+  "item.noellesroles.vodka.effect": "Stimulation (15s): Infinite sprint + CD -20% + 20% Mood",
+  "item.noellesroles.tequila.effect": "No Collision (12s) + 20% Mood recovery",
+  "item.noellesroles.whiskey.effect": "Shield (12s): Block one fatal hit + 20% Mood recovery",
+  "item.noellesroles.ice_cube.effect": "Removes 3s debuff, modifiers take effect immediately",
 
   "item.noellesroles.master_key": "Master Key",
   "item.noellesroles.neutral_master_key": "Neutral Master Key",

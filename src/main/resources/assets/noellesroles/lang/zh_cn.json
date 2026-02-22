@@ -80,6 +80,12 @@
   "item.noellesroles.whiskey": "威士忌",
   "item.noellesroles.ice_cube": "冰块",
   "item.noellesroles.ingredient.tooltip": "右键点击基酒以添加调制",
+  "item.noellesroles.rum.effect": "速度 I (6秒) + 恢复20%心情",
+  "item.noellesroles.gin.effect": "夜视 (6秒) + 移除失明 + 恢复20%心情",
+  "item.noellesroles.vodka.effect": "亢奋 (15秒): 无限冲刺 + 冷却-20% + 恢复20%心情",
+  "item.noellesroles.tequila.effect": "无碰撞 (12秒) + 恢复20%心情",
+  "item.noellesroles.whiskey.effect": "护盾 (12秒): 抵挡一次致命伤害 + 恢复20%心情",
+  "item.noellesroles.ice_cube.effect": "消除基酒的3秒负面效果，调剂立即生效",
 
   "item.noellesroles.fine_drink": "上等佳酿",
   "item.noellesroles.fine_drink.tooltip": "饮用后恢复满心情值\n可放入餐盘供他人取用",

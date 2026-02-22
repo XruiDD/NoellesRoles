@@ -32,5 +32,7 @@ public class IngredientItem extends Item {
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
         tooltip.add(Text.translatable("item.noellesroles.ingredient.tooltip").formatted(Formatting.GRAY));
+        String effectKey = "item.noellesroles." + ingredientId + ".effect";
+        tooltip.add(Text.translatable(effectKey).formatted(Formatting.DARK_PURPLE));
     }
 }
