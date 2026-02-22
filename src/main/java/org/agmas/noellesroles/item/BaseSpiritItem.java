@@ -149,7 +149,7 @@ public class BaseSpiritItem extends Item {
                     // 播放伏特加笑声
                     SoundEvent[] laughSounds = {ModSounds.AFTER_VODKA_LAUGH_1, ModSounds.AFTER_VODKA_LAUGH_2, ModSounds.AFTER_VODKA_LAUGH_3};
                     SoundEvent laugh = laughSounds[player.getRandom().nextInt(laughSounds.length)];
-                    player.getWorld().playSound(null, player.getBlockPos(), laugh, SoundCategory.PLAYERS, 1.0f, 1.0f);
+                    player.getWorld().playSoundFromEntity(null, player, laugh, SoundCategory.PLAYERS, 1.0f, 1.0f);
                 }
                 case "tequila" -> {
                     player.addStatusEffect(new StatusEffectInstance(ModEffects.NO_COLLISION, 12 * 20, 0, false, false, true));

@@ -53,12 +53,12 @@
   "item.noellesroles.whiskey": "Виски",
   "item.noellesroles.ice_cube": "Кубик льда",
   "item.noellesroles.ingredient.tooltip": "ПКМ по базовому спирту, чтобы добавить",
-  "item.noellesroles.rum.effect": "Скорость I (6с) + 20% восстановление настроения",
-  "item.noellesroles.gin.effect": "Ночное зрение (6с) + снятие слепоты + 20% настроения",
-  "item.noellesroles.vodka.effect": "Эйфория (15с): бесконечный спринт + КД -20% + 20% настроения",
-  "item.noellesroles.tequila.effect": "Без столкновений (12с) + 20% настроения",
-  "item.noellesroles.whiskey.effect": "Щит (12с): блокирует один смертельный удар + 20% настроения",
-  "item.noellesroles.ice_cube.effect": "Убирает 3с дебафф, модификаторы действуют мгновенно",
+  "item.noellesroles.rum.effect": "Даёт Скорость I на 6с и восстанавливает 20% рассудка",
+  "item.noellesroles.gin.effect": "Даёт Ночное зрение на 6с и иммунитет к отключению света. Восстанавливает 20% рассудка",
+  "item.noellesroles.vodka.effect": "Даёт Эйфорию на 15с (восстановление КД +20% и бесконечная выносливость), снижает все активные КД на 20% и восстанавливает 20% рассудка (Внимание: после окончания выносливость падает до 0 и Замедление II на 3с)",
+  "item.noellesroles.tequila.effect": "Даёт Без столкновений на 12с (позволяет проходить сквозь игроков) и восстанавливает 20% рассудка",
+  "item.noellesroles.whiskey.effect": "Даёт одноразовый щит на 12с и восстанавливает 20% рассудка",
+  "item.noellesroles.ice_cube.effect": "Убирает дебафф базового спирта и модификаторы действуют мгновенно",
 
   "item.noellesroles.master_key": "Мастер-ключ",
 
