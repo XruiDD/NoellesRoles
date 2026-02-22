@@ -15,6 +15,10 @@ public class ModSounds {
     public static final SoundEvent CORRUPT_COP_EXECUTION = registerSound("ambient.corrupt_cop_execution");
     // 小丑时刻BGM
     public static final SoundEvent JESTER_MOMENT = registerSound("music.jester_moment");
+    // 伏特加笑声
+    public static final SoundEvent AFTER_VODKA_LAUGH_1 = registerSound("ambient.after_vodka_laugh_1");
+    public static final SoundEvent AFTER_VODKA_LAUGH_2 = registerSound("ambient.after_vodka_laugh_2");
+    public static final SoundEvent AFTER_VODKA_LAUGH_3 = registerSound("ambient.after_vodka_laugh_3");
 
     private static SoundEvent registerSound(String name) {
         Identifier id = Identifier.of(Noellesroles.MOD_ID, name);
