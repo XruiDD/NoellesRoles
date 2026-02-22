@@ -30,7 +30,8 @@
     "vulture.VultureHudMixin",
     "silencer.SilencerHudMixin",
     "bartender.StimulationVignetteHudMixin",
-    "bartender.StimulationMoodMixin"
+    "bartender.StimulationMoodMixin",
+    "bartender.IngredientMixingCreativeMixin"
   ],
   "injectors": {
     "defaultRequire": 1
