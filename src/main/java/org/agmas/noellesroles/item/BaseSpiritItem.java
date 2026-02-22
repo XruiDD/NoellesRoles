@@ -94,7 +94,9 @@ public class BaseSpiritItem extends Item {
                 comp.schedulePendingEffects(ingredients, DEBUFF_DURATION);
             }
 
-            stack.decrement(1);
+            if (!player.isCreative()) {
+                stack.decrement(1);
+            }
         }
         return stack;
     }
