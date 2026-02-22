@@ -72,5 +72,29 @@
             }
         ],
         "subtitle": "subtitles.noellesroles.ambient.jester_moment"
+    },
+    "ambient.after_vodka_laugh_1": {
+        "sounds": [
+            {
+                "name": "noellesroles:ambient/after_vodka_laugh_1"
+            }
+        ],
+        "subtitle": "subtitles.noellesroles.ambient.after_vodka_laugh"
+    },
+    "ambient.after_vodka_laugh_2": {
+        "sounds": [
+            {
+                "name": "noellesroles:ambient/after_vodka_laugh_2"
+            }
+        ],
+        "subtitle": "subtitles.noellesroles.ambient.after_vodka_laugh"
+    },
+    "ambient.after_vodka_laugh_3": {
+        "sounds": [
+            {
+                "name": "noellesroles:ambient/after_vodka_laugh_3"
+            }
+        ],
+        "subtitle": "subtitles.noellesroles.ambient.after_vodka_laugh"
     }
 }

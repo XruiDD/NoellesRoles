@@ -20,7 +20,10 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.UseAction;
 import net.minecraft.world.World;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvent;
 import org.agmas.noellesroles.ModEffects;
+import org.agmas.noellesroles.ModSounds;
 import org.agmas.noellesroles.bartender.BartenderPlayerComponent;
 import org.agmas.noellesroles.professor.IronManPlayerComponent;
 
@@ -118,6 +121,10 @@ public class BaseSpiritItem extends Item {
                     reduceAllCooldowns(player);
                     PlayerMoodComponent moodComponent3 = PlayerMoodComponent.KEY.get(player);
                     moodComponent3.setMood(Math.min(1.0f, moodComponent3.getMood() + 0.2f));
+                    // 播放伏特加笑声
+                    SoundEvent[] laughSounds = {ModSounds.AFTER_VODKA_LAUGH_1, ModSounds.AFTER_VODKA_LAUGH_2, ModSounds.AFTER_VODKA_LAUGH_3};
+                    SoundEvent laugh = laughSounds[player.getRandom().nextInt(laughSounds.length)];
+                    player.getWorld().playSound(null, player.getBlockPos(), laugh, SoundCategory.PLAYERS, 1.0f, 1.0f);
                 }
                 case "tequila" -> {
                     player.addStatusEffect(new StatusEffectInstance(ModEffects.NO_COLLISION, 12 * 20, 0, false, false, true));
