@@ -2,12 +2,5 @@
     "parent": "item/generated",
     "textures": {
         "layer0": "noellesroles:item/gin"
-    },
-    "display": {
-        "thirdperson_righthand": {
-            "rotation": [0,0,0],
-            "translation": [-999,-999,-99],
-            "scale": [0,0,0]
-        }
     }
 }
