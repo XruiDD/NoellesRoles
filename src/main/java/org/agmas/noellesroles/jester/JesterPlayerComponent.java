@@ -1,6 +1,8 @@
 package org.agmas.noellesroles.jester;
 
 import dev.doctor4t.wathe.Wathe;
+import dev.doctor4t.wathe.cca.GameWorldComponent;
+import dev.doctor4t.wathe.cca.MapEnhancementsWorldComponent;
 import dev.doctor4t.wathe.cca.PlayerPsychoComponent;
 import dev.doctor4t.wathe.game.GameFunctions;
 import dev.doctor4t.wathe.record.GameRecordManager;
@@ -21,7 +23,6 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
 
 import java.util.UUID;
 import org.agmas.noellesroles.ModSounds;
@@ -152,22 +153,26 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
             psychoComponent.setArmour(this.psychoArmour);
             this.inPsychoMode = true;
 
-            // 传送小丑至出生房间
-            if (player instanceof ServerPlayerEntity serverJester) {
-                BlockPos spawnPos = serverJester.getSpawnPointPosition();
-                if (spawnPos != null && serverJester.getWorld() instanceof ServerWorld spawnWorld) {
-                    // 传送前在原位播放粒子和音效
-                    spawnWorld.sendEntityStatus(serverJester, EntityStatuses.ADD_PORTAL_PARTICLES);
-                    spawnWorld.playSound(null, serverJester.getX(), serverJester.getY(), serverJester.getZ(),
-                            SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1.0F, 1.0F);
+            // 传送小丑至当局游戏分配的房间
+            if (player instanceof ServerPlayerEntity serverJester && serverJester.getWorld() instanceof ServerWorld serverWorld) {
+                GameWorldComponent gameComponent = GameWorldComponent.KEY.get(serverWorld);
+                int roomIndex = gameComponent.getPlayerRoomIndex(serverJester.getUuid());
+                if (roomIndex >= 0) {
+                    MapEnhancementsWorldComponent enhancements = MapEnhancementsWorldComponent.KEY.get(serverWorld);
+                    enhancements.getSpawnPointForPlayer(roomIndex, 0).ifPresent(spawnPoint -> {
+                        // 传送前在原位播放粒子和音效
+                        serverWorld.sendEntityStatus(serverJester, EntityStatuses.ADD_PORTAL_PARTICLES);
+                        serverWorld.playSound(null, serverJester.getX(), serverJester.getY(), serverJester.getZ(),
+                                SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1.0F, 1.0F);
 
-                    serverJester.teleport(spawnWorld,
-                            spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5,
-                            serverJester.getYaw(), serverJester.getPitch());
+                        serverJester.teleport(serverWorld,
+                                spawnPoint.x(), spawnPoint.y(), spawnPoint.z(),
+                                spawnPoint.yaw(), spawnPoint.pitch());
 
-                    // 传送后在目标位置播放音效
-                    spawnWorld.playSound(null, spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5,
-                            SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1.0F, 1.0F);
+                        // 传送后在目标位置播放音效
+                        serverWorld.playSound(null, spawnPoint.x(), spawnPoint.y(), spawnPoint.z(),
+                                SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1.0F, 1.0F);
+                    });
                 }
             }
 
