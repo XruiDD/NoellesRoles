@@ -223,10 +223,6 @@ public class TaotiePlayerComponent implements AutoSyncedComponent, ServerTicking
         // 病原体感染传播：检查新被吞者或饕餮是否被感染，如果是则传播给肚子里所有人
         spreadInfectionOnSwallow(target);
 
-        if (target.getWorld() instanceof ServerWorld serverWorld) {
-            Noellesroles.checkAndTriggerMomentsForWorld(serverWorld);
-        }
-
         this.sync();
         return true;
     }

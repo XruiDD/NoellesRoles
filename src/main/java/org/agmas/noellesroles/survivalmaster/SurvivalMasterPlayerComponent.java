@@ -18,8 +18,6 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import org.agmas.noellesroles.Noellesroles;
-import org.agmas.noellesroles.music.MusicMomentType;
-import org.agmas.noellesroles.music.WorldMusicComponent;
 import org.jetbrains.annotations.NotNull;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
@@ -96,10 +94,12 @@ public class SurvivalMasterPlayerComponent implements AutoSyncedComponent, Serve
      * 检查是否应该触发生存时刻
      * 条件：
      * 1. 所有阻止胜利的中立（黑警、饕餮）都死亡
-     * 2. 存活玩家数 == min(killerCountAtStart + 1, 4)
+     * 2. 存活且未被吞噬的玩家数 ≤ min(killerCountAtStart + 1, 4)
      * 3. 生存大师存活
+     * @param serverWorld 服务器世界
+     * @param aliveNotSwallowed 已预计算的存活且未被吞噬的玩家数
      */
-    public void checkAndTriggerMoment(ServerWorld serverWorld) {
+    public void checkAndTriggerMoment(ServerWorld serverWorld, int aliveNotSwallowed) {
         if (survivalMomentActive) return;
         if (killerCountAtStart <= 0) return;
         if (!GameFunctions.isPlayerPlayingAndAlive(player)) return;
@@ -107,33 +107,22 @@ public class SurvivalMasterPlayerComponent implements AutoSyncedComponent, Serve
         GameWorldComponent gameComponent = GameWorldComponent.KEY.get(serverWorld);
 
         // 检查阻止胜利的中立是否都已死亡
-        // 黑警
         for (UUID uuid : gameComponent.getAllWithRole(Noellesroles.CORRUPT_COP)) {
             PlayerEntity corruptCop = serverWorld.getPlayerByUuid(uuid);
             if (GameFunctions.isPlayerPlayingAndAlive(corruptCop)) {
-                return; // 黑警还活着，不触发
+                return;
             }
         }
-        // 饕餮
         for (UUID uuid : gameComponent.getAllWithRole(Noellesroles.TAOTIE)) {
             PlayerEntity taotie = serverWorld.getPlayerByUuid(uuid);
             if (GameFunctions.isPlayerPlayingAndAlive(taotie)) {
-                return; // 饕餮还活着，不触发
+                return;
             }
         }
 
-        // 计算触发人数阈值: min(killerCountAtStart + 1, 4)
         int threshold = Math.min(killerCountAtStart + 1, 4);
 
-        // 统计存活玩家数（不包括被饕餮吞噬的）
-        int aliveCount = 0;
-        for (ServerPlayerEntity p : serverWorld.getPlayers()) {
-            if (GameFunctions.isPlayerPlayingAndAlive(p) && !p.isSpectator()) {
-                aliveCount++;
-            }
-        }
-
-        if (aliveCount <= threshold) {
+        if (aliveNotSwallowed <= threshold) {
             triggerSurvivalMoment(serverWorld);
         }
     }
