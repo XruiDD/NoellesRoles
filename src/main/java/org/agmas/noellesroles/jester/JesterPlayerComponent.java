@@ -4,6 +4,7 @@ import dev.doctor4t.wathe.Wathe;
 import dev.doctor4t.wathe.cca.PlayerPsychoComponent;
 import dev.doctor4t.wathe.game.GameFunctions;
 import dev.doctor4t.wathe.record.GameRecordManager;
+import net.minecraft.entity.EntityStatuses;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.RegistryByteBuf;
@@ -17,8 +18,10 @@ import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
 
 import java.util.UUID;
 import org.agmas.noellesroles.ModSounds;
@@ -59,7 +62,8 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
 
     @Override
     public boolean shouldSyncWith(ServerPlayerEntity player) {
-        return player == this.player;
+        // 同步给所有玩家，以便客户端判断疯魔模式高亮
+        return true;
     }
 
     public void reset() {
@@ -147,6 +151,25 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
             psychoComponent.setPsychoTicks(Integer.MAX_VALUE);
             psychoComponent.setArmour(this.psychoArmour);
             this.inPsychoMode = true;
+
+            // 传送小丑至出生房间
+            if (player instanceof ServerPlayerEntity serverJester) {
+                BlockPos spawnPos = serverJester.getSpawnPointPosition();
+                if (spawnPos != null && serverJester.getWorld() instanceof ServerWorld spawnWorld) {
+                    // 传送前在原位播放粒子和音效
+                    spawnWorld.sendEntityStatus(serverJester, EntityStatuses.ADD_PORTAL_PARTICLES);
+                    spawnWorld.playSound(null, serverJester.getX(), serverJester.getY(), serverJester.getZ(),
+                            SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1.0F, 1.0F);
+
+                    serverJester.teleport(spawnWorld,
+                            spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5,
+                            serverJester.getYaw(), serverJester.getPitch());
+
+                    // 传送后在目标位置播放音效
+                    spawnWorld.playSound(null, spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5,
+                            SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1.0F, 1.0F);
+                }
+            }
 
             // 播放小丑时刻BGM
             WorldMusicComponent worldMusic = WorldMusicComponent.KEY.get(this.player.getWorld());
