@@ -203,6 +203,14 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
 
     @Override
     public void serverTick() {
+        // 如果玩家已经不在游戏中或已死亡，重置所有状态，防止死后继续触发小丑时刻
+        if ((this.inStasis || this.inPsychoMode) && this.player instanceof ServerPlayerEntity serverPlayer) {
+            if (!GameFunctions.isPlayerPlayingAndAlive(serverPlayer)) {
+                this.reset();
+                return;
+            }
+        }
+
         if (this.stasisTicks > 0) {
             this.stasisTicks--;
 

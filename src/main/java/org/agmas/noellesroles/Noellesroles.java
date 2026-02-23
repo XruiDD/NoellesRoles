@@ -73,6 +73,7 @@ import org.agmas.noellesroles.packet.SilencerSilenceC2SPacket;
 import org.agmas.noellesroles.silencer.SilencedPlayerComponent;
 import org.agmas.noellesroles.silencer.SilencerPlayerComponent;
 import org.agmas.noellesroles.bodyguard.BodyguardPlayerComponent;
+import org.agmas.noellesroles.music.WorldMusicComponent;
 import org.agmas.noellesroles.poisoner.PoisonerShopHandler;
 import org.agmas.noellesroles.bandit.BanditShopHandler;
 import org.agmas.noellesroles.survivalmaster.SurvivalMasterPlayerComponent;
@@ -317,6 +318,18 @@ public class Noellesroles implements ModInitializer {
                     TrainVoicePlugin.addPlayer(player.getUuid());
                 }
             });
+        });
+
+        // 修复：玩家断线时重置小丑禁锢/疯魔状态，确保退出游戏的死亡不会被禁锢阻挡
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+            ServerPlayerEntity player = handler.getPlayer();
+            GameWorldComponent gameWorld = GameWorldComponent.KEY.get(player.getWorld());
+            if (gameWorld.isRole(player, JESTER)) {
+                JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(player);
+                if (jesterComponent.inStasis || jesterComponent.inPsychoMode) {
+                    jesterComponent.reset();
+                }
+            }
         });
 
         // Master key should drop on death
@@ -904,8 +917,8 @@ public class Noellesroles implements ModInitializer {
 
             if (gameComponent.isRole(victim, JESTER)) {
                 JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(victim);
-                // 如果小丑在疯魔模式中被杀，游戏继续，不触发胜利
-                if (jesterComponent.inPsychoMode) {
+                // 如果小丑在疯魔模式或禁锢中被杀，重置状态，防止死后继续触发小丑时刻
+                if (jesterComponent.inPsychoMode || jesterComponent.inStasis) {
                     jesterComponent.reset();
                 }
             }
@@ -1010,13 +1023,17 @@ public class Noellesroles implements ModInitializer {
             return DoorInteraction.DoorInteractionResult.PASS;
         });
 
-        // 游戏结束时清理投掷斧实体
+        // 游戏结束时清理投掷斧实体并重置BGM
         GameEvents.ON_FINISH_FINALIZE.register((world, gameComponent) -> {
             if (world instanceof ServerWorld serverWorld) {
                 for (var entity : serverWorld.getEntitiesByType(TypeFilter.equals(org.agmas.noellesroles.entity.ThrowingAxeEntity.class), e -> true)) {
                     entity.discard();
                 }
             }
+
+            // 重置BGM组件，确保对局结束后不会继续播放
+            WorldMusicComponent worldMusic = WorldMusicComponent.KEY.get(world);
+            worldMusic.stopMusic();
         });
 
         // 游戏胜利确定时，杀死所有被饕餮吞噬的玩家
