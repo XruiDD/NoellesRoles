@@ -6,7 +6,6 @@ import dev.doctor4t.wathe.cca.MapEnhancementsWorldComponent;
 import dev.doctor4t.wathe.cca.PlayerPsychoComponent;
 import dev.doctor4t.wathe.game.GameFunctions;
 import dev.doctor4t.wathe.record.GameRecordManager;
-import net.minecraft.entity.EntityStatuses;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.RegistryByteBuf;
@@ -20,7 +19,6 @@ import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 
@@ -63,8 +61,11 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
 
     @Override
     public boolean shouldSyncWith(ServerPlayerEntity player) {
-        // 同步给所有玩家，以便客户端判断疯魔模式高亮
-        return true;
+        // 疯魔模式下同步给所有玩家，以便客户端判断高亮；否则只同步给自己
+        if (this.inPsychoMode) {
+            return true;
+        }
+        return player == this.player;
     }
 
     public void reset() {
@@ -160,18 +161,9 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
                 if (roomIndex >= 0) {
                     MapEnhancementsWorldComponent enhancements = MapEnhancementsWorldComponent.KEY.get(serverWorld);
                     enhancements.getSpawnPointForPlayer(roomIndex, 0).ifPresent(spawnPoint -> {
-                        // 传送前在原位播放粒子和音效
-                        serverWorld.sendEntityStatus(serverJester, EntityStatuses.ADD_PORTAL_PARTICLES);
-                        serverWorld.playSound(null, serverJester.getX(), serverJester.getY(), serverJester.getZ(),
-                                SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1.0F, 1.0F);
-
                         serverJester.teleport(serverWorld,
                                 spawnPoint.x(), spawnPoint.y(), spawnPoint.z(),
                                 spawnPoint.yaw(), spawnPoint.pitch());
-
-                        // 传送后在目标位置播放音效
-                        serverWorld.playSound(null, spawnPoint.x(), spawnPoint.y(), spawnPoint.z(),
-                                SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1.0F, 1.0F);
                     });
                 }
             }
