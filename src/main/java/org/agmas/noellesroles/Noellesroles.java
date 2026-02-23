@@ -908,6 +908,14 @@ public class Noellesroles implements ModInitializer {
                 }
             }
 
+            // 如果小丑在疯魔模式中被杀，重置状态（停止BGM等）
+            if (gameComponent.isRole(victim, JESTER)) {
+                JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(victim);
+                if (jesterComponent.inPsychoMode) {
+                    jesterComponent.reset();
+                }
+            }
+
             // 黑警击杀处理和黑警时刻检查
             if (killer != null && gameComponent.isRole(killer, CORRUPT_COP)) {
                 CorruptCopPlayerComponent corruptCopComp = CorruptCopPlayerComponent.KEY.get(killer);
