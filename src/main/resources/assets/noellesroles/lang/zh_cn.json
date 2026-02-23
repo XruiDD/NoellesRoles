@@ -362,6 +362,13 @@
   "replay.global.noellesroles.survival_moment_start": "%s 触发§d生存时刻§r",
   "replay.global.noellesroles.survival_moment_end": "%s 的§d生存时刻§r结束",
 
+  "replay.item_use.noellesroles.base_spirit.place": "%s 将§e基酒§r放到了餐盘上",
+  "replay.item_use.noellesroles.base_spirit.place.with_ingredients": "%s 将§e基酒§r（%s）放到了餐盘上",
+  "replay.item_use.noellesroles.base_spirit.drink": "%s 喝下了§e基酒§r",
+  "replay.item_use.noellesroles.base_spirit.drink.with_ingredients": "%s 喝下了§e基酒§r（%s）",
+  "replay.item_use.noellesroles.base_spirit.take": "%s 从餐盘取走了§e基酒§r",
+  "replay.item_use.noellesroles.base_spirit.take.with_ingredients": "%s 从餐盘取走了§e基酒§r（%s）",
+
   "effect.noellesroles.stimulation": "亢奋",
   "effect.noellesroles.no_collision": "无碰撞"
 }

@@ -9,6 +9,8 @@ import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtList;
+import net.minecraft.nbt.NbtString;
 import net.minecraft.registry.Registries;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
@@ -19,6 +21,7 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.agmas.noellesroles.ModItems;
+import org.agmas.noellesroles.item.BaseSpiritItem;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -50,6 +53,15 @@ public abstract class DefenseVialApplyMixin {
                     NbtCompound extra = new NbtCompound();
                     extra.putString("action", "place");
                     GameRecordManager.putBlockPos(extra, "pos", pos);
+                    // 如果是基酒，记录调剂信息
+                    if (handStack.isOf(ModItems.BASE_SPIRIT)) {
+                        List<String> ingredients = BaseSpiritItem.getIngredients(handStack);
+                        if (!ingredients.isEmpty()) {
+                            NbtList ingredientNbt = new NbtList();
+                            for (String id : ingredients) ingredientNbt.add(NbtString.of(id));
+                            extra.put("ingredients", ingredientNbt);
+                        }
+                    }
                     GameRecordManager.recordItemUse(serverPlayer, Registries.ITEM.getId(handStack.getItem()), null, extra);
                 }
                 cir.setReturnValue(ActionResult.SUCCESS);
@@ -74,7 +86,17 @@ public abstract class DefenseVialApplyMixin {
                     taken.setCount(1);
                     taken.set(DataComponentTypes.MAX_STACK_SIZE, 1);
                     if (player instanceof ServerPlayerEntity serverPlayer) {
-                        GameRecordManager.recordPlatterTake(serverPlayer, Registries.ITEM.getId(ModItems.BASE_SPIRIT), pos, null);
+                        // 使用 recordItemUse 记录拿取（recordPlatterTake 不支持自定义数据）
+                        NbtCompound takeExtra = new NbtCompound();
+                        takeExtra.putString("action", "take");
+                        GameRecordManager.putBlockPos(takeExtra, "pos", pos);
+                        List<String> ingredients = BaseSpiritItem.getIngredients(taken);
+                        if (!ingredients.isEmpty()) {
+                            NbtList ingredientNbt = new NbtList();
+                            for (String id : ingredients) ingredientNbt.add(NbtString.of(id));
+                            takeExtra.put("ingredients", ingredientNbt);
+                        }
+                        GameRecordManager.recordItemUse(serverPlayer, Registries.ITEM.getId(ModItems.BASE_SPIRIT), null, takeExtra);
                     }
                     player.playSoundToPlayer(SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.BLOCKS, 1f, 1f);
                     player.setStackInHand(Hand.MAIN_HAND, taken);

@@ -285,6 +285,13 @@
   "replay.global.noellesroles.survival_moment_start": "%s triggered §dSurvival Moment§r",
   "replay.global.noellesroles.survival_moment_end": "%s's §dSurvival Moment§r ended",
 
+  "replay.item_use.noellesroles.base_spirit.place": "%s placed §eBase Spirit§r on the platter",
+  "replay.item_use.noellesroles.base_spirit.place.with_ingredients": "%s placed §eBase Spirit§r (%s) on the platter",
+  "replay.item_use.noellesroles.base_spirit.drink": "%s drank §eBase Spirit§r",
+  "replay.item_use.noellesroles.base_spirit.drink.with_ingredients": "%s drank §eBase Spirit§r (%s)",
+  "replay.item_use.noellesroles.base_spirit.take": "%s took §eBase Spirit§r from the platter",
+  "replay.item_use.noellesroles.base_spirit.take.with_ingredients": "%s took §eBase Spirit§r (%s) from the platter",
+
   "effect.noellesroles.stimulation": "Stimulation",
   "effect.noellesroles.no_collision": "No Collision"
 }

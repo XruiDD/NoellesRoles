@@ -20,8 +20,10 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.UseAction;
 import net.minecraft.world.World;
+import net.minecraft.registry.Registries;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
+import dev.doctor4t.wathe.record.GameRecordManager;
 import org.agmas.noellesroles.ModEffects;
 import org.agmas.noellesroles.ModSounds;
 import org.agmas.noellesroles.bartender.BartenderPlayerComponent;
@@ -65,6 +67,16 @@ public class BaseSpiritItem extends Item {
         if (!world.isClient && user instanceof ServerPlayerEntity player) {
             List<String> ingredients = getIngredients(stack);
             boolean hasIce = ingredients.contains("ice_cube");
+
+            // 记录饮用事件到对局回放
+            NbtCompound extra = new NbtCompound();
+            extra.putString("action", "drink");
+            if (!ingredients.isEmpty()) {
+                NbtList ingredientNbt = new NbtList();
+                for (String id : ingredients) ingredientNbt.add(NbtString.of(id));
+                extra.put("ingredients", ingredientNbt);
+            }
+            GameRecordManager.recordItemUse(player, Registries.ITEM.getId(this), null, extra);
 
             // 检查是否有待处理的效果，如果有则立即生效
             BartenderPlayerComponent comp = BartenderPlayerComponent.KEY.get(player);
