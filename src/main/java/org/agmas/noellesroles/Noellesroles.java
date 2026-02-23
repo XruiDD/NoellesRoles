@@ -320,18 +320,6 @@ public class Noellesroles implements ModInitializer {
             });
         });
 
-        // 修复：玩家断线时重置小丑禁锢/疯魔状态，确保退出游戏的死亡不会被禁锢阻挡
-        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
-            ServerPlayerEntity player = handler.getPlayer();
-            GameWorldComponent gameWorld = GameWorldComponent.KEY.get(player.getWorld());
-            if (gameWorld.isRole(player, JESTER)) {
-                JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(player);
-                if (jesterComponent.inStasis || jesterComponent.inPsychoMode) {
-                    jesterComponent.reset();
-                }
-            }
-        });
-
         // Master key should drop on death
         ShouldDropOnDeath.EVENT.register((stack, victim) -> stack.isOf(ModItems.MASTER_KEY));
 
@@ -396,19 +384,24 @@ public class Noellesroles implements ModInitializer {
 
             if (gameWorldComponent.isRole(victim, JESTER)) {
                 JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(victim);
-                if (jesterComponent.inStasis && deathReason != GameConstants.DeathReasons.FELL_OUT_OF_TRAIN && deathReason != GameConstants.DeathReasons.ESCAPED) {
-                    // 记录小丑禁锢免疫死亡
-                    if (victim instanceof ServerPlayerEntity serverVictim) {
-                        var event = GameRecordManager.event("death_blocked")
-                            .actor(serverVictim)
-                            .put("block_reason", "jester_stasis")
-                            .put("death_reason", deathReason.toString());
-                        if (killer instanceof ServerPlayerEntity serverKiller) {
-                            event.target(serverKiller);
+                if (jesterComponent.inStasis) {
+                    if (deathReason == GameConstants.DeathReasons.FELL_OUT_OF_TRAIN || deathReason == GameConstants.DeathReasons.ESCAPED) {
+                        // 断线/逃跑死亡不被禁锢阻挡，重置小丑状态
+                        jesterComponent.reset();
+                    } else {
+                        // 禁锢期间免疫其他死亡
+                        if (victim instanceof ServerPlayerEntity serverVictim) {
+                            var event = GameRecordManager.event("death_blocked")
+                                .actor(serverVictim)
+                                .put("block_reason", "jester_stasis")
+                                .put("death_reason", deathReason.toString());
+                            if (killer instanceof ServerPlayerEntity serverKiller) {
+                                event.target(serverKiller);
+                            }
+                            event.record();
                         }
-                        event.record();
+                        return KillPlayer.KillResult.cancel();
                     }
-                    return KillPlayer.KillResult.cancel();
                 }
             }
 
@@ -912,14 +905,6 @@ public class Noellesroles implements ModInitializer {
                         jesterComponent.won = true;
                         break;
                     }
-                }
-            }
-
-            if (gameComponent.isRole(victim, JESTER)) {
-                JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(victim);
-                // 如果小丑在疯魔模式或禁锢中被杀，重置状态，防止死后继续触发小丑时刻
-                if (jesterComponent.inPsychoMode || jesterComponent.inStasis) {
-                    jesterComponent.reset();
                 }
             }
 
