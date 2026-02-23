@@ -9,9 +9,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.player.PlayerEntity;
-import org.agmas.noellesroles.Noellesroles;
-import org.agmas.noellesroles.scavenger.ScavengerPlayerComponent;
+import org.agmas.noellesroles.scavenger.HiddenBodiesWorldComponent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -37,27 +35,16 @@ public class ScavengerBodyHideMixin {
             return;
         }
 
-        GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(localPlayer.getWorld());
         UUID deadPlayerUuid = body.getPlayerUuid();
 
-        // 检查是否有清道夫杀死了这个玩家
-        boolean isHiddenByScavenger = false;
-        for (UUID scavengerUuid : gameWorldComponent.getAllWithRole(Noellesroles.SCAVENGER)) {
-            PlayerEntity scavengerPlayer = localPlayer.getWorld().getPlayerByUuid(scavengerUuid);
-            if (scavengerPlayer != null) {
-                ScavengerPlayerComponent scavengerComp = ScavengerPlayerComponent.KEY.get(scavengerPlayer);
-                if (scavengerComp.isBodyHidden(deadPlayerUuid)) {
-                    isHiddenByScavenger = true;
-                    break;
-                }
-            }
-        }
-
-        if (!isHiddenByScavenger) {
+        // 检查尸体是否被清道夫隐藏
+        HiddenBodiesWorldComponent hiddenBodies = HiddenBodiesWorldComponent.KEY.get(localPlayer.getWorld());
+        if (!hiddenBodies.isHidden(deadPlayerUuid)) {
             return; // 不是清道夫的尸体，正常渲染
         }
 
         // 中立可以看到
+        GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(localPlayer.getWorld());
         if (gameWorldComponent.getRole(localPlayer).getFaction() == Faction.KILLER || gameWorldComponent.getRole(localPlayer).getFaction() == Faction.NEUTRAL) {
             return;
         }

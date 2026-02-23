@@ -10,6 +10,7 @@
     "noisemaker.NoisemakerKillMixin",
     "toxicologist.ToxicologistPoisonSyncMixin",
     "scavenger.ScavengerKnifeSoundMixin",
+    "scavenger.ScavengerBodyCanHitMixin",
     "scavenger.ScavengerKnifeStabSoundMixin",
     "corruptcop.CorruptCopGunCooldownMixin",
     "bomber.BomberGrenadeCooldownMixin",
