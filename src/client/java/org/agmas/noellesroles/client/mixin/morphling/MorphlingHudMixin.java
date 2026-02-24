@@ -9,6 +9,7 @@ import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.text.Text;
 import org.agmas.noellesroles.Noellesroles;
+import org.agmas.noellesroles.client.NoellesrolesClient;
 import org.agmas.noellesroles.morphling.MorphlingPlayerComponent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -44,7 +45,8 @@ public abstract class MorphlingHudMixin {
 
             // 尸体模式提示（一行显示状态+操作）
             Text corpseHint = Text.translatable(morphlingPlayerComponent.corpseMode
-                    ? "tip.morphling.corpse_active" : "tip.morphling.corpse_hint");
+                    ? "tip.morphling.corpse_active" : "tip.morphling.corpse_hint",
+                    NoellesrolesClient.abilityBind.getBoundKeyLocalizedText());
             drawY -= getTextRenderer().getWrappedLinesHeight(corpseHint, 999999);
             context.drawTextWithShadow(getTextRenderer(), corpseHint, context.getScaledWindowWidth() - getTextRenderer().getWidth(corpseHint), drawY, Noellesroles.MORPHLING.color());
         }

@@ -117,6 +117,7 @@ public class SerialKillerPlayerComponent implements AutoSyncedComponent, ServerT
         if (role == null || role == Noellesroles.UNDERCOVER) return false;
         if (role.canUseKiller()) return false;
         if (role == Noellesroles.BODYGUARD) return false;
+        if (role == Noellesroles.SURVIVAL_MASTER) return false;
 
         return true;
     }
@@ -209,6 +210,9 @@ public class SerialKillerPlayerComponent implements AutoSyncedComponent, ServerT
 
             // 排除保镖（避免连环杀手以保镖为目标）
             if (role == Noellesroles.BODYGUARD) continue;
+
+            // 排除生存大师（避免连环杀手以生存大师为目标）
+            if (role == Noellesroles.SURVIVAL_MASTER) continue;
 
             eligibleTargets.add(playerUuid);
         }
