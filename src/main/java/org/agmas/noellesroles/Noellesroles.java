@@ -59,7 +59,7 @@ import org.agmas.noellesroles.pathogen.PathogenPlayerComponent;
 import org.agmas.noellesroles.bomber.BomberPlayerComponent;
 import org.agmas.noellesroles.bomber.BomberShopHandler;
 import org.agmas.noellesroles.assassin.AssassinPlayerComponent;
-import org.agmas.noellesroles.scavenger.ScavengerPlayerComponent;
+import org.agmas.noellesroles.scavenger.HiddenBodiesWorldComponent;
 import org.agmas.noellesroles.scavenger.ScavengerShopHandler;
 import org.agmas.noellesroles.timekeeper.TimekeeperShopHandler;
 import org.agmas.noellesroles.corruptcop.CorruptCopPlayerComponent;
@@ -666,7 +666,6 @@ public class Noellesroles implements ModInitializer {
             PathogenPlayerComponent.KEY.get(player).reset();
             BomberPlayerComponent.KEY.get(player).reset();
             AssassinPlayerComponent.KEY.get(player).reset();
-            ScavengerPlayerComponent.KEY.get(player).reset();
             CorruptCopPlayerComponent.KEY.get(player).reset();
             ReporterPlayerComponent.KEY.get(player).reset();
             SerialKillerPlayerComponent.KEY.get(player).reset();
@@ -882,9 +881,9 @@ public class Noellesroles implements ModInitializer {
 
 
             // 记录清道夫杀人
-            if (killer != null && gameComponent.isRole(killer, SCAVENGER) && !gameComponent.isRole(victim, NOISEMAKER)) {
-                ScavengerPlayerComponent scavengerComp = ScavengerPlayerComponent.KEY.get(killer);
-                scavengerComp.addHiddenBody(victim.getUuid());
+            if (killer != null && deathReason == GameConstants.DeathReasons.KNIFE && gameComponent.isRole(killer, SCAVENGER) && !gameComponent.isRole(victim, NOISEMAKER)) {
+                HiddenBodiesWorldComponent hiddenBodies = HiddenBodiesWorldComponent.KEY.get(victim.getWorld());
+                hiddenBodies.addHiddenBody(victim.getUuid());
             }
 
             if (NoellesRolesConfig.HANDLER.instance().voodooNonKillerDeaths || killer != null) {
@@ -1025,8 +1024,9 @@ public class Noellesroles implements ModInitializer {
             return DoorInteraction.DoorInteractionResult.PASS;
         });
 
-        // 游戏结束时清理投掷斧实体并重置BGM
+        // 游戏结束时触发
         GameEvents.ON_FINISH_FINALIZE.register((world, gameComponent) -> {
+            HiddenBodiesWorldComponent.KEY.get(world).reset();
             if (world instanceof ServerWorld serverWorld) {
                 for (var entity : serverWorld.getEntitiesByType(TypeFilter.equals(org.agmas.noellesroles.entity.ThrowingAxeEntity.class), e -> true)) {
                     entity.discard();
