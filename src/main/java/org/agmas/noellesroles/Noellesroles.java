@@ -1141,6 +1141,10 @@ public class Noellesroles implements ModInitializer {
                                     return;
                                 if(player2 == null)
                                     return;
+                                if(SwallowedPlayerComponent.isPlayerSwallowed(player1))
+                                    return;
+                                if(SwallowedPlayerComponent.isPlayerSwallowed(player2))
+                                    return;
 
                                 if(player1.isSleeping()){
                                     player1.wakeUp();
