@@ -73,6 +73,7 @@ import org.agmas.noellesroles.packet.SilencerSilenceC2SPacket;
 import org.agmas.noellesroles.silencer.SilencedPlayerComponent;
 import org.agmas.noellesroles.silencer.SilencerPlayerComponent;
 import org.agmas.noellesroles.bodyguard.BodyguardPlayerComponent;
+import org.agmas.noellesroles.music.WorldMusicComponent;
 import org.agmas.noellesroles.poisoner.PoisonerShopHandler;
 import org.agmas.noellesroles.bandit.BanditShopHandler;
 import org.agmas.noellesroles.survivalmaster.SurvivalMasterPlayerComponent;
@@ -383,19 +384,24 @@ public class Noellesroles implements ModInitializer {
 
             if (gameWorldComponent.isRole(victim, JESTER)) {
                 JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(victim);
-                if (jesterComponent.inStasis && deathReason != GameConstants.DeathReasons.FELL_OUT_OF_TRAIN && deathReason != GameConstants.DeathReasons.ESCAPED) {
-                    // 记录小丑禁锢免疫死亡
-                    if (victim instanceof ServerPlayerEntity serverVictim) {
-                        var event = GameRecordManager.event("death_blocked")
-                            .actor(serverVictim)
-                            .put("block_reason", "jester_stasis")
-                            .put("death_reason", deathReason.toString());
-                        if (killer instanceof ServerPlayerEntity serverKiller) {
-                            event.target(serverKiller);
+                if (jesterComponent.inStasis) {
+                    if (deathReason == GameConstants.DeathReasons.FELL_OUT_OF_TRAIN || deathReason == GameConstants.DeathReasons.ESCAPED) {
+                        // 断线/逃跑死亡不被禁锢阻挡，重置小丑状态
+                        jesterComponent.reset();
+                    } else {
+                        // 禁锢期间免疫其他死亡
+                        if (victim instanceof ServerPlayerEntity serverVictim) {
+                            var event = GameRecordManager.event("death_blocked")
+                                .actor(serverVictim)
+                                .put("block_reason", "jester_stasis")
+                                .put("death_reason", deathReason.toString());
+                            if (killer instanceof ServerPlayerEntity serverKiller) {
+                                event.target(serverKiller);
+                            }
+                            event.record();
                         }
-                        event.record();
+                        return KillPlayer.KillResult.cancel();
                     }
-                    return KillPlayer.KillResult.cancel();
                 }
             }
 
@@ -902,9 +908,9 @@ public class Noellesroles implements ModInitializer {
                 }
             }
 
+            // 如果小丑在疯魔模式中被杀，重置状态（停止BGM等）
             if (gameComponent.isRole(victim, JESTER)) {
                 JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(victim);
-                // 如果小丑在疯魔模式中被杀，游戏继续，不触发胜利
                 if (jesterComponent.inPsychoMode) {
                     jesterComponent.reset();
                 }
@@ -1010,13 +1016,17 @@ public class Noellesroles implements ModInitializer {
             return DoorInteraction.DoorInteractionResult.PASS;
         });
 
-        // 游戏结束时清理投掷斧实体
+        // 游戏结束时清理投掷斧实体并重置BGM
         GameEvents.ON_FINISH_FINALIZE.register((world, gameComponent) -> {
             if (world instanceof ServerWorld serverWorld) {
                 for (var entity : serverWorld.getEntitiesByType(TypeFilter.equals(org.agmas.noellesroles.entity.ThrowingAxeEntity.class), e -> true)) {
                     entity.discard();
                 }
             }
+
+            // 重置BGM组件，确保对局结束后不会继续播放
+            WorldMusicComponent worldMusic = WorldMusicComponent.KEY.get(world);
+            worldMusic.stopMusic();
         });
 
         // 游戏胜利确定时，杀死所有被饕餮吞噬的玩家
