@@ -18,6 +18,7 @@ import dev.doctor4t.wathe.record.replay.ReplayEventFormatter;
 import dev.doctor4t.wathe.record.replay.ReplayRegistry;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
@@ -210,47 +211,56 @@ public class Noellesroles implements ModInitializer {
     private static final Set<Role> NEUTRAL_MASTER_KEY_ROLES = Set.of(VULTURE, PATHOGEN, TAOTIE);
     private static final int MOMENT_TRIGGER_MIN_THRESHOLD = 2;
 
-    public static void checkAndTriggerMomentsForWorld(ServerWorld serverWorld) {
-        if (serverWorld == null) return;
-        GameWorldComponent gameComponent = GameWorldComponent.KEY.get(serverWorld);
-
-        int corruptCopAliveCount = 0;
-        int taotieAliveCount = 0;
+    /**
+     * 统计存活且未被饕餮吞噬的玩家数量（用于时刻触发和胜利判定）
+     */
+    public static int countAliveAndNotSwallowed(ServerWorld serverWorld) {
+        int count = 0;
         for (ServerPlayerEntity p : serverWorld.getPlayers()) {
             if (!GameFunctions.isPlayerPlayingAndAlive(p) || p.isSpectator()) continue;
             SwallowedPlayerComponent swallowed = SwallowedPlayerComponent.KEY.get(p);
             if (!swallowed.isSwallowed()) {
-                corruptCopAliveCount++;
-                taotieAliveCount++;
+                count++;
             }
         }
+        return count;
+    }
 
-        if (corruptCopAliveCount >= MOMENT_TRIGGER_MIN_THRESHOLD) {
+    public static void checkAndTriggerMomentsForWorld(ServerWorld serverWorld) {
+        if (serverWorld == null) return;
+        GameWorldComponent gameComponent = GameWorldComponent.KEY.get(serverWorld);
+
+        // 单次遍历统计存活且未被吞噬的玩家数
+        int aliveNotSwallowed = countAliveAndNotSwallowed(serverWorld);
+
+        // 黑警时刻检查
+        if (aliveNotSwallowed >= MOMENT_TRIGGER_MIN_THRESHOLD) {
             for (UUID uuid : gameComponent.getAllWithRole(CORRUPT_COP)) {
                 PlayerEntity corruptCop = serverWorld.getPlayerByUuid(uuid);
                 if (GameFunctions.isPlayerPlayingAndAlive(corruptCop) && GameFunctions.isPlayerAliveAndSurvival(corruptCop)) {
                     CorruptCopPlayerComponent corruptCopComp = CorruptCopPlayerComponent.KEY.get(corruptCop);
-                    corruptCopComp.checkAndTriggerMoment(corruptCopAliveCount);
+                    corruptCopComp.checkAndTriggerMoment(aliveNotSwallowed);
                 }
             }
         }
 
-        if (taotieAliveCount >= MOMENT_TRIGGER_MIN_THRESHOLD) {
+        // 饕餮时刻检查
+        if (aliveNotSwallowed >= MOMENT_TRIGGER_MIN_THRESHOLD) {
             for (UUID uuid : gameComponent.getAllWithRole(TAOTIE)) {
                 PlayerEntity taotie = serverWorld.getPlayerByUuid(uuid);
                 if (GameFunctions.isPlayerPlayingAndAlive(taotie)) {
                     TaotiePlayerComponent taotieComp = TaotiePlayerComponent.KEY.get(taotie);
-                    taotieComp.checkAndTriggerMoment(taotieAliveCount);
+                    taotieComp.checkAndTriggerMoment(aliveNotSwallowed);
                 }
             }
         }
 
-        // 检查是否应该触发生存时刻
+        // 生存时刻检查（传入已计算的 aliveNotSwallowed 避免重复遍历）
         for (UUID uuid : gameComponent.getAllWithRole(SURVIVAL_MASTER)) {
             PlayerEntity survivalMaster = serverWorld.getPlayerByUuid(uuid);
             if (GameFunctions.isPlayerPlayingAndAlive(survivalMaster)) {
                 SurvivalMasterPlayerComponent survivalComp = SurvivalMasterPlayerComponent.KEY.get(survivalMaster);
-                survivalComp.checkAndTriggerMoment(serverWorld);
+                survivalComp.checkAndTriggerMoment(serverWorld, aliveNotSwallowed);
             }
         }
     }
@@ -673,6 +683,17 @@ public class Noellesroles implements ModInitializer {
             }
         });
         CheckWinCondition.EVENT.register((world, gameComponent, currentStatus) -> {
+            // 秃鹫胜利检查（优先级最高）
+            for (UUID uuid : gameComponent.getAllWithRole(VULTURE)) {
+                PlayerEntity vulture = world.getPlayerByUuid(uuid);
+                if (GameFunctions.isPlayerPlayingAndAlive(vulture)) {
+                    VulturePlayerComponent component = VulturePlayerComponent.KEY.get(vulture);
+                    if (component.hasWon()) {
+                        return CheckWinCondition.WinResult.neutralWin((ServerPlayerEntity) vulture);
+                    }
+                }
+            }
+
             // 生存时刻完成 → 乘客胜利
             for (UUID uuid : gameComponent.getAllWithRole(SURVIVAL_MASTER)) {
                 PlayerEntity survivalMaster = world.getPlayerByUuid(uuid);
@@ -680,16 +701,6 @@ public class Noellesroles implements ModInitializer {
                     SurvivalMasterPlayerComponent survivalComp = SurvivalMasterPlayerComponent.KEY.get(survivalMaster);
                     if (survivalComp.hasSurvivalMomentCompleted()) {
                         return CheckWinCondition.WinResult.allow(GameFunctions.WinStatus.PASSENGERS);
-                    }
-                }
-            }
-
-            for (UUID uuid : gameComponent.getAllWithRole(VULTURE)) {
-                PlayerEntity vulture = world.getPlayerByUuid(uuid);
-                if (GameFunctions.isPlayerPlayingAndAlive(vulture)) {
-                    VulturePlayerComponent component = VulturePlayerComponent.KEY.get(vulture);
-                    if (component.hasWon()) {
-                        return CheckWinCondition.WinResult.neutralWin((ServerPlayerEntity) vulture);
                     }
                 }
             }
@@ -722,10 +733,6 @@ public class Noellesroles implements ModInitializer {
                     if (component.won) {
                         return CheckWinCondition.WinResult.neutralWin((ServerPlayerEntity) jester);
                     }
-                    if (component.inPsychoMode && (currentStatus == GameFunctions.WinStatus.KILLERS
-                            || currentStatus == GameFunctions.WinStatus.PASSENGERS)) {
-                        return CheckWinCondition.WinResult.block();
-                    }
                 }
             }
 
@@ -753,7 +760,19 @@ public class Noellesroles implements ModInitializer {
                 }
             }
 
-            // Find living corrupt cop
+            // 小丑疯魔阻止胜利
+            for (UUID uuid : gameComponent.getAllWithRole(JESTER)) {
+                PlayerEntity jester = world.getPlayerByUuid(uuid);
+                if (GameFunctions.isPlayerPlayingAndAlive(jester)) {
+                    JesterPlayerComponent component = JesterPlayerComponent.KEY.get(jester);
+                    if (component.inPsychoMode && (currentStatus == GameFunctions.WinStatus.KILLERS
+                            || currentStatus == GameFunctions.WinStatus.PASSENGERS)) {
+                        return CheckWinCondition.WinResult.block();
+                    }
+                }
+            }
+
+            // 黑警胜利/阻止检查（最低优先级）
             ServerPlayerEntity livingCorruptCop = null;
             for (UUID uuid : gameComponent.getAllWithRole(CORRUPT_COP)) {
                 ServerPlayerEntity player = (ServerPlayerEntity) world.getPlayerByUuid(uuid);
@@ -763,32 +782,27 @@ public class Noellesroles implements ModInitializer {
                 }
             }
 
-            // If no corrupt cop alive, don't interfere
-            if (livingCorruptCop == null) {
-                return null;
-            }
-
-            // Count all living players (excluding spectators/creative)
-            int aliveCount = 0;
-            boolean corruptCopIsAlive = false;
-            for (ServerPlayerEntity player : world.getPlayers()) {
-                if (GameFunctions.isPlayerPlayingAndAlive(player)) {
+            if (livingCorruptCop != null) {
+                int aliveCount = 0;
+                boolean corruptCopIsAlive = false;
+                for (ServerPlayerEntity player : world.getPlayers()) {
+                    if (!GameFunctions.isPlayerPlayingAndAlive(player)) continue;
+                    SwallowedPlayerComponent swallowedComp = SwallowedPlayerComponent.KEY.get(player);
+                    if (swallowedComp.isSwallowed()) continue;
                     aliveCount++;
                     if (player.getUuid().equals(livingCorruptCop.getUuid())) {
                         corruptCopIsAlive = true;
                     }
                 }
-            }
 
-            // If corrupt cop is the only one alive, they win
-            if (aliveCount == 1 && corruptCopIsAlive) {
-                return CheckWinCondition.WinResult.neutralWin(livingCorruptCop);
-            }
+                if (aliveCount == 1 && corruptCopIsAlive) {
+                    return CheckWinCondition.WinResult.neutralWin(livingCorruptCop);
+                }
 
-            // Block killers and passengers from winning while corrupt cop is alive
-            if (currentStatus == GameFunctions.WinStatus.KILLERS
-                    || currentStatus == GameFunctions.WinStatus.PASSENGERS) {
-                return CheckWinCondition.WinResult.block();
+                if (currentStatus == GameFunctions.WinStatus.KILLERS
+                        || currentStatus == GameFunctions.WinStatus.PASSENGERS) {
+                    return CheckWinCondition.WinResult.block();
+                }
             }
 
             return null;
@@ -954,11 +968,6 @@ public class Noellesroles implements ModInitializer {
                 victimSwallowed.reset();
             }
 
-            // 检查是否应该触发黑警时刻
-            if (victim.getWorld() instanceof ServerWorld serverWorld) {
-                checkAndTriggerMomentsForWorld(serverWorld);
-            }
-
             bomberPlayerComponent.reset();
         });
 
@@ -1017,6 +1026,14 @@ public class Noellesroles implements ModInitializer {
                     entity.discard();
                 }
             }
+        });
+
+        // 每 tick 检查时刻触发条件（tick 循环驱动，替代事件驱动）
+        ServerTickEvents.END_WORLD_TICK.register(world -> {
+            GameWorldComponent gc = GameWorldComponent.KEY.get(world);
+            if (!gc.isRunning()) return;
+            if (world.getServer().getTicks() % 5 != 0) return;
+            checkAndTriggerMomentsForWorld(world);
         });
 
         // 游戏胜利确定时，杀死所有被饕餮吞噬的玩家
