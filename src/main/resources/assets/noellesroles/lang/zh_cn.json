@@ -70,6 +70,23 @@
   "item.noellesroles.defense_vial": "防御药剂",
   "item.noellesroles.defense_vial.tooltip": "右键点击饮品托盘使用\n清除托盘上的所有毒药\n饮用被防御饮品的人可额外承受一击。",
 
+  "item.noellesroles.base_spirit": "基酒",
+  "item.noellesroles.base_spirit.ingredients": "已调制：",
+  "item.noellesroles.base_spirit.slots_remaining": "剩余 %d 个调制槽位",
+  "item.noellesroles.rum": "朗姆酒",
+  "item.noellesroles.gin": "杜松子酒",
+  "item.noellesroles.vodka": "伏特加",
+  "item.noellesroles.tequila": "龙舌兰",
+  "item.noellesroles.whiskey": "威士忌",
+  "item.noellesroles.ice_cube": "冰块",
+  "item.noellesroles.ingredient.tooltip": "右键点击基酒以添加调制",
+  "item.noellesroles.rum.effect": "获得持续6s的速度I并额外恢复20%的理智",
+  "item.noellesroles.gin.effect": "获得持续6s的夜视并免疫熄灯。额外恢复20%的理智",
+  "item.noellesroles.vodka.effect": "获得15s的亢奋效果（所有冷却恢复速度+20%并获得无限体力）、所有冷却中的物品-20%的最大冷却时间并额外恢复20%的san（注意：效果过后体力会变为0并获得3s的缓慢II）",
+  "item.noellesroles.tequila.effect": "获得12s的无碰撞效果（允许你穿过别的玩家）并额外恢复20%的理智",
+  "item.noellesroles.whiskey.effect": "获得12s的一次性护盾并额外恢复20%的理智",
+  "item.noellesroles.ice_cube.effect": "消除基酒的负面效果并使调剂效果立即生效",
+
   "item.noellesroles.fine_drink": "上等佳酿",
   "item.noellesroles.fine_drink.tooltip": "饮用后恢复满心情值\n可放入餐盘供他人取用",
 
@@ -343,5 +360,15 @@
 
   "replay.death_blocked.survival_moment": "%s 在§d生存时刻§r中免疫刺客刺杀",
   "replay.global.noellesroles.survival_moment_start": "%s 触发§d生存时刻§r",
-  "replay.global.noellesroles.survival_moment_end": "%s 的§d生存时刻§r结束"
+  "replay.global.noellesroles.survival_moment_end": "%s 的§d生存时刻§r结束",
+
+  "replay.item_use.noellesroles.base_spirit.place": "%s 将§e基酒§r放到了餐盘上",
+  "replay.item_use.noellesroles.base_spirit.place.with_ingredients": "%s 将§e基酒§r（%s）放到了餐盘上",
+  "replay.item_use.noellesroles.base_spirit.drink": "%s 喝下了§e基酒§r",
+  "replay.item_use.noellesroles.base_spirit.drink.with_ingredients": "%s 喝下了§e基酒§r（%s）",
+  "replay.item_use.noellesroles.base_spirit.take": "%s 从餐盘取走了§e基酒§r",
+  "replay.item_use.noellesroles.base_spirit.take.with_ingredients": "%s 从餐盘取走了§e基酒§r（%s）",
+
+  "effect.noellesroles.stimulation": "亢奋",
+  "effect.noellesroles.no_collision": "无碰撞"
 }

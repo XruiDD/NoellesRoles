@@ -55,6 +55,23 @@
   "hud.vulture.eat": "Press %s to eat!",
 
 
+  "item.noellesroles.base_spirit": "Base Spirit",
+  "item.noellesroles.base_spirit.ingredients": "Ingredients:",
+  "item.noellesroles.base_spirit.slots_remaining": "%d slots remaining",
+  "item.noellesroles.rum": "Rum",
+  "item.noellesroles.gin": "Gin",
+  "item.noellesroles.vodka": "Vodka",
+  "item.noellesroles.tequila": "Tequila",
+  "item.noellesroles.whiskey": "Whiskey",
+  "item.noellesroles.ice_cube": "Ice Cube",
+  "item.noellesroles.ingredient.tooltip": "Right-click on a base spirit to mix in",
+  "item.noellesroles.rum.effect": "Grants Speed I for 6s and restores an extra 20% sanity",
+  "item.noellesroles.gin.effect": "Grants Night Vision for 6s and immunity to Lights Out. Restores an extra 20% sanity",
+  "item.noellesroles.vodka.effect": "Grants Stimulation for 15s (all cooldown recovery +20% and infinite stamina), reduces all active cooldowns by 20% and restores an extra 20% sanity (Note: stamina drops to 0 and Slowness II for 3s after effect ends)",
+  "item.noellesroles.tequila.effect": "Grants No Collision for 12s (allows you to pass through other players) and restores an extra 20% sanity",
+  "item.noellesroles.whiskey.effect": "Grants a one-time shield for 12s and restores an extra 20% sanity",
+  "item.noellesroles.ice_cube.effect": "Removes the base spirit's debuff and makes modifiers take effect immediately",
+
   "item.noellesroles.master_key": "Master Key",
   "item.noellesroles.neutral_master_key": "Neutral Master Key",
   "item.noellesroles.defense_vial": "Defense Vial",
@@ -266,5 +283,15 @@
 
   "replay.death_blocked.survival_moment": "%s was immune to assassination during §dSurvival Moment§r",
   "replay.global.noellesroles.survival_moment_start": "%s triggered §dSurvival Moment§r",
-  "replay.global.noellesroles.survival_moment_end": "%s's §dSurvival Moment§r ended"
+  "replay.global.noellesroles.survival_moment_end": "%s's §dSurvival Moment§r ended",
+
+  "replay.item_use.noellesroles.base_spirit.place": "%s placed §eBase Spirit§r on the platter",
+  "replay.item_use.noellesroles.base_spirit.place.with_ingredients": "%s placed §eBase Spirit§r (%s) on the platter",
+  "replay.item_use.noellesroles.base_spirit.drink": "%s drank §eBase Spirit§r",
+  "replay.item_use.noellesroles.base_spirit.drink.with_ingredients": "%s drank §eBase Spirit§r (%s)",
+  "replay.item_use.noellesroles.base_spirit.take": "%s took §eBase Spirit§r from the platter",
+  "replay.item_use.noellesroles.base_spirit.take.with_ingredients": "%s took §eBase Spirit§r (%s) from the platter",
+
+  "effect.noellesroles.stimulation": "Stimulation",
+  "effect.noellesroles.no_collision": "No Collision"
 }

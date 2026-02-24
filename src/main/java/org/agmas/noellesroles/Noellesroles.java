@@ -268,6 +268,7 @@ public class Noellesroles implements ModInitializer {
         NoellesRolesConfig.HANDLER.load();
         ModItems.init();
         ModSounds.init();
+        ModEffects.init();
         PayloadTypeRegistry.playC2S().register(MorphC2SPacket.ID, MorphC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(MorphCorpseToggleC2SPacket.ID, MorphCorpseToggleC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(AbilityC2SPacket.ID, AbilityC2SPacket.CODEC);
@@ -1773,6 +1774,42 @@ public class Noellesroles implements ModInitializer {
             if (actorUuid == null) return null;
             Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
             return Text.translatable("replay.item_use.noellesroles.throwing_axe", actorText);
+        });
+
+        // ===== 基酒格式化器 =====
+
+        Identifier baseSpiritId = Registries.ITEM.getId(ModItems.BASE_SPIRIT);
+
+        // 基酒 - 放置到餐盘 / 从餐盘拿取 / 喝下（均通过 recordItemUse 记录）
+        ReplayRegistry.registerItemUseFormatter(baseSpiritId, (event, match, world) -> {
+            var playerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
+            NbtCompound data = event.data();
+            UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+            if (actorUuid == null) return null;
+            Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
+            String action = data.getString("action");
+            // 构建调剂显示文本
+            Text ingredientText = null;
+            if (data.contains("ingredients")) {
+                net.minecraft.nbt.NbtList ingredientList = data.getList("ingredients", net.minecraft.nbt.NbtString.STRING_TYPE);
+                if (ingredientList != null && !ingredientList.isEmpty()) {
+                    net.minecraft.text.MutableText built = Text.empty();
+                    for (int i = 0; i < ingredientList.size(); i++) {
+                        if (i > 0) built.append(Text.literal(", "));
+                        built.append(Text.translatable("item.noellesroles." + ingredientList.getString(i)));
+                    }
+                    ingredientText = built;
+                }
+            }
+            String baseKey = switch (action) {
+                case "place" -> "replay.item_use.noellesroles.base_spirit.place";
+                case "take" -> "replay.item_use.noellesroles.base_spirit.take";
+                default -> "replay.item_use.noellesroles.base_spirit.drink";
+            };
+            if (ingredientText != null) {
+                return Text.translatable(baseKey + ".with_ingredients", actorText, ingredientText);
+            }
+            return Text.translatable(baseKey, actorText);
         });
 
     }

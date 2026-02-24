@@ -7,6 +7,8 @@
   "mixins": [
     "bartender.CocktailItemMixin",
     "bartender.DefenseVialApplyMixin",
+    "bartender.IngredientMixingMixin",
+    "bartender.NoCollisionMixin",
     "noisemaker.NoisemakerKillMixin",
     "toxicologist.ToxicologistPoisonSyncMixin",
     "scavenger.ScavengerKnifeSoundMixin",
@@ -21,7 +23,10 @@
     "taotie.SwallowedPlayerSkyVisibilityMixin",
     "silencer.SilencedEatingMixin",
     "silencer.SilencedDrinkingMixin",
-    "morphling.MorphlingCorpseCollisionMixin"
+    "morphling.MorphlingCorpseCollisionMixin",
+    "bartender.ItemCooldownManagerAccessor",
+    "bartender.ItemCooldownEntryAccessor",
+    "bartender.GinBlindnessBlockMixin"
   ],
   "injectors": {
     "defaultRequire": 1

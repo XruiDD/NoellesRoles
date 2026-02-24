@@ -43,6 +43,23 @@
   "announcement.win.coroner": "Пассажиры победили!",
   "hud.coroner.sanity_requirements": "Необходимо 50% рассудка, чтобы использовать эту способность",
 
+  "item.noellesroles.base_spirit": "Базовый спирт",
+  "item.noellesroles.base_spirit.ingredients": "Ингредиенты:",
+  "item.noellesroles.base_spirit.slots_remaining": "Осталось слотов: %d",
+  "item.noellesroles.rum": "Ром",
+  "item.noellesroles.gin": "Джин",
+  "item.noellesroles.vodka": "Водка",
+  "item.noellesroles.tequila": "Текила",
+  "item.noellesroles.whiskey": "Виски",
+  "item.noellesroles.ice_cube": "Кубик льда",
+  "item.noellesroles.ingredient.tooltip": "ПКМ по базовому спирту, чтобы добавить",
+  "item.noellesroles.rum.effect": "Даёт Скорость I на 6с и восстанавливает 20% рассудка",
+  "item.noellesroles.gin.effect": "Даёт Ночное зрение на 6с и иммунитет к отключению света. Восстанавливает 20% рассудка",
+  "item.noellesroles.vodka.effect": "Даёт Эйфорию на 15с (восстановление КД +20% и бесконечная выносливость), снижает все активные КД на 20% и восстанавливает 20% рассудка (Внимание: после окончания выносливость падает до 0 и Замедление II на 3с)",
+  "item.noellesroles.tequila.effect": "Даёт Без столкновений на 12с (позволяет проходить сквозь игроков) и восстанавливает 20% рассудка",
+  "item.noellesroles.whiskey.effect": "Даёт одноразовый щит на 12с и восстанавливает 20% рассудка",
+  "item.noellesroles.ice_cube.effect": "Убирает дебафф базового спирта и модификаторы действуют мгновенно",
+
   "item.noellesroles.master_key": "Мастер-ключ",
 
   "death_reason.noellesroles.voodoo": "от магии вуду.",
@@ -61,5 +78,8 @@
   "replay.item_use.noellesroles.throwing_axe": "%s метнул §cметательный топор§r",
 
   "tip.silenced.cannot_eat": "Вы заглушены и не можете есть!",
-  "tip.silenced.cannot_drink": "Вы заглушены и не можете пить!"
+  "tip.silenced.cannot_drink": "Вы заглушены и не можете пить!",
+
+  "effect.noellesroles.stimulation": "Эйфория",
+  "effect.noellesroles.no_collision": "Без столкновений"
 }

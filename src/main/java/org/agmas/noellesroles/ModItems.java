@@ -9,6 +9,8 @@ import org.agmas.noellesroles.item.PoisonNeedleItem;
 import org.agmas.noellesroles.item.PoisonGasBombItem;
 import org.agmas.noellesroles.item.CatalystItem;
 import org.agmas.noellesroles.item.ThrowingAxeItem;
+import org.agmas.noellesroles.item.BaseSpiritItem;
+import org.agmas.noellesroles.item.IngredientItem;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
@@ -64,6 +66,36 @@ public class ModItems {
     public static final Item CATALYST = register(
             new CatalystItem(new Item.Settings().maxCount(1)),
             "catalyst"
+    );
+
+    // ---- 调酒师系统 ----
+    public static final Item BASE_SPIRIT = register(
+            new BaseSpiritItem(new Item.Settings().maxCount(1)),
+            "base_spirit"
+    );
+    public static final Item RUM = register(
+            new IngredientItem(new Item.Settings().maxCount(1), "rum"),
+            "rum"
+    );
+    public static final Item GIN = register(
+            new IngredientItem(new Item.Settings().maxCount(1), "gin"),
+            "gin"
+    );
+    public static final Item VODKA = register(
+            new IngredientItem(new Item.Settings().maxCount(1), "vodka"),
+            "vodka"
+    );
+    public static final Item TEQUILA = register(
+            new IngredientItem(new Item.Settings().maxCount(1), "tequila"),
+            "tequila"
+    );
+    public static final Item WHISKEY = register(
+            new IngredientItem(new Item.Settings().maxCount(1), "whiskey"),
+            "whiskey"
+    );
+    public static final Item ICE_CUBE = register(
+            new IngredientItem(new Item.Settings().maxCount(1), "ice_cube"),
+            "ice_cube"
     );
 
     public static Item register(Item item, String id) {
