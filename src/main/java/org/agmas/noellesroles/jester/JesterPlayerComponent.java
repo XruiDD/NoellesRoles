@@ -1,6 +1,8 @@
 package org.agmas.noellesroles.jester;
 
 import dev.doctor4t.wathe.Wathe;
+import dev.doctor4t.wathe.cca.GameWorldComponent;
+import dev.doctor4t.wathe.cca.MapEnhancementsWorldComponent;
 import dev.doctor4t.wathe.cca.PlayerPsychoComponent;
 import dev.doctor4t.wathe.game.GameFunctions;
 import dev.doctor4t.wathe.record.GameRecordManager;
@@ -59,6 +61,10 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
 
     @Override
     public boolean shouldSyncWith(ServerPlayerEntity player) {
+        // 疯魔模式下同步给所有玩家，以便客户端判断高亮；否则只同步给自己
+        if (this.inPsychoMode) {
+            return true;
+        }
         return player == this.player;
     }
 
@@ -147,6 +153,20 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
             psychoComponent.setPsychoTicks(Integer.MAX_VALUE);
             psychoComponent.setArmour(this.psychoArmour);
             this.inPsychoMode = true;
+
+            // 传送小丑至当局游戏分配的房间
+            if (player instanceof ServerPlayerEntity serverJester && serverJester.getWorld() instanceof ServerWorld serverWorld) {
+                GameWorldComponent gameComponent = GameWorldComponent.KEY.get(serverWorld);
+                int roomIndex = gameComponent.getPlayerRoomIndex(serverJester.getUuid());
+                if (roomIndex >= 0) {
+                    MapEnhancementsWorldComponent enhancements = MapEnhancementsWorldComponent.KEY.get(serverWorld);
+                    enhancements.getSpawnPointForPlayer(roomIndex, 0).ifPresent(spawnPoint -> {
+                        serverJester.teleport(serverWorld,
+                                spawnPoint.x(), spawnPoint.y(), spawnPoint.z(),
+                                spawnPoint.yaw(), spawnPoint.pitch());
+                    });
+                }
+            }
 
             // 播放小丑时刻BGM
             WorldMusicComponent worldMusic = WorldMusicComponent.KEY.get(this.player.getWorld());

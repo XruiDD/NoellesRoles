@@ -166,6 +166,14 @@ public class NoellesrolesClient implements ClientModInitializer {
                 }
             }
 
+            // 疯魔模式：所有人自动全局高亮小丑（判断目标是小丑角色+处于疯魔模式）
+            if (gameWorldComponent.isRole(player, Noellesroles.JESTER)) {
+                JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(player);
+                if (jesterComponent.inPsychoMode) {
+                    return GetInstinctHighlight.HighlightResult.always(Noellesroles.JESTER.color());
+                }
+            }
+
             // BARTENDER: 看到喝酒者发绿光（需要视线）
             if (gameWorldComponent.isRole(localPlayer, Noellesroles.BARTENDER)) {
                 if (localPlayer.canSee(player)) {
