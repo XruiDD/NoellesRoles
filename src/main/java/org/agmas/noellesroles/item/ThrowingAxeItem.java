@@ -49,6 +49,7 @@ public class ThrowingAxeItem extends Item {
         if (!world.isClient) {
             ThrowingAxeEntity axeEntity = new ThrowingAxeEntity(NoellesRolesEntities.THROWING_AXE_ENTITY, world);
             axeEntity.setOwner(player);
+            axeEntity.initFromStack(stack);
             axeEntity.setPosition(player.getX(), player.getEyeY() - 0.1, player.getZ());
             float velocity = 0.4F + (power * 2.0F);
             axeEntity.setVelocity(player, player.getPitch(), player.getYaw(), 0.0F, velocity, 1.0F);

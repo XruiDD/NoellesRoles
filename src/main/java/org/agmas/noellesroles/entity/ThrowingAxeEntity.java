@@ -30,6 +30,7 @@ import java.util.Set;
 public class ThrowingAxeEntity extends PersistentProjectileEntity {
 
     private static final TrackedData<Byte> DATA_HIT_DIRECTION = DataTracker.registerData(ThrowingAxeEntity.class, TrackedDataHandlerRegistry.BYTE);
+    private static final TrackedData<ItemStack> SYNCED_STACK = DataTracker.registerData(ThrowingAxeEntity.class, TrackedDataHandlerRegistry.ITEM_STACK);
 
     private static final int MAX_LIFETIME = 20 * 120; // 120 seconds
 
@@ -46,10 +47,27 @@ public class ThrowingAxeEntity extends PersistentProjectileEntity {
         this.pickupType = PickupPermission.DISALLOWED;
     }
 
+    /**
+     * Copies the thrown ItemStack (including skin data) into the entity
+     * so that the renderer can display the correct skin texture.
+     */
+    public void initFromStack(ItemStack stack) {
+        ItemStack copy = stack.copy();
+        this.setStack(copy);
+        this.dataTracker.set(SYNCED_STACK, copy);
+    }
+
+    @Override
+    public ItemStack getItemStack() {
+        ItemStack synced = this.dataTracker.get(SYNCED_STACK);
+        return !synced.isEmpty() ? synced : super.getItemStack();
+    }
+
     @Override
     protected void initDataTracker(DataTracker.Builder builder) {
         super.initDataTracker(builder);
         builder.add(DATA_HIT_DIRECTION, (byte) 0);
+        builder.add(SYNCED_STACK, ItemStack.EMPTY);
     }
 
     @Override
@@ -168,6 +186,8 @@ public class ThrowingAxeEntity extends PersistentProjectileEntity {
             this.stuckDirection = Direction.byId(nbt.getByte("HitDirection"));
             this.dataTracker.set(DATA_HIT_DIRECTION, nbt.getByte("HitDirection"));
         }
+        // Sync the loaded stack (with skin data) to tracked data for client rendering
+        this.dataTracker.set(SYNCED_STACK, super.getItemStack());
     }
 
     @Override
