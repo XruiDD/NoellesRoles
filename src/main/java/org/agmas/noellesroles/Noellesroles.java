@@ -1683,6 +1683,27 @@ public class Noellesroles implements ModInitializer {
             return Text.translatable("replay.skill.noellesroles.swapper.target", actorText, target1Text, target2Text);
         });
 
+        // 回溯者技能格式化器（双阶段：标记位置 / 传送回溯）
+        ReplayRegistry.registerSkillFormatter(RECALLER_ID, (event, match, world) -> {
+            var playerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
+            NbtCompound data = event.data();
+            UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+            if (actorUuid == null) return null;
+
+            Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
+            String action = data.getString("action");
+            int x = (int) Math.floor(data.getDouble("x"));
+            int y = (int) Math.floor(data.getDouble("y"));
+            int z = (int) Math.floor(data.getDouble("z"));
+            String coordStr = String.format("(%d, %d, %d)", x, y, z);
+
+            if ("teleport".equals(action)) {
+                return Text.translatable("replay.skill.noellesroles.recaller.teleport", actorText, coordStr);
+            } else {
+                return Text.translatable("replay.skill.noellesroles.recaller.place", actorText, coordStr);
+            }
+        });
+
         // silencer skill 格式化器（通过 skillUse 系统自动处理，这里只需要注册翻译键）
         // 翻译键 replay.skill.noellesroles.silencer.target 在语言文件中定义
 

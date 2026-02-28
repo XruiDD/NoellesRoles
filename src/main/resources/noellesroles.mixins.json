@@ -22,7 +22,8 @@
     "taotie.SwallowedPlayerSkyVisibilityMixin",
     "silencer.SilencedEatingMixin",
     "silencer.SilencedDrinkingMixin",
-    "morphling.MorphlingCorpseCollisionMixin"
+    "morphling.MorphlingCorpseCollisionMixin",
+    "morphling.MorphlingCorpsePushableMixin"
   ],
   "injectors": {
     "defaultRequire": 1
