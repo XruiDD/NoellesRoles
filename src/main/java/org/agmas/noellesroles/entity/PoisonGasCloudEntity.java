@@ -2,6 +2,7 @@ package org.agmas.noellesroles.entity;
 
 import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.cca.PlayerPoisonComponent;
+import dev.doctor4t.wathe.cca.PlayerStaminaComponent;
 import dev.doctor4t.wathe.game.GameFunctions;
 import org.agmas.noellesroles.Noellesroles;
 import net.minecraft.entity.Entity;
@@ -38,6 +39,7 @@ public class PoisonGasCloudEntity extends Entity {
     private final Set<BlockPos> gasBlocks = new HashSet<>();
     private Set<BlockPos> frontier = new HashSet<>();
     private final Map<UUID, Integer> exposureTicks = new HashMap<>();
+    private final Set<UUID> playersInGas = new HashSet<>();
     private UUID ownerUuid;
     private int age = 0;
 
@@ -59,6 +61,7 @@ public class PoisonGasCloudEntity extends Entity {
         age++;
 
         if (age > MAX_LIFETIME) {
+            clearAllGasExhaustion();
             this.discard();
             return;
         }
@@ -126,6 +129,14 @@ public class PoisonGasCloudEntity extends Entity {
                 int ticks = exposureTicks.getOrDefault(player.getUuid(), 0) + 1;
                 exposureTicks.put(player.getUuid(), ticks);
 
+                // 体力压制：在毒气中扣光体力，无法疾跑
+                PlayerStaminaComponent staminaComp = PlayerStaminaComponent.KEY.get(player);
+                if (!staminaComp.isInfiniteStamina()) {
+                    staminaComp.setSprintingTicks(0);
+                    staminaComp.setExhausted(true);
+                    playersInGas.add(player.getUuid());
+                }
+
                 if (ticks >= EXPOSURE_THRESHOLD) {
                     PlayerPoisonComponent poisonComp = PlayerPoisonComponent.KEY.get(player);
                     // 固定中毒时间 20秒 (400 ticks)，已中毒则加速
@@ -138,6 +149,15 @@ public class PoisonGasCloudEntity extends Entity {
                 }
             } else {
                 exposureTicks.put(player.getUuid(), 0);
+
+                // 离开毒气时恢复体力，解除疲惫
+                if (playersInGas.remove(player.getUuid())) {
+                    PlayerStaminaComponent staminaComp = PlayerStaminaComponent.KEY.get(player);
+                    if (!staminaComp.isInfiniteStamina()) {
+                        staminaComp.setExhausted(false);
+                        staminaComp.setSprintingTicks(76.0f);
+                    }
+                }
             }
         }
 
@@ -156,6 +176,24 @@ public class PoisonGasCloudEntity extends Entity {
                 );
             }
         }
+    }
+
+    /**
+     * 毒气消散时清除所有受影响玩家的体力压制
+     */
+    private void clearAllGasExhaustion() {
+        if (!(this.getWorld() instanceof ServerWorld serverWorld)) return;
+        for (UUID uuid : playersInGas) {
+            ServerPlayerEntity player = serverWorld.getServer().getPlayerManager().getPlayer(uuid);
+            if (player != null) {
+                PlayerStaminaComponent staminaComp = PlayerStaminaComponent.KEY.get(player);
+                if (!staminaComp.isInfiniteStamina()) {
+                    staminaComp.setExhausted(false);
+                    staminaComp.setSprintingTicks(76.0f);
+                }
+            }
+        }
+        playersInGas.clear();
     }
 
     private double getCrossSection(VoxelShape shape, Direction.Axis moveAxis) {
