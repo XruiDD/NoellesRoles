@@ -187,6 +187,21 @@ public class TaotiePlayerComponent implements AutoSyncedComponent, ServerTicking
             return false;
         }
 
+        // 威士忌护盾保护
+        if (target.hasStatusEffect(org.agmas.noellesroles.ModEffects.WHISKEY_SHIELD)) {
+            org.agmas.noellesroles.effect.WhiskeyShieldEffect.consumeShield(target);
+            target.getWorld().playSound(null, target.getBlockPos(),
+                WatheSounds.ITEM_PSYCHO_ARMOUR, SoundCategory.MASTER, 5.0F, 1.0F);
+            GameRecordManager.event("whiskey_shield_activated")
+                .actor(target)
+                .target(taotie)
+                .put("action", "block_swallow")
+                .record();
+            swallowCooldown = calculatedSwallowCooldown;
+            this.sync();
+            return false;
+        }
+
         // 保镖保护检查：如果目标是保镖的保护对象且保镖在3格内，保镖牺牲自己保护目标
         if (target.getWorld() instanceof ServerWorld bodyguardWorld) {
             GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(bodyguardWorld);

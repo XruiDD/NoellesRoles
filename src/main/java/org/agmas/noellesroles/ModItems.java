@@ -9,12 +9,22 @@ import org.agmas.noellesroles.item.PoisonNeedleItem;
 import org.agmas.noellesroles.item.PoisonGasBombItem;
 import org.agmas.noellesroles.item.CatalystItem;
 import org.agmas.noellesroles.item.ThrowingAxeItem;
+import org.agmas.noellesroles.item.BaseSpiritItem;
+import org.agmas.noellesroles.item.IngredientItem;
+import org.agmas.noellesroles.item.ingredient.*;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
 
 public class ModItems {
     public static void init() {
+        // 注册调剂到 IngredientItem 静态注册表
+        IngredientItem.register((IngredientItem) RUM);
+        IngredientItem.register((IngredientItem) GIN);
+        IngredientItem.register((IngredientItem) VODKA);
+        IngredientItem.register((IngredientItem) TEQUILA);
+        IngredientItem.register((IngredientItem) WHISKEY);
+        IngredientItem.register((IngredientItem) ICE_CUBE);
     }
 
     public static final Item MASTER_KEY = register(
@@ -64,6 +74,36 @@ public class ModItems {
     public static final Item CATALYST = register(
             new CatalystItem(new Item.Settings().maxCount(1)),
             "catalyst"
+    );
+
+    // ---- 调酒师系统 ----
+    public static final Item BASE_SPIRIT = register(
+            new BaseSpiritItem(new Item.Settings().maxCount(1)),
+            "base_spirit"
+    );
+    public static final Item RUM = register(
+            new RumItem(new Item.Settings().maxCount(1)),
+            "rum"
+    );
+    public static final Item GIN = register(
+            new GinItem(new Item.Settings().maxCount(1)),
+            "gin"
+    );
+    public static final Item VODKA = register(
+            new VodkaItem(new Item.Settings().maxCount(1)),
+            "vodka"
+    );
+    public static final Item TEQUILA = register(
+            new TequilaItem(new Item.Settings().maxCount(1)),
+            "tequila"
+    );
+    public static final Item WHISKEY = register(
+            new WhiskeyItem(new Item.Settings().maxCount(1)),
+            "whiskey"
+    );
+    public static final Item ICE_CUBE = register(
+            new IceCubeItem(new Item.Settings().maxCount(1)),
+            "ice_cube"
     );
 
     public static Item register(Item item, String id) {

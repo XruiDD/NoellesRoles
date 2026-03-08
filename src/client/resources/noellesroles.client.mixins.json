@@ -29,7 +29,9 @@
     "taotie.SpectatorHudMixin",
     "voodoo.VoodoScreenMixin",
     "vulture.VultureHudMixin",
-    "silencer.SilencerHudMixin"
+    "silencer.SilencerHudMixin",
+    "bartender.StimulationVignetteHudMixin",
+    "bartender.StimulationMoodMixin"
   ],
   "injectors": {
     "defaultRequire": 1

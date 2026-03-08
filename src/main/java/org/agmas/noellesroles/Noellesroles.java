@@ -3,6 +3,7 @@ package org.agmas.noellesroles;
 import dev.doctor4t.wathe.api.Role;
 import dev.doctor4t.wathe.api.RoleAppearanceCondition;
 import dev.doctor4t.wathe.api.WatheRoles;
+import org.agmas.noellesroles.bartender.CocktailRegistry;
 import dev.doctor4t.wathe.api.event.*;
 import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.cca.PlayerShopComponent;
@@ -281,6 +282,15 @@ public class Noellesroles implements ModInitializer {
         NoellesRolesConfig.HANDLER.load();
         ModItems.init();
         ModSounds.init();
+        ModEffects.init();
+
+        // 金酒免疫关灯：有 GIN_IMMUNITY 效果时取消关灯失明
+        dev.doctor4t.wathe.api.event.BlackoutEffect.BEFORE.register((player, durationTicks) -> {
+            if (player.hasStatusEffect(ModEffects.GIN_IMMUNITY)) {
+                return dev.doctor4t.wathe.api.event.BlackoutEffect.BlackoutResult.cancel();
+            }
+            return null;
+        });
         PayloadTypeRegistry.playC2S().register(MorphC2SPacket.ID, MorphC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(MorphCorpseToggleC2SPacket.ID, MorphCorpseToggleC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(AbilityC2SPacket.ID, AbilityC2SPacket.CODEC);
@@ -458,6 +468,33 @@ public class Noellesroles implements ModInitializer {
                     ironManEvent.record();
                 }
                 ironManComp.removeBuff();
+                return KillPlayer.KillResult.cancel();
+            }
+
+            // 威士忌护盾保护（可叠层，每次消耗一层）
+            if (victim instanceof ServerPlayerEntity serverVictim2
+                    && serverVictim2.hasStatusEffect(ModEffects.WHISKEY_SHIELD)
+                    && deathReason != GameConstants.DeathReasons.SHOT_INNOCENT
+                    && deathReason != DEATH_REASON_ASSASSINATED) {
+                org.agmas.noellesroles.effect.WhiskeyShieldEffect.consumeShield(serverVictim2);
+                victim.getWorld().playSound(null, victim.getBlockPos(), WatheSounds.ITEM_PSYCHO_ARMOUR, SoundCategory.MASTER, 5.0F, 1.0F);
+                // 记录威士忌护盾保护（仿铁人药剂模式）
+                var deathBlockedEvent2 = GameRecordManager.event("death_blocked")
+                    .actor(serverVictim2)
+                    .put("block_reason", "whiskey_shield")
+                    .put("death_reason", deathReason.toString());
+                if (killer instanceof ServerPlayerEntity serverKiller) {
+                    deathBlockedEvent2.target(serverKiller);
+                }
+                deathBlockedEvent2.record();
+
+                var whiskeyEvent = GameRecordManager.event("whiskey_shield_activated")
+                    .actor(serverVictim2)
+                    .put("action", "block_damage");
+                if (killer instanceof ServerPlayerEntity serverKiller) {
+                    whiskeyEvent.target(serverKiller);
+                }
+                whiskeyEvent.record();
                 return KillPlayer.KillResult.cancel();
             }
 
@@ -1621,8 +1658,8 @@ public class Noellesroles implements ModInitializer {
 
             Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
 
-            // 铁人药剂由专属 iron_man_activated 事件处理，此处返回null避免重复
-            if ("iron_man_buff".equals(blockReason)) return null;
+            // 铁人药剂和威士忌护盾由各自专属事件处理，此处返回null避免重复
+            if ("iron_man_buff".equals(blockReason) || "whiskey_shield".equals(blockReason)) return null;
 
             // 根据 block_reason 选择翻译键
             String translationKey = switch (blockReason) {
@@ -1650,6 +1687,26 @@ public class Noellesroles implements ModInitializer {
                 case "block_swallow" -> "replay.iron_man_activated.block_swallow";
                 case "block_damage" -> "replay.iron_man_activated.block_damage";
                 default -> "replay.iron_man_activated.block_damage";
+            };
+
+            return Text.translatable(translationKey, actorText);
+        });
+
+        // whiskey_shield_activated 威士忌护盾生效格式化器
+        ReplayRegistry.registerFormatter("whiskey_shield_activated", (event, match, world) -> {
+            var playerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
+            NbtCompound data = event.data();
+            UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+            String action = data.getString("action");
+
+            if (actorUuid == null) return null;
+
+            Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
+
+            String translationKey = switch (action) {
+                case "block_swallow" -> "replay.whiskey_shield_activated.block_swallow";
+                case "block_damage" -> "replay.whiskey_shield_activated.block_damage";
+                default -> "replay.whiskey_shield_activated.block_damage";
             };
 
             return Text.translatable(translationKey, actorText);
@@ -1849,6 +1906,87 @@ public class Noellesroles implements ModInitializer {
             return Text.translatable("replay.item_use.noellesroles.throwing_axe", actorText);
         });
 
+        // ===== 基酒/鸡尾酒格式化器 =====
+
+        Identifier baseSpiritId = Registries.ITEM.getId(ModItems.BASE_SPIRIT);
+
+        // 喝下 / 放置到餐盘（通过 recordItemUse）
+        ReplayRegistry.registerItemUseFormatter(baseSpiritId, (event, match, world) -> {
+            var playerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
+            NbtCompound data = event.data();
+            UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+            if (actorUuid == null) return null;
+            Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
+            Text drinkName = noellesroles$getDrinkName(data);
+            String action = data.getString("action");
+            if ("place".equals(action)) {
+                return Text.translatable("replay.item_use.noellesroles.base_spirit.place", actorText, drinkName);
+            }
+            return Text.translatable("replay.item_use.noellesroles.base_spirit.drink", actorText, drinkName);
+        });
+
+        // 从餐盘拿取（通过 recordPlatterTake）
+        ReplayRegistry.registerPlatterTakeFormatter(baseSpiritId, (event, match, world) -> {
+            var playerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
+            NbtCompound data = event.data();
+            UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+            if (actorUuid == null) return null;
+            Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
+            Text drinkName = noellesroles$getDrinkName(data);
+            return Text.translatable("replay.platter_take.noellesroles.base_spirit", actorText, drinkName);
+        });
+
+        // 调酒事件（prev/after 子 compound 中各含 ingredients NbtList，复用 getDrinkName 推导名称）
+        ReplayRegistry.registerFormatter("ingredient_mixed", (event, match, world) -> {
+            var playerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
+            NbtCompound data = event.data();
+            UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+            if (actorUuid == null) return null;
+            Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
+            String ingredient = data.getString("ingredient");
+            Text ingredientName = Text.translatable("item.noellesroles." + ingredient);
+
+            // 调制前饮品名（从 prev compound 的 ingredients NbtList 推导）
+            NbtCompound prevData = data.contains("prev") ? data.getCompound("prev") : new NbtCompound();
+            Text targetName = noellesroles$getDrinkName(prevData);
+
+            // 调制后饮品名（从 after compound 的 ingredients NbtList 推导）
+            NbtCompound afterData = data.contains("after") ? data.getCompound("after") : new NbtCompound();
+            Text resultName = noellesroles$getDrinkName(afterData);
+
+            // 调制后匹配到鸡尾酒名时显示 "调制出了xxx"
+            if (afterData.contains("ingredients")) {
+                java.util.List<String> afterList = new java.util.ArrayList<>();
+                net.minecraft.nbt.NbtList afterNbt = afterData.getList("ingredients", net.minecraft.nbt.NbtString.STRING_TYPE);
+                for (int i = 0; i < afterNbt.size(); i++) afterList.add(afterNbt.getString(i));
+                if (CocktailRegistry.getCocktailKey(afterList) != null) {
+                    return Text.translatable("replay.ingredient_mixed.result", actorText, ingredientName, targetName, resultName);
+                }
+            }
+            return Text.translatable("replay.ingredient_mixed", actorText, ingredientName, targetName);
+        });
+
+    }
+
+    /**
+     * 从事件数据的 ingredients NbtList 中获取饮品显示名称。
+     * 如果匹配到鸡尾酒则返回带颜色的鸡尾酒名，否则返回"基酒"。
+     */
+    private static Text noellesroles$getDrinkName(NbtCompound data) {
+        if (!data.contains("ingredients")) {
+            return Text.translatable("item.noellesroles.base_spirit");
+        }
+        net.minecraft.nbt.NbtList list = data.getList("ingredients", net.minecraft.nbt.NbtString.STRING_TYPE);
+        if (list == null || list.isEmpty()) {
+            return Text.translatable("item.noellesroles.base_spirit");
+        }
+        java.util.List<String> ingredients = new java.util.ArrayList<>();
+        for (int i = 0; i < list.size(); i++) {
+            ingredients.add(list.getString(i));
+        }
+        net.minecraft.text.MutableText cocktailName = CocktailRegistry.getCocktailName(ingredients);
+        if (cocktailName != null) return cocktailName;
+        return Text.translatable("item.noellesroles.base_spirit");
     }
 
 }
