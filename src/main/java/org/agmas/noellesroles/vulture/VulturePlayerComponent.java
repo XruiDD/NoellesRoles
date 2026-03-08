@@ -26,6 +26,7 @@ public class VulturePlayerComponent implements AutoSyncedComponent, ServerTickin
     private int bodiesRequired = 0;
     private boolean won = false;
     private final List<UUID> eatenBodies = new ArrayList<>();
+    private int highlightTicks = 0;
 
     public VulturePlayerComponent(PlayerEntity player) {
         this.player = player;
@@ -36,6 +37,7 @@ public class VulturePlayerComponent implements AutoSyncedComponent, ServerTickin
         this.bodiesRequired = 0;
         this.won = false;
         this.eatenBodies.clear();
+        this.highlightTicks = 0;
         this.sync();
     }
 
@@ -88,12 +90,30 @@ public class VulturePlayerComponent implements AutoSyncedComponent, ServerTickin
         return this.won;
     }
 
+    public int getHighlightTicks() {
+        return highlightTicks;
+    }
+
+    public void setHighlightTicks(int ticks) {
+        this.highlightTicks = ticks;
+        this.sync();
+    }
+
     @Override
     public void clientTick() {
+        if (this.highlightTicks > 0) {
+            this.highlightTicks--;
+        }
     }
 
     @Override
     public void serverTick() {
+        if (this.highlightTicks > 0) {
+            this.highlightTicks--;
+            if (this.highlightTicks == 0) {
+                this.sync();
+            }
+        }
     }
 
     @Override
@@ -101,6 +121,7 @@ public class VulturePlayerComponent implements AutoSyncedComponent, ServerTickin
         tag.putInt("bodiesEaten", this.bodiesEaten);
         tag.putInt("bodiesRequired", this.bodiesRequired);
         tag.putBoolean("won", this.won);
+        tag.putInt("highlightTicks", this.highlightTicks);
 
         NbtList eatenList = new NbtList();
         for (UUID uuid : this.eatenBodies) {
@@ -114,6 +135,7 @@ public class VulturePlayerComponent implements AutoSyncedComponent, ServerTickin
         this.bodiesEaten = tag.contains("bodiesEaten") ? tag.getInt("bodiesEaten") : 0;
         this.bodiesRequired = tag.contains("bodiesRequired") ? tag.getInt("bodiesRequired") : 0;
         this.won = tag.getBoolean("won");
+        this.highlightTicks = tag.contains("highlightTicks") ? tag.getInt("highlightTicks") : 0;
 
         this.eatenBodies.clear();
         if (tag.contains("eatenBodies")) {

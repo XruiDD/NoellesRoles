@@ -46,6 +46,7 @@ import org.agmas.noellesroles.morphling.MorphlingPlayerComponent;
 import org.agmas.noellesroles.packet.AbilityC2SPacket;
 import org.agmas.noellesroles.packet.MorphCorpseToggleC2SPacket;
 import org.agmas.noellesroles.packet.VultureEatC2SPacket;
+import org.agmas.noellesroles.vulture.VulturePlayerComponent;
 import org.agmas.noellesroles.packet.ReporterMarkC2SPacket;
 import org.agmas.noellesroles.pathogen.InfectedPlayerComponent;
 import org.agmas.noellesroles.professor.IronManPlayerComponent;
@@ -245,7 +246,7 @@ public class NoellesrolesClient implements ClientModInitializer {
             }
             return null;
         });
-        // 注册 GetInstinctHighlight 监听器：秃鹫的本能高亮逻辑
+        // 注册 GetInstinctHighlight 监听器：秃鹫的本能高亮逻辑（尸体高亮）
         GetInstinctHighlight.EVENT.register(entity -> {
             if (!(entity instanceof PlayerBodyEntity)) return null;
             if (MinecraftClient.getInstance().player == null) return null;
@@ -257,6 +258,20 @@ public class NoellesrolesClient implements ClientModInitializer {
             if (gameWorldComponent.isRole(localPlayer, Noellesroles.VULTURE))
                 return GetInstinctHighlight.HighlightResult.withKeybind(Noellesroles.VULTURE.color());
             return null;
+        });
+        // 注册 GetInstinctHighlight 监听器：秃鹫吃尸体后透视所有存活玩家
+        GetInstinctHighlight.EVENT.register(entity -> {
+            if (!(entity instanceof PlayerEntity player) || player.isSpectator()) return null;
+            if (MinecraftClient.getInstance().player == null) return null;
+            if (!WatheClient.isPlayerPlayingAndAlive()) return null;
+            PlayerEntity localPlayer = MinecraftClient.getInstance().player;
+            if (entity == localPlayer) return null;
+            GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(localPlayer.getWorld());
+            if (!gameWorldComponent.isRole(localPlayer, Noellesroles.VULTURE)) return null;
+            VulturePlayerComponent vultureComp = VulturePlayerComponent.KEY.get(localPlayer);
+            if (vultureComp.getHighlightTicks() <= 0) return null;
+            if (!GameFunctions.isPlayerPlayingAndAlive(player)) return null;
+            return GetInstinctHighlight.HighlightResult.always(Noellesroles.VULTURE.color());
         });
 
         // 注册 GetInstinctHighlight 监听器：卧底角色高亮逻辑
