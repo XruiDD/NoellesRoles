@@ -463,7 +463,7 @@ public class Noellesroles implements ModInitializer {
                 if (victim.getWorld() instanceof ServerWorld bodyguardWorld) {
                     for (UUID bodyguardUuid : gameWorldComponent.getAllWithRole(BODYGUARD)) {
                         PlayerEntity bodyguardPlayer = bodyguardWorld.getPlayerByUuid(bodyguardUuid);
-                        if (bodyguardPlayer != null && GameFunctions.isPlayerPlayingAndAlive(bodyguardPlayer)) {
+                        if (bodyguardPlayer != null && GameFunctions.isPlayerPlayingAndAlive(bodyguardPlayer) && !SwallowedPlayerComponent.isPlayerSwallowed(bodyguardPlayer)) {
                             BodyguardPlayerComponent bodyguardComp = BodyguardPlayerComponent.KEY.get(bodyguardPlayer);
                             if (bodyguardComp.isCurrentTarget(victim.getUuid()) && bodyguardPlayer.squaredDistanceTo(victim) <= 9.0) {
                                 // 记录保镖保护技能事件

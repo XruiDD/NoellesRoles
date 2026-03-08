@@ -192,7 +192,7 @@ public class TaotiePlayerComponent implements AutoSyncedComponent, ServerTicking
             GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(bodyguardWorld);
             for (UUID bodyguardUuid : gameWorldComponent.getAllWithRole(Noellesroles.BODYGUARD)) {
                 PlayerEntity bodyguardPlayer = bodyguardWorld.getPlayerByUuid(bodyguardUuid);
-                if (bodyguardPlayer != null && GameFunctions.isPlayerPlayingAndAlive(bodyguardPlayer)) {
+                if (bodyguardPlayer != null && GameFunctions.isPlayerPlayingAndAlive(bodyguardPlayer) && !SwallowedPlayerComponent.isPlayerSwallowed(bodyguardPlayer)) {
                     BodyguardPlayerComponent bodyguardComp = BodyguardPlayerComponent.KEY.get(bodyguardPlayer);
                     if (bodyguardComp.isCurrentTarget(target.getUuid()) && bodyguardPlayer.squaredDistanceTo(target) <= 9.0) {
                         GameRecordManager.recordSkillUse((ServerPlayerEntity) bodyguardPlayer, Noellesroles.BODYGUARD_ID, target, null);
