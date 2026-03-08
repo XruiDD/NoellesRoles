@@ -66,6 +66,7 @@ import org.agmas.noellesroles.corruptcop.CorruptCopPlayerComponent;
 import org.agmas.noellesroles.packet.ReporterMarkC2SPacket;
 import org.agmas.noellesroles.professor.IronManPlayerComponent;
 import org.agmas.noellesroles.reporter.ReporterPlayerComponent;
+import org.agmas.noellesroles.reporter.ReporterShopHandler;
 import org.agmas.noellesroles.serialkiller.SerialKillerPlayerComponent;
 import org.agmas.noellesroles.taotie.TaotiePlayerComponent;
 import org.agmas.noellesroles.taotie.SwallowedPlayerComponent;
@@ -297,6 +298,7 @@ public class Noellesroles implements ModInitializer {
         TimekeeperShopHandler.register();
         PoisonerShopHandler.register();
         BanditShopHandler.register();
+        ReporterShopHandler.register();
 
         // 毒师手持毒针时允许攻击玩家
         AllowPlayerPunching.EVENT.register((attacker, victim) ->
@@ -682,7 +684,7 @@ public class Noellesroles implements ModInitializer {
         TaskComplete.EVENT.register((player, taskType) -> {
             GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(player.getWorld());
             Role role = gameWorldComponent.getRole(player);
-            if (role != null && (role.equals(BARTENDER) || role.equals(RECALLER) || role.equals(TIMEKEEPER))) {
+            if (role != null && (role.equals(BARTENDER) || role.equals(RECALLER) || role.equals(TIMEKEEPER) || role.equals(REPORTER))) {
                 PlayerShopComponent playerShopComponent = PlayerShopComponent.KEY.get(player);
                 playerShopComponent.addToBalance(50);
             }
