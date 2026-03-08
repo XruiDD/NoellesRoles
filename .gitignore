@@ -7,3 +7,4 @@ libs/*
 ./libs
 /libs
 .claude/
+bin/
