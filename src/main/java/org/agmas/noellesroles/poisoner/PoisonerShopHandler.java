@@ -30,7 +30,9 @@ public class PoisonerShopHandler {
                 context.addEntry(0, new ShopEntry(WatheItems.POISON_VIAL.getDefaultStack(), 50, ShopEntry.Type.POISON));
                 context.addEntry(0, new ShopEntry(ModItems.CATALYST.getDefaultStack(), 100, ShopEntry.Type.WEAPON));
                 context.addEntry(0, new ShopEntry(ModItems.POISON_GAS_BOMB.getDefaultStack(), 225, ShopEntry.Type.WEAPON));
-                context.addEntry(0, new ShopEntry(ModItems.POISON_NEEDLE.getDefaultStack(), 100, ShopEntry.Type.WEAPON));
+                context.addEntry(0, new ShopEntry.Builder("poison_needle", ModItems.POISON_NEEDLE.getDefaultStack(), 100, ShopEntry.Type.WEAPON)
+                        .stock(1)
+                        .build());
             }
         });
     }
