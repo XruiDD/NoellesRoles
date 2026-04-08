@@ -452,5 +452,20 @@
   "tip.engineer.unlocked": "门已解锁！",
   "replay.item_use.noellesroles.repair_tool.repair": "%s 使用§b维修工具§r修复了一扇门",
   "replay.item_use.noellesroles.repair_tool.lock": "%s 使用§b维修工具§r锁上了一扇门",
-  "replay.item_use.noellesroles.repair_tool.unlock": "%s 使用§b维修工具§r解锁了一扇门"
+  "replay.item_use.noellesroles.repair_tool.unlock": "%s 使用§b维修工具§r解锁了一扇门",
+
+  "key.noellesroles.role_info": "查看职业介绍",
+  "roleinfo.hint": "按 [%s] 展开职业介绍",
+  "roleinfo.screen.title": "职业介绍",
+  "roleinfo.no_info": "当前没有可用的职业介绍",
+  "roleinfo.close_hint": "按 ESC 关闭",
+  "roleinfo.faction_label": "阵营: %s",
+  "roleinfo.description_label": "职业介绍",
+  "roleinfo.win_condition_label": "胜利条件",
+  "roleinfo.skills_header": "技能",
+  "roleinfo.skill.trigger_label": "触发条件: %s",
+  "roleinfo.skill.effect_label": "技能效果: %s",
+  "roleinfo.faction.killer": "杀手",
+  "roleinfo.faction.innocent": "好人",
+  "roleinfo.faction.neutral": "中立"
 }

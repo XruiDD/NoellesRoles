@@ -426,5 +426,20 @@
   "tip.engineer.unlocked": "Door unlocked!",
   "replay.item_use.noellesroles.repair_tool.repair": "%s §brepaired§r a door",
   "replay.item_use.noellesroles.repair_tool.lock": "%s §blocked§r a door",
-  "replay.item_use.noellesroles.repair_tool.unlock": "%s §bunlocked§r a door"
+  "replay.item_use.noellesroles.repair_tool.unlock": "%s §bunlocked§r a door",
+
+  "key.noellesroles.role_info": "View Role Info",
+  "roleinfo.hint": "Press [%s] to view role info",
+  "roleinfo.screen.title": "Role Info",
+  "roleinfo.no_info": "No role info available",
+  "roleinfo.close_hint": "Press ESC to close",
+  "roleinfo.faction_label": "Faction: %s",
+  "roleinfo.description_label": "Description",
+  "roleinfo.win_condition_label": "Win Condition",
+  "roleinfo.skills_header": "Skills",
+  "roleinfo.skill.trigger_label": "Trigger: %s",
+  "roleinfo.skill.effect_label": "Effect: %s",
+  "roleinfo.faction.killer": "Killer",
+  "roleinfo.faction.innocent": "Innocent",
+  "roleinfo.faction.neutral": "Neutral"
 }

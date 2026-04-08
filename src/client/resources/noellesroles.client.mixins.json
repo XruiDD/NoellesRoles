@@ -22,6 +22,7 @@
     "phantom.PhantomHudMixin",
     "recaller.RecallerHudMixin",
     "reporter.ReporterHudMixin",
+    "roleinfo.RoleInfoHudMixin",
     "scavenger.ScavengerBodyHideMixin",
     "scavenger.ScavengerInstantKnifeMixin",
     "swapper.SwapperScreenMixin",
