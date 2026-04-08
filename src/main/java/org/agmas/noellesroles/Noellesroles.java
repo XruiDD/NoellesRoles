@@ -2,6 +2,8 @@ package org.agmas.noellesroles;
 
 import dev.doctor4t.wathe.api.Role;
 import dev.doctor4t.wathe.api.RoleAppearanceCondition;
+import dev.doctor4t.wathe.api.WatheGameModes;
+import dev.doctor4t.wathe.api.WatheMapEffects;
 import dev.doctor4t.wathe.api.WatheRoles;
 import org.agmas.noellesroles.bartender.CocktailRegistry;
 import dev.doctor4t.wathe.api.event.*;
@@ -37,12 +39,14 @@ import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.Registries;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.TypeFilter;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import org.agmas.noellesroles.bartender.BartenderPlayerComponent;
 import org.agmas.noellesroles.bartender.BartenderShopHandler;
@@ -62,6 +66,7 @@ import org.agmas.noellesroles.jester.JesterPlayerComponent;
 import org.agmas.noellesroles.pathogen.InfectedPlayerComponent;
 import org.agmas.noellesroles.pathogen.PathogenPlayerComponent;
 import org.agmas.noellesroles.noisemaker.NoisemakerPlayerComponent;
+import org.agmas.noellesroles.riotpatrol.RiotPatrolPlayerComponent;
 import org.agmas.noellesroles.bomber.BomberPlayerComponent;
 import org.agmas.noellesroles.bomber.BomberShopHandler;
 import org.agmas.noellesroles.assassin.AssassinPlayerComponent;
@@ -70,6 +75,7 @@ import org.agmas.noellesroles.scavenger.ScavengerShopHandler;
 import org.agmas.noellesroles.timekeeper.TimekeeperShopHandler;
 import org.agmas.noellesroles.corruptcop.CorruptCopPlayerComponent;
 import org.agmas.noellesroles.packet.ReporterMarkC2SPacket;
+import org.agmas.noellesroles.packet.SingleplayerTestC2SPacket;
 import org.agmas.noellesroles.professor.IronManPlayerComponent;
 import org.agmas.noellesroles.reporter.ReporterPlayerComponent;
 import org.agmas.noellesroles.reporter.ReporterShopHandler;
@@ -136,6 +142,7 @@ public class Noellesroles implements ModInitializer {
     public static Identifier BANDIT_ID = Identifier.of(MOD_ID, "bandit");
     public static Identifier SURVIVAL_MASTER_ID = Identifier.of(MOD_ID, "survival_master");
     public static Identifier ENGINEER_ID = Identifier.of(MOD_ID, "engineer");
+    public static Identifier RIOT_PATROL_ID = Identifier.of(MOD_ID, "riot_patrol");
 
     // 炸弹死亡原因
     public static Identifier DEATH_REASON_BOMB = Identifier.of(MOD_ID, "bomb");
@@ -198,6 +205,7 @@ public class Noellesroles implements ModInitializer {
     public static Role SURVIVAL_MASTER = WatheRoles.registerRole(new Role(SURVIVAL_MASTER_ID, new Color(50, 180, 160).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
     // 工程师角色 - 无辜者阵营，感知被撬/被锁的门，维修工具修复/上锁/解锁
     public static Role ENGINEER = WatheRoles.registerRole(new Role(ENGINEER_ID, new Color(200, 160, 60).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
+    public static Role RIOT_PATROL = WatheRoles.registerRole(new Role(RIOT_PATROL_ID, new Color(45, 95, 145).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
 
 
     // 小丑角色 - 中立阵营，被无辜者杀死时获胜
@@ -218,6 +226,7 @@ public class Noellesroles implements ModInitializer {
     public static final CustomPayload.Id<ReporterMarkC2SPacket> REPORTER_MARK_PACKET = ReporterMarkC2SPacket.ID;
     public static final CustomPayload.Id<TaotieSwallowC2SPacket> TAOTIE_SWALLOW_PACKET = TaotieSwallowC2SPacket.ID;
     public static final CustomPayload.Id<SilencerSilenceC2SPacket> SILENCER_SILENCE_PACKET = SilencerSilenceC2SPacket.ID;
+    public static final CustomPayload.Id<SingleplayerTestC2SPacket> SINGLEPLAYER_TEST_PACKET = SingleplayerTestC2SPacket.ID;
     public static final ArrayList<Role> VANNILA_ROLES = new ArrayList<>();
     public static final ArrayList<Identifier> VANNILA_ROLE_IDS = new ArrayList<>();
     // 中立万能钥匙可用角色集合
@@ -309,6 +318,7 @@ public class Noellesroles implements ModInitializer {
         PayloadTypeRegistry.playC2S().register(ReporterMarkC2SPacket.ID, ReporterMarkC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(TaotieSwallowC2SPacket.ID, TaotieSwallowC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(SilencerSilenceC2SPacket.ID, SilencerSilenceC2SPacket.CODEC);
+        PayloadTypeRegistry.playC2S().register(SingleplayerTestC2SPacket.ID, SingleplayerTestC2SPacket.CODEC);
         PayloadTypeRegistry.playS2C().register(EngineerDoorHighlightS2CPacket.ID, EngineerDoorHighlightS2CPacket.CODEC);
 
         registerEvents();
@@ -507,6 +517,20 @@ public class Noellesroles implements ModInitializer {
                 whiskeyEvent.record();
                 return KillPlayer.KillResult.cancel();
             }
+            if (victim instanceof ServerPlayerEntity serverVictim3
+                    && killer instanceof ServerPlayerEntity serverKiller
+                    && deathReason == GameConstants.DeathReasons.KNIFE) {
+                RiotPatrolPlayerComponent riotPatrolComponent = RiotPatrolPlayerComponent.KEY.get(serverVictim3);
+                if (riotPatrolComponent.blocksAttacker(serverKiller)) {
+                    var deathBlockedEvent = GameRecordManager.event("death_blocked")
+                        .actor(serverVictim3)
+                        .put("block_reason", "riot_shield")
+                        .put("death_reason", deathReason.toString());
+                    deathBlockedEvent.target(serverKiller);
+                    deathBlockedEvent.record();
+                    return KillPlayer.KillResult.cancel();
+                }
+            }
 
             // 保镖保护逻辑：如果受害者是保镖的保护目标且保镖在3格内，保镖牺牲自己保护目标
             if (deathReason == GameConstants.DeathReasons.KNIFE) {
@@ -631,6 +655,12 @@ public class Noellesroles implements ModInitializer {
                 player.giveItemStack(ModItems.REPAIR_TOOL.getDefaultStack());
                 player.getItemCooldownManager().set(ModItems.REPAIR_TOOL, GameConstants.getInTicks(0, 60));
             }
+            if (role.equals(RIOT_PATROL)) {
+                RiotPatrolPlayerComponent riotPatrolComponent = RiotPatrolPlayerComponent.KEY.get(player);
+                riotPatrolComponent.reset();
+                player.giveItemStack(ModItems.RIOT_SHIELD.getDefaultStack());
+                player.giveItemStack(ModItems.RIOT_FORK.getDefaultStack());
+            }
             if (role.equals(ATTENDANT)) {
                 // 乘务员开局获得一本房间信息书
                 ItemStack book = new ItemStack(Items.WRITTEN_BOOK);
@@ -734,6 +764,7 @@ public class Noellesroles implements ModInitializer {
             BodyguardPlayerComponent.KEY.get(player).reset();
             NoisemakerPlayerComponent.KEY.get(player).reset();
             SurvivalMasterPlayerComponent.KEY.get(player).reset();
+            RiotPatrolPlayerComponent.KEY.get(player).reset();
         });
 
         // Bartender and Recaller get +50 coins when completing tasks
@@ -1258,8 +1289,61 @@ public class Noellesroles implements ModInitializer {
         });
     }
 
+    private static void movePlayerIntoReadyArea(ServerPlayerEntity player, MinecraftServer server) {
+        if (player == null || server == null) {
+            return;
+        }
+
+        GameFunctions.teleportPlayer(player);
+
+        ServerWorld world = player.getServerWorld();
+        dev.doctor4t.wathe.cca.MapVariablesWorldComponent mapVariables = dev.doctor4t.wathe.cca.MapVariablesWorldComponent.KEY.get(world);
+        Box readyArea = mapVariables.getReadyArea();
+        if (readyArea != null && !readyArea.contains(player.getPos())) {
+            Vec3d center = readyArea.getCenter();
+            player.teleport(world, center.getX(), readyArea.minY + 1, center.getZ(), player.getYaw(), player.getPitch());
+        }
+
+        GameFunctions.setPlayerSpawnToMapSpawn(player, world);
+    }
 
     public void registerPackets() {
+        ServerPlayNetworking.registerGlobalReceiver(Noellesroles.SINGLEPLAYER_TEST_PACKET, (payload, context) -> {
+            ServerPlayerEntity player = context.player();
+            context.server().execute(() -> {
+                if (!context.server().isHost(player.getGameProfile())) {
+                    return;
+                }
+
+                Role selectedRole = WatheRoles.ROLES.stream()
+                    .filter(role -> role.identifier().toString().equals(payload.roleId()))
+                    .findFirst()
+                    .orElse(null);
+                var selectedGameMode = WatheGameModes.GAME_MODES.get(net.minecraft.util.Identifier.tryParse(payload.gameModeId()));
+                var selectedMapEffect = WatheMapEffects.MAP_EFFECTS.get(net.minecraft.util.Identifier.tryParse(payload.mapEffectId()));
+
+                if (selectedRole == null || selectedGameMode == null || selectedMapEffect == null) {
+                    return;
+                }
+
+                movePlayerIntoReadyArea(player, context.server());
+
+                var scoreboardComponent = dev.doctor4t.wathe.cca.ScoreboardRoleSelectorComponent.KEY.get(context.server().getScoreboard());
+                scoreboardComponent.addForcedRole(selectedRole, player.getUuid());
+
+                GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(player.getServerWorld());
+                if (gameWorldComponent.isRunning()) {
+                    return;
+                }
+
+                dev.doctor4t.wathe.game.GameFunctions.startGame(
+                    player.getServerWorld(),
+                    selectedGameMode,
+                    selectedMapEffect,
+                    dev.doctor4t.wathe.game.GameConstants.getInTicks(Math.max(1, payload.startMinutes()), 0)
+                );
+            });
+        });
         ServerPlayNetworking.registerGlobalReceiver(Noellesroles.MORPH_PACKET, (payload, context) -> {
             GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(context.player().getWorld());
             AbilityPlayerComponent abilityPlayerComponent = (AbilityPlayerComponent) AbilityPlayerComponent.KEY.get(context.player());

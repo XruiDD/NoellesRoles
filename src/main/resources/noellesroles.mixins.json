@@ -19,6 +19,7 @@
     "bomber.BomberGrenadeCooldownMixin",
     "equipment.EntityTrackerEntryMixin",
     "equipment.EntityTrackerMixin",
+    "riotpatrol.PlayerAttackMixin",
     "taotie.SpectatorTeleportMixin",
     "taotie.SwallowedPlayerEntityMixin",
     "taotie.SwallowedPlayerSpectatorMixin",

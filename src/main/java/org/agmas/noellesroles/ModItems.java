@@ -9,6 +9,8 @@ import org.agmas.noellesroles.item.PoisonNeedleItem;
 import org.agmas.noellesroles.item.PoisonGasBombItem;
 import org.agmas.noellesroles.item.CatalystItem;
 import org.agmas.noellesroles.item.RepairToolItem;
+import org.agmas.noellesroles.item.RiotForkItem;
+import org.agmas.noellesroles.item.RiotShieldItem;
 import org.agmas.noellesroles.item.ThrowingAxeItem;
 import org.agmas.noellesroles.item.BaseSpiritItem;
 import org.agmas.noellesroles.item.IngredientItem;
@@ -75,6 +77,14 @@ public class ModItems {
     public static final Item CATALYST = register(
             new CatalystItem(new Item.Settings().maxCount(1)),
             "catalyst"
+    );
+    public static final Item RIOT_SHIELD = register(
+            new RiotShieldItem(new Item.Settings().maxCount(1)),
+            "riot_shield"
+    );
+    public static final Item RIOT_FORK = register(
+            new RiotForkItem(new Item.Settings().maxCount(1)),
+            "riot_fork"
     );
 
     // ---- 工程师系统 ----
