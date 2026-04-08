@@ -432,7 +432,6 @@
   "roleinfo.hint": "Press [%s] to view role info",
   "roleinfo.screen.title": "Role Info",
   "roleinfo.no_info": "No role info available",
-  "roleinfo.close_hint": "Press ESC to close",
   "roleinfo.faction_label": "Faction: %s",
   "roleinfo.description_label": "Description",
   "roleinfo.win_condition_label": "Win Condition",

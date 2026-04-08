@@ -9,6 +9,7 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.OrderedText;
 import net.minecraft.text.Text;
+import org.agmas.noellesroles.client.NoellesrolesClient;
 import org.agmas.noellesroles.client.roleinfo.RoleInfoData;
 import org.agmas.noellesroles.client.roleinfo.RoleInfoRegistry;
 
@@ -61,12 +62,12 @@ public class RoleInfoScreen extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        context.fill(0, 0, this.width, this.height, 0xF0000030);
+        context.fill(0, 0, this.width, this.height, 0xCC000000);
 
         // Top and bottom accent bars
         super.render(context, mouseX, mouseY, delta);
-        context.fill(0, 0, this.width, 6, 0xFF333355);
-        context.fill(0, this.height - 6, this.width, this.height, 0xFF333355);
+        context.fillGradient(0, 0, this.width, 18, 0x55333355, 0x00333355);
+        context.fillGradient(0, this.height - 18, this.width, this.height, 0x00333355, 0x55333355);
 
         TextRenderer font = MinecraftClient.getInstance().textRenderer;
         int contentWidth = Math.min(this.width - PADDING * 2, 320);
@@ -177,9 +178,6 @@ public class RoleInfoScreen extends Screen {
 
         context.disableScissor();
 
-        // ========== Close hint at bottom ==========
-        Text closeHint = Text.translatable("roleinfo.close_hint");
-        context.drawCenteredTextWithShadow(font, closeHint, centerX, this.height - 14, 0xFF666666);
     }
 
     @Override
@@ -198,5 +196,15 @@ public class RoleInfoScreen extends Screen {
     @Override
     public void close() {
         this.client.setScreen(null);
+    }
+
+    @Override
+    public boolean keyReleased(int keyCode, int scanCode, int modifiers) {
+        if (NoellesrolesClient.roleInfoBind != null
+                && NoellesrolesClient.roleInfoBind.matchesKey(keyCode, scanCode)) {
+            this.close();
+            return true;
+        }
+        return super.keyReleased(keyCode, scanCode, modifiers);
     }
 }

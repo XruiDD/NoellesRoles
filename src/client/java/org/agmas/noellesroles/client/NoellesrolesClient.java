@@ -81,7 +81,6 @@ public class NoellesrolesClient implements ClientModInitializer {
     public static int insanityTime = 0;
     public static KeyBinding abilityBind;
     public static KeyBinding roleInfoBind;
-    public static KeyBinding roleInfoDebugForceOpenBind;
     public static PlayerBodyEntity targetBody;
     public static PlayerEntity pathogenNearestTarget;
     public static double pathogenNearestTargetDistance;
@@ -99,9 +98,7 @@ public class NoellesrolesClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         abilityBind = KeyBindingHelper.registerKeyBinding(new KeyBinding("key." + Noellesroles.MOD_ID + ".ability", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_G, "category.wathe.keybinds"));
-        roleInfoBind = KeyBindingHelper.registerKeyBinding(new KeyBinding("key." + Noellesroles.MOD_ID + ".role_info", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_H, "category.wathe.keybinds"));
-        roleInfoDebugForceOpenBind = KeyBindingHelper.registerKeyBinding(new KeyBinding("key." + Noellesroles.MOD_ID + ".role_info_debug_force_open", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_F9, "category.wathe.keybinds"));
-
+        roleInfoBind = KeyBindingHelper.registerKeyBinding(new KeyBinding("key." + Noellesroles.MOD_ID + ".role_info", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_TAB, "category.wathe.keybinds"));
         // 加载角色信息配置
         RoleInfoRegistry.load();
 
@@ -542,19 +539,19 @@ public class NoellesrolesClient implements ClientModInitializer {
                 });
             }
             if (roleInfoBind.wasPressed()) {
-                client.execute(() -> {
-                    if (MinecraftClient.getInstance().player == null) {
-                        return;
-                    }
-                    if (!GameFunctions.isPlayerPlayingAndAlive(MinecraftClient.getInstance().player)) {
-                        return;
-                    }
-                    GameWorldComponent gwc = GameWorldComponent.KEY.get(MinecraftClient.getInstance().player.getWorld());
-                    if (!gwc.hasAnyRole(MinecraftClient.getInstance().player)) {
-                        return;
-                    }
+                if (MinecraftClient.getInstance().player == null) {
+                    return;
+                }
+                if (!GameFunctions.isPlayerPlayingAndAlive(MinecraftClient.getInstance().player)) {
+                    return;
+                }
+                GameWorldComponent gwc = GameWorldComponent.KEY.get(MinecraftClient.getInstance().player.getWorld());
+                if (!gwc.hasAnyRole(MinecraftClient.getInstance().player)) {
+                    return;
+                }
+                if (MinecraftClient.getInstance().currentScreen == null) {
                     MinecraftClient.getInstance().setScreen(new RoleInfoScreen());
-                });
+                };
             }
 
             ClientPlayerEntity player = MinecraftClient.getInstance().player;
@@ -568,7 +565,6 @@ public class NoellesrolesClient implements ClientModInitializer {
                 if (holdingInvisible && !wasHoldingInvisible) {
                     player.sendMessage(Text.translatable("tip.item.invisible_in_hand").withColor(0xAAAAAA), true);
                 }
-                wasHoldingInvisible = holdingInvisible;
             }
         });
     }

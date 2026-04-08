@@ -41,13 +41,10 @@ public abstract class RoleInfoHudMixin {
         String keyName = NoellesrolesClient.roleInfoBind.getBoundKeyLocalizedText().getString();
         Text hintText = Text.translatable("roleinfo.hint", keyName);
 
-        int screenWidth = context.getScaledWindowWidth();
-        int screenHeight = context.getScaledWindowHeight();
-        int textWidth = getTextRenderer().getWidth(hintText);
-
-        // Centered horizontally, above the hotbar area
-        int x = (screenWidth - textWidth) / 2;
-        int y = screenHeight - 58;
+        int drawY = context.getScaledWindowHeight();
+        drawY -= getTextRenderer().getWrappedLinesHeight(hintText, 999999);
+        drawY -= 5;
+        int x = 5;
 
         // Subtle breathing alpha effect
         float time = (System.currentTimeMillis() % 3000) / 3000f;
@@ -55,6 +52,6 @@ public abstract class RoleInfoHudMixin {
         int alphaInt = (int) (alpha * 255);
         int color = (alphaInt << 24) | 0xCCCCCC;
 
-        context.drawTextWithShadow(getTextRenderer(), hintText, x, y, color);
+        context.drawTextWithShadow(getTextRenderer(), hintText, x, drawY, color);
     }
 }
