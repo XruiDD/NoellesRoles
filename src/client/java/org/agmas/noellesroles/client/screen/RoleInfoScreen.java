@@ -61,12 +61,12 @@ public class RoleInfoScreen extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-//        // Dark translucent background
-//        context.fill(0, 0, this.width, this.height, 0xE0101020);
+        context.fill(0, 0, this.width, this.height, 0xF0000030);
 
         // Top and bottom accent bars
-        context.fill(0, 0, this.width, 3, 0xFF333355);
-        context.fill(0, this.height - 3, this.width, this.height, 0xFF333355);
+        super.render(context, mouseX, mouseY, delta);
+        context.fill(0, 0, this.width, 6, 0xFF333355);
+        context.fill(0, this.height - 6, this.width, this.height, 0xFF333355);
 
         TextRenderer font = MinecraftClient.getInstance().textRenderer;
         int contentWidth = Math.min(this.width - PADDING * 2, 320);
@@ -77,7 +77,6 @@ public class RoleInfoScreen extends Screen {
             context.drawCenteredTextWithShadow(font,
                     Text.translatable("roleinfo.no_info"),
                     centerX, this.height / 2, 0xFFAAAAAA);
-            super.render(context, mouseX, mouseY, delta);
             return;
         }
 
@@ -181,8 +180,6 @@ public class RoleInfoScreen extends Screen {
         // ========== Close hint at bottom ==========
         Text closeHint = Text.translatable("roleinfo.close_hint");
         context.drawCenteredTextWithShadow(font, closeHint, centerX, this.height - 14, 0xFF666666);
-
-        super.render(context, mouseX, mouseY, delta);
     }
 
     @Override
