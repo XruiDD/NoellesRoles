@@ -443,6 +443,7 @@
   "announcement.goals.criminal_reasoner": "这是一个中立角色占位实现，能力与胜利条件暂未开放。",
   "announcement.role.criminal_reasoner": "犯罪推理学家",
   "announcement.win.criminal_reasoner": "犯罪推理学家胜利！",
+  "hud.criminal_reasoner.press_key_hint": "按[%s]打开犯罪推理菜单",
 
   "announcement.goals.engineer": "你可以感知被撬/被锁的门！维修工具可以修复被撬的门或上锁/解锁！",
   "announcement.role.engineer": "工程师",

@@ -417,6 +417,7 @@
   "announcement.goals.criminal_reasoner": "Your role is registered as a neutral placeholder for now. Ability and win condition are not implemented yet.",
   "announcement.role.criminal_reasoner": "Criminal Reasoner",
   "announcement.win.criminal_reasoner": "Criminal Reasoner Wins!",
+  "hud.criminal_reasoner.press_key_hint": "Press [%s] to open the criminal reasoning menu",
 
   "announcement.goals.engineer": "You can sense pried/locked doors! Use your Repair Tool to fix or lock/unlock doors!",
   "announcement.role.engineer": "Engineer",
