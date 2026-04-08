@@ -437,16 +437,5 @@
   "replay.death_blocked.riot_shield": "%s blocked a frontal attack with a §briot shield§r",
   "replay.item_use.noellesroles.riot_fork": "%s pinned %s with a §briot fork§r"
 ,
-  "screen.noellesroles.singleplayer_test.title": "Singleplayer Role Test",
-  "screen.noellesroles.singleplayer_test.tip": "Quick self-role setup for local testing",
-  "screen.noellesroles.singleplayer_test.role": "Role: %s",
-  "screen.noellesroles.singleplayer_test.gamemode": "GameMode: %s",
-  "screen.noellesroles.singleplayer_test.mapeffect": "Map: %s",
-  "screen.noellesroles.singleplayer_test.minutes": "Round Minutes",
-  "screen.noellesroles.singleplayer_test.minutes_hint": "1-99",
-  "screen.noellesroles.singleplayer_test.start": "Force Role And Start",
-  "screen.noellesroles.singleplayer_test.close": "Close",
-  "screen.noellesroles.singleplayer_test.sent": "Started singleplayer test as %s",
-  "key.noellesroles.singleplayer_test": "Open Singleplayer Test",
-  "category.noellesroles.testing": "NoellesRoles Testing"
+  
 }

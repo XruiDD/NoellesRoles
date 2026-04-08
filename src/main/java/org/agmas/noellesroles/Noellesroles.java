@@ -75,7 +75,6 @@ import org.agmas.noellesroles.scavenger.ScavengerShopHandler;
 import org.agmas.noellesroles.timekeeper.TimekeeperShopHandler;
 import org.agmas.noellesroles.corruptcop.CorruptCopPlayerComponent;
 import org.agmas.noellesroles.packet.ReporterMarkC2SPacket;
-import org.agmas.noellesroles.packet.SingleplayerTestC2SPacket;
 import org.agmas.noellesroles.professor.IronManPlayerComponent;
 import org.agmas.noellesroles.reporter.ReporterPlayerComponent;
 import org.agmas.noellesroles.reporter.ReporterShopHandler;
@@ -226,7 +225,6 @@ public class Noellesroles implements ModInitializer {
     public static final CustomPayload.Id<ReporterMarkC2SPacket> REPORTER_MARK_PACKET = ReporterMarkC2SPacket.ID;
     public static final CustomPayload.Id<TaotieSwallowC2SPacket> TAOTIE_SWALLOW_PACKET = TaotieSwallowC2SPacket.ID;
     public static final CustomPayload.Id<SilencerSilenceC2SPacket> SILENCER_SILENCE_PACKET = SilencerSilenceC2SPacket.ID;
-    public static final CustomPayload.Id<SingleplayerTestC2SPacket> SINGLEPLAYER_TEST_PACKET = SingleplayerTestC2SPacket.ID;
     public static final ArrayList<Role> VANNILA_ROLES = new ArrayList<>();
     public static final ArrayList<Identifier> VANNILA_ROLE_IDS = new ArrayList<>();
     // 中立万能钥匙可用角色集合
@@ -318,7 +316,6 @@ public class Noellesroles implements ModInitializer {
         PayloadTypeRegistry.playC2S().register(ReporterMarkC2SPacket.ID, ReporterMarkC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(TaotieSwallowC2SPacket.ID, TaotieSwallowC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(SilencerSilenceC2SPacket.ID, SilencerSilenceC2SPacket.CODEC);
-        PayloadTypeRegistry.playC2S().register(SingleplayerTestC2SPacket.ID, SingleplayerTestC2SPacket.CODEC);
         PayloadTypeRegistry.playS2C().register(EngineerDoorHighlightS2CPacket.ID, EngineerDoorHighlightS2CPacket.CODEC);
 
         registerEvents();
@@ -334,6 +331,7 @@ public class Noellesroles implements ModInitializer {
         // 毒师手持毒针时允许攻击玩家
         AllowPlayerPunching.EVENT.register((attacker, victim) ->
                 attacker.getMainHandStack().isOf(ModItems.POISON_NEEDLE)
+                        || attacker.getMainHandStack().isOf(ModItems.RIOT_SHIELD)
         );
 
         // 注册 DLC 回放格式化器
@@ -1308,42 +1306,6 @@ public class Noellesroles implements ModInitializer {
     }
 
     public void registerPackets() {
-        ServerPlayNetworking.registerGlobalReceiver(Noellesroles.SINGLEPLAYER_TEST_PACKET, (payload, context) -> {
-            ServerPlayerEntity player = context.player();
-            context.server().execute(() -> {
-                if (!context.server().isHost(player.getGameProfile())) {
-                    return;
-                }
-
-                Role selectedRole = WatheRoles.ROLES.stream()
-                    .filter(role -> role.identifier().toString().equals(payload.roleId()))
-                    .findFirst()
-                    .orElse(null);
-                var selectedGameMode = WatheGameModes.GAME_MODES.get(net.minecraft.util.Identifier.tryParse(payload.gameModeId()));
-                var selectedMapEffect = WatheMapEffects.MAP_EFFECTS.get(net.minecraft.util.Identifier.tryParse(payload.mapEffectId()));
-
-                if (selectedRole == null || selectedGameMode == null || selectedMapEffect == null) {
-                    return;
-                }
-
-                movePlayerIntoReadyArea(player, context.server());
-
-                var scoreboardComponent = dev.doctor4t.wathe.cca.ScoreboardRoleSelectorComponent.KEY.get(context.server().getScoreboard());
-                scoreboardComponent.addForcedRole(selectedRole, player.getUuid());
-
-                GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(player.getServerWorld());
-                if (gameWorldComponent.isRunning()) {
-                    return;
-                }
-
-                dev.doctor4t.wathe.game.GameFunctions.startGame(
-                    player.getServerWorld(),
-                    selectedGameMode,
-                    selectedMapEffect,
-                    dev.doctor4t.wathe.game.GameConstants.getInTicks(Math.max(1, payload.startMinutes()), 0)
-                );
-            });
-        });
         ServerPlayNetworking.registerGlobalReceiver(Noellesroles.MORPH_PACKET, (payload, context) -> {
             GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(context.player().getWorld());
             AbilityPlayerComponent abilityPlayerComponent = (AbilityPlayerComponent) AbilityPlayerComponent.KEY.get(context.player());

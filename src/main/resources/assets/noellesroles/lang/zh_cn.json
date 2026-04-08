@@ -463,16 +463,5 @@
   "replay.death_blocked.riot_shield": "%s 用§b防爆盾§r挡下了正面攻击",
   "replay.item_use.noellesroles.riot_fork": "%s 用§b防爆叉§r锁住了 %s"
 ,
-  "screen.noellesroles.singleplayer_test.title": "单人角色测试",
-  "screen.noellesroles.singleplayer_test.tip": "快速给自己指定角色并开始游戏",
-  "screen.noellesroles.singleplayer_test.role": "角色: %s",
-  "screen.noellesroles.singleplayer_test.gamemode": "模式: %s",
-  "screen.noellesroles.singleplayer_test.mapeffect": "地图效果: %s",
-  "screen.noellesroles.singleplayer_test.minutes": "局时(分钟)",
-  "screen.noellesroles.singleplayer_test.minutes_hint": "1-99",
-  "screen.noellesroles.singleplayer_test.start": "强制角色并开局",
-  "screen.noellesroles.singleplayer_test.close": "关闭",
-  "screen.noellesroles.singleplayer_test.sent": "已以 %s 开始单人测试",
-  "key.noellesroles.singleplayer_test": "打开单人测试面板",
-  "category.noellesroles.testing": "NoellesRoles 测试"
+  "category.noellesroles.testing_removed": "NoellesRoles 测试"
 }

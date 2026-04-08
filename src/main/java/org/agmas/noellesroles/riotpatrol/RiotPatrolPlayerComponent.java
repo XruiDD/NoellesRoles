@@ -18,6 +18,8 @@ import org.ladysnake.cca.api.v3.component.ComponentRegistry;
 import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
 import org.ladysnake.cca.api.v3.component.tick.ServerTickingComponent;
 
+import java.util.UUID;
+
 public class RiotPatrolPlayerComponent implements AutoSyncedComponent, ServerTickingComponent {
     public static final ComponentKey<RiotPatrolPlayerComponent> KEY = ComponentRegistry.getOrCreate(
         Identifier.of(Noellesroles.MOD_ID, "riot_patrol"), RiotPatrolPlayerComponent.class
@@ -26,6 +28,8 @@ public class RiotPatrolPlayerComponent implements AutoSyncedComponent, ServerTic
     private final PlayerEntity player;
     private boolean shieldActive = false;
     private int rootedTicks = 0;
+    private UUID rootLinkedPlayer;
+    private boolean rootMaintainer = false;
 
     public RiotPatrolPlayerComponent(PlayerEntity player) {
         this.player = player;
@@ -34,6 +38,8 @@ public class RiotPatrolPlayerComponent implements AutoSyncedComponent, ServerTic
     public void reset() {
         this.shieldActive = false;
         this.rootedTicks = 0;
+        this.rootLinkedPlayer = null;
+        this.rootMaintainer = false;
         this.sync();
     }
 
@@ -83,6 +89,27 @@ public class RiotPatrolPlayerComponent implements AutoSyncedComponent, ServerTic
 
     public void rootAtCurrentPosition(int ticks) {
         this.rootedTicks = Math.max(this.rootedTicks, ticks);
+        if (this.rootedTicks <= 0) {
+            this.rootLinkedPlayer = null;
+            this.rootMaintainer = false;
+        }
+        this.sync();
+    }
+
+    public void startForkRoot(PlayerEntity linkedPlayer, int ticks, boolean maintainer) {
+        this.rootedTicks = Math.max(this.rootedTicks, ticks);
+        this.rootLinkedPlayer = linkedPlayer == null ? null : linkedPlayer.getUuid();
+        this.rootMaintainer = maintainer;
+        this.sync();
+    }
+
+    public void clearRoot() {
+        if (this.rootedTicks == 0 && this.rootLinkedPlayer == null && !this.rootMaintainer) {
+            return;
+        }
+        this.rootedTicks = 0;
+        this.rootLinkedPlayer = null;
+        this.rootMaintainer = false;
         this.sync();
     }
 
@@ -119,12 +146,41 @@ public class RiotPatrolPlayerComponent implements AutoSyncedComponent, ServerTic
             return;
         }
 
+        if (this.rootMaintainer && !this.player.getMainHandStack().isOf(ModItems.RIOT_FORK)) {
+            this.clearRootPair();
+            return;
+        }
+
         this.rootedTicks--;
         this.player.setVelocity(Vec3d.ZERO);
         this.player.velocityModified = true;
 
-        if (this.rootedTicks % 20 == 0 || this.rootedTicks == 0) {
+        if (this.rootedTicks == 0) {
+            this.clearRootPair();
+            return;
+        }
+
+        if (this.rootedTicks % 20 == 0) {
             this.sync();
+        }
+    }
+
+    private void clearRootPair() {
+        UUID linkedUuid = this.rootLinkedPlayer;
+        this.clearRoot();
+
+        if (linkedUuid == null || this.player.getWorld() == null) {
+            return;
+        }
+
+        PlayerEntity linkedPlayer = this.player.getWorld().getPlayerByUuid(linkedUuid);
+        if (linkedPlayer == null || linkedPlayer == this.player) {
+            return;
+        }
+
+        RiotPatrolPlayerComponent linkedComponent = KEY.get(linkedPlayer);
+        if (linkedComponent.rootedTicks > 0 || linkedComponent.rootLinkedPlayer != null || linkedComponent.rootMaintainer) {
+            linkedComponent.clearRoot();
         }
     }
 
@@ -132,11 +188,17 @@ public class RiotPatrolPlayerComponent implements AutoSyncedComponent, ServerTic
     public void writeToNbt(@NotNull NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
         tag.putBoolean("shieldActive", this.shieldActive);
         tag.putInt("rootedTicks", this.rootedTicks);
+        if (this.rootLinkedPlayer != null) {
+            tag.putUuid("rootLinkedPlayer", this.rootLinkedPlayer);
+        }
+        tag.putBoolean("rootMaintainer", this.rootMaintainer);
     }
 
     @Override
     public void readFromNbt(@NotNull NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
         this.shieldActive = tag.getBoolean("shieldActive");
         this.rootedTicks = tag.getInt("rootedTicks");
+        this.rootLinkedPlayer = tag.containsUuid("rootLinkedPlayer") ? tag.getUuid("rootLinkedPlayer") : null;
+        this.rootMaintainer = tag.getBoolean("rootMaintainer");
     }
 }

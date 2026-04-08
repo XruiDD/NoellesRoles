@@ -2,8 +2,8 @@ package org.agmas.noellesroles.item;
 
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.ShieldItem;
 import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
@@ -14,7 +14,7 @@ import org.agmas.noellesroles.riotpatrol.RiotPatrolPlayerComponent;
 
 import java.util.List;
 
-public class RiotShieldItem extends Item {
+public class RiotShieldItem extends ShieldItem {
     public static final int SHIELD_COOLDOWN_TICKS = 20 * 30;
 
     public RiotShieldItem(Settings settings) {
@@ -38,7 +38,10 @@ public class RiotShieldItem extends Item {
     @Override
     public void onStoppedUsing(ItemStack stack, World world, LivingEntity user, int remainingUseTicks) {
         if (!world.isClient && user instanceof PlayerEntity player) {
-            RiotPatrolPlayerComponent.KEY.get(player).lowerShield(true);
+            RiotPatrolPlayerComponent riotPatrolComponent = RiotPatrolPlayerComponent.KEY.get(player);
+            if (riotPatrolComponent.isShieldActive()) {
+                riotPatrolComponent.lowerShield(true);
+            }
         }
         super.onStoppedUsing(stack, world, user, remainingUseTicks);
     }

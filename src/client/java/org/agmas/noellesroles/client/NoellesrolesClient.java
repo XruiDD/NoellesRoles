@@ -42,7 +42,6 @@ import org.agmas.noellesroles.client.gui.JesterTimeRenderer;
 import org.agmas.noellesroles.util.HiddenEquipmentHelper;
 import dev.doctor4t.wathe.index.WatheItems;
 import org.agmas.noellesroles.client.screen.AssassinScreen;
-import org.agmas.noellesroles.client.screen.SingleplayerTestScreen;
 import org.agmas.noellesroles.corruptcop.CorruptCopPlayerComponent;
 import org.agmas.noellesroles.jester.JesterPlayerComponent;
 import org.agmas.noellesroles.morphling.MorphlingPlayerComponent;
@@ -81,7 +80,6 @@ import java.util.List;
 public class NoellesrolesClient implements ClientModInitializer {
     public static int insanityTime = 0;
     public static KeyBinding abilityBind;
-    public static KeyBinding singleplayerTestBind;
     public static PlayerBodyEntity targetBody;
     public static PlayerEntity pathogenNearestTarget;
     public static double pathogenNearestTargetDistance;
@@ -99,7 +97,6 @@ public class NoellesrolesClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         abilityBind = KeyBindingHelper.registerKeyBinding(new KeyBinding("key." + Noellesroles.MOD_ID + ".ability", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_G, "category.wathe.keybinds"));
-        singleplayerTestBind = KeyBindingHelper.registerKeyBinding(new KeyBinding("key." + Noellesroles.MOD_ID + ".singleplayer_test", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_J, "category.noellesroles.testing"));
 
         // 注册解毒剂冷却模型谓词
         ModelPredicateProviderRegistry.register(ModItems.ANTIDOTE, Identifier.of(Noellesroles.MOD_ID, "cooldown"),
@@ -344,16 +341,20 @@ public class NoellesrolesClient implements ClientModInitializer {
 
             RiotPatrolPlayerComponent riotPatrolComponent = RiotPatrolPlayerComponent.KEY.get(player);
             if (!riotPatrolComponent.isRooted()) {
-                return;
+            } else {
+                client.options.forwardKey.setPressed(false);
+                client.options.backKey.setPressed(false);
+                client.options.leftKey.setPressed(false);
+                client.options.rightKey.setPressed(false);
+                client.options.jumpKey.setPressed(false);
+                client.options.sprintKey.setPressed(false);
+                client.options.sneakKey.setPressed(false);
             }
 
-            client.options.forwardKey.setPressed(false);
-            client.options.backKey.setPressed(false);
-            client.options.leftKey.setPressed(false);
-            client.options.rightKey.setPressed(false);
-            client.options.jumpKey.setPressed(false);
-            client.options.sprintKey.setPressed(false);
-            client.options.sneakKey.setPressed(false);
+            if (player.getMainHandStack().isOf(ModItems.RIOT_SHIELD)
+                    && player.getItemCooldownManager().isCoolingDown(ModItems.RIOT_SHIELD)) {
+                client.options.attackKey.setPressed(false);
+            }
         });
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             // 更新世界BGM管理器
@@ -552,13 +553,6 @@ public class NoellesrolesClient implements ClientModInitializer {
 
                     ClientPlayNetworking.send(new AbilityC2SPacket());
                 });
-            }
-
-            while (singleplayerTestBind.wasPressed()) {
-                if (MinecraftClient.getInstance().player == null) {
-                    continue;
-                }
-                client.execute(() -> MinecraftClient.getInstance().setScreen(new SingleplayerTestScreen(MinecraftClient.getInstance().currentScreen)));
             }
 
             ClientPlayerEntity player = MinecraftClient.getInstance().player;

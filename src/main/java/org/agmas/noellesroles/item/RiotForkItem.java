@@ -48,8 +48,8 @@ public class RiotForkItem extends Item {
         }
 
         if (!user.getWorld().isClient) {
-            RiotPatrolPlayerComponent.KEY.get(user).rootAtCurrentPosition(ROOT_DURATION_TICKS);
-            RiotPatrolPlayerComponent.KEY.get(target).rootAtCurrentPosition(ROOT_DURATION_TICKS);
+            RiotPatrolPlayerComponent.KEY.get(user).startForkRoot(target, ROOT_DURATION_TICKS, true);
+            RiotPatrolPlayerComponent.KEY.get(target).startForkRoot(user, ROOT_DURATION_TICKS, false);
             user.getItemCooldownManager().set(this, COOLDOWN_TICKS);
             user.getWorld().playSound(null, user.getBlockPos(), SoundEvents.ITEM_TRIDENT_HIT, SoundCategory.PLAYERS, 1.0F, 0.9F);
 

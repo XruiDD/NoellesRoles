@@ -6,6 +6,8 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.sound.SoundEvents;
 import org.agmas.noellesroles.ModItems;
 import org.agmas.noellesroles.Noellesroles;
+import org.agmas.noellesroles.item.RiotShieldItem;
+import org.agmas.noellesroles.riotpatrol.RiotPatrolPlayerComponent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -23,13 +25,22 @@ public class PlayerAttackMixin {
         if (!GameWorldComponent.KEY.get(player.getWorld()).isRole(player, Noellesroles.RIOT_PATROL)) {
             return;
         }
-        if (!(target instanceof PlayerEntity livingTarget) || player.squaredDistanceTo(livingTarget) > 4.0) {
+        if (player.getItemCooldownManager().isCoolingDown(ModItems.RIOT_SHIELD)) {
+            ci.cancel();
+            return;
+        }
+        if (!(target instanceof PlayerEntity livingTarget) || player.squaredDistanceTo(livingTarget) > 2.25) {
             ci.cancel();
             return;
         }
 
         if (!player.getWorld().isClient) {
-            livingTarget.takeKnockback(1.35, player.getX() - livingTarget.getX(), player.getZ() - livingTarget.getZ());
+            RiotPatrolPlayerComponent component = RiotPatrolPlayerComponent.KEY.get(player);
+            component.lowerShield(false);
+            player.clearActiveItem();
+            player.getItemCooldownManager().set(ModItems.RIOT_SHIELD, RiotShieldItem.SHIELD_COOLDOWN_TICKS);
+
+            livingTarget.takeKnockback(0.45, player.getX() - livingTarget.getX(), player.getZ() - livingTarget.getZ());
             livingTarget.velocityModified = true;
             player.getWorld().playSound(null, player.getBlockPos(), SoundEvents.ITEM_SHIELD_BLOCK, player.getSoundCategory(), 0.8F, 1.15F);
         }
