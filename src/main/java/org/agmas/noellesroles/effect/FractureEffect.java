@@ -10,12 +10,7 @@ public class FractureEffect extends StatusEffect {
 
     @Override
     public boolean canApplyUpdateEffect(int duration, int amplifier) {
-        return true;
-    }
-
-    @Override
-    public boolean applyUpdateEffect(net.minecraft.entity.LivingEntity entity, int amplifier) {
-        return true;
+        return false;
     }
 
 }

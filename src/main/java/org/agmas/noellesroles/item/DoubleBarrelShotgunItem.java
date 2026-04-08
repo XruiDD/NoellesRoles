@@ -62,8 +62,10 @@ public class DoubleBarrelShotgunItem extends Item {
 
         if (!world.isClient) {
             int remainingShells = loaded - 1;
-            setLoadedShells(stack, remainingShells);
-            clearReloadWindow(stack);
+            NbtCompound nbt = getOrCreateCustomData(stack);
+            nbt.putInt(LOADED_SHELLS_KEY, Math.max(0, remainingShells));
+            nbt.remove(RELOAD_WINDOW_UNTIL_KEY);
+            stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
             PlayerEntity target = findTarget(user);
             if (target instanceof ServerPlayerEntity serverTarget && user instanceof ServerPlayerEntity serverUser) {
                 GameFunctions.killPlayer(serverTarget, true, serverUser, GameConstants.DeathReasons.GUN);

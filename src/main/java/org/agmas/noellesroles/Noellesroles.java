@@ -1571,30 +1571,7 @@ public class Noellesroles implements ModInitializer {
             AbilityPlayerComponent abilityPlayerComponent = (AbilityPlayerComponent) AbilityPlayerComponent.KEY.get(context.player());
             GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(context.player().getWorld());
             if (gameWorldComponent.isRole(context.player(), ORTHOPEDIST) && abilityPlayerComponent.cooldown <= 0 && GameFunctions.isPlayerPlayingAndAlive(context.player()) && !SwallowedPlayerComponent.isPlayerSwallowed(context.player())) {
-                PlayerEntity target = null;
-                double bestScore = Double.NEGATIVE_INFINITY;
-                Vec3d eyePos = context.player().getEyePos();
-                Vec3d look = context.player().getRotationVec(1.0F).normalize();
-
-                for (PlayerEntity candidate : context.player().getWorld().getEntitiesByClass(PlayerEntity.class, context.player().getBoundingBox().expand(3.5), player -> player != context.player() && GameFunctions.isPlayerPlayingAndAlive(player))) {
-                    if (!context.player().canSee(candidate)) {
-                        continue;
-                    }
-                    Vec3d toTarget = candidate.getEyePos().subtract(eyePos);
-                    double distance = toTarget.length();
-                    if (distance > 3.0D || distance <= 0.0001D) {
-                        continue;
-                    }
-                    double alignment = look.dotProduct(toTarget.normalize());
-                    if (alignment < 0.85D) {
-                        continue;
-                    }
-                    double score = alignment - (distance * 0.01D);
-                    if (score > bestScore) {
-                        bestScore = score;
-                        target = candidate;
-                    }
-                }
+                PlayerEntity target = org.agmas.noellesroles.util.CrosshairTargetHelper.findCrosshairTarget(context.player(), 3.0D, 0.85D);
 
                 if (target != null) {
                     HunterPlayerComponent hunterTarget = HunterPlayerComponent.KEY.get(target);

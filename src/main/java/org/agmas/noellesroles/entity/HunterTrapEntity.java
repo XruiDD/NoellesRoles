@@ -90,13 +90,6 @@ public class HunterTrapEntity extends Entity {
             return;
         }
 
-        double snappedX = Math.floor(this.getX()) + 0.5;
-        double snappedY = Math.floor(this.getY()) + 0.02;
-        double snappedZ = Math.floor(this.getZ()) + 0.5;
-        if (Math.abs(this.getX() - snappedX) > 1.0E-3 || Math.abs(this.getY() - snappedY) > 1.0E-3 || Math.abs(this.getZ() - snappedZ) > 1.0E-3) {
-            this.setPosition(snappedX, snappedY, snappedZ);
-        }
-
         if (this.age > 20 * 60 * 10) {
             this.discard();
             return;

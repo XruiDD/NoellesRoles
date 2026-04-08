@@ -400,6 +400,7 @@
   "replay.item_use.noellesroles.repair_tool.lock": "%s 使用§b维修工具§r锁上了一扇门",
   "replay.item_use.noellesroles.repair_tool.unlock": "%s 使用§b维修工具§r解锁了一扇门",
   "replay.death_blocked.riot_shield": "%s 用§b防爆盾§r挡下了正面攻击",
+  "tip.noellesroles.riot_fork.rooted": "你被防爆叉定身了！",
   "replay.item_use.noellesroles.riot_fork": "%s 用§b防爆叉§r锁住了 %s",
   "replay.item_use.noellesroles.hunter_trap.place": "%s 放置了【捕兽夹】",
   "replay.item_use.noellesroles.hunter_trap.pickup": "%s 回收了【捕兽夹】",

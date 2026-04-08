@@ -16,6 +16,7 @@ import org.agmas.noellesroles.client.NoellesrolesClient;
 import org.agmas.noellesroles.hunter.HunterPlayerComponent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -24,14 +25,23 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class OrthopedistHudMixin {
     @Shadow public abstract TextRenderer getTextRenderer();
 
+    @Unique
+    private boolean noellesroles$cachedIsOrthopedist = false;
+    @Unique
+    private long noellesroles$lastRoleCheckTick = -1;
+
     @Inject(method = "render", at = @At("TAIL"))
     public void noellesroles$renderOrthopedistHud(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
         if (MinecraftClient.getInstance().player == null) return;
         if (!GameFunctions.isPlayerPlayingAndAlive(MinecraftClient.getInstance().player)) return;
 
         PlayerEntity localPlayer = MinecraftClient.getInstance().player;
-        GameWorldComponent gameWorld = GameWorldComponent.KEY.get(localPlayer.getWorld());
-        if (!gameWorld.isRole(localPlayer, Noellesroles.ORTHOPEDIST)) {
+        long currentTick = localPlayer.getWorld().getTime();
+        if (currentTick != noellesroles$lastRoleCheckTick) {
+            noellesroles$lastRoleCheckTick = currentTick;
+            noellesroles$cachedIsOrthopedist = GameWorldComponent.KEY.get(localPlayer.getWorld()).isRole(localPlayer, Noellesroles.ORTHOPEDIST);
+        }
+        if (!noellesroles$cachedIsOrthopedist) {
             return;
         }
 

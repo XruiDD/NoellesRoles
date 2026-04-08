@@ -15,6 +15,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(PlayerEntity.class)
 public class PlayerAttackMixin {
+    private static final double SHOVE_RANGE = 1.5;
+    private static final double SHOVE_RANGE_SQ = SHOVE_RANGE * SHOVE_RANGE;
 
     @Inject(method = "attack", at = @At("HEAD"), cancellable = true)
     private void noellesroles$riotShieldKnockback(Entity target, CallbackInfo ci) {
@@ -30,7 +32,7 @@ public class PlayerAttackMixin {
             ci.cancel();
             return;
         }
-        if (!(target instanceof PlayerEntity livingTarget) || player.squaredDistanceTo(livingTarget) > 2.25) {
+        if (!(target instanceof PlayerEntity livingTarget) || player.squaredDistanceTo(livingTarget) > SHOVE_RANGE_SQ) {
             ci.cancel();
             return;
         }

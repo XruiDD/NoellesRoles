@@ -402,6 +402,7 @@
   "replay.item_use.noellesroles.repair_tool.lock": "%s §blocked§r a door",
   "replay.item_use.noellesroles.repair_tool.unlock": "%s §bunlocked§r a door",
   "replay.death_blocked.riot_shield": "%s blocked a frontal attack with a §briot shield§r",
+  "tip.noellesroles.riot_fork.rooted": "You have been pinned by a riot fork!",
   "replay.item_use.noellesroles.riot_fork": "%s pinned %s with a §briot fork§r",
   "replay.item_use.noellesroles.hunter_trap.place": "%s placed a §bbear trap§r",
   "replay.item_use.noellesroles.hunter_trap.pickup": "%s picked up a §bbear trap§r",

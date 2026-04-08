@@ -87,31 +87,16 @@ public class OrthopedistPlayerComponent implements AutoSyncedComponent, ServerTi
 
     private void applyModifier(Identifier modifierId, double amount) {
         EntityAttributeInstance attribute = this.player.getAttributeInstance(WatheAttributes.MAX_SPRINT_TIME);
-        if (attribute == null) {
+        if (attribute == null || attribute.hasModifier(modifierId)) {
             return;
         }
-
-        if (attribute.hasModifier(modifierId)) {
-            return;
-        }
-
-        double oldMax = attribute.getValue();
-        double ratio = 1.0D;
-        PlayerStaminaComponent stamina = PlayerStaminaComponent.KEY.get(this.player);
-        if (oldMax > 0.0D) {
-            ratio = Math.max(0.0D, Math.min(1.0D, stamina.getSprintingTicks() / oldMax));
-        }
-
-        attribute.addTemporaryModifier(new EntityAttributeModifier(
-            modifierId,
-            amount,
-            EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
-        ));
-
-        int newMax = (int) Math.round(attribute.getValue());
-        stamina.setMaxSprintTime(newMax);
-        stamina.setSprintingTicks((int) Math.round(newMax * ratio));
-        stamina.sync();
+        withStaminaRatio(attribute, () ->
+            attribute.addTemporaryModifier(new EntityAttributeModifier(
+                modifierId,
+                amount,
+                EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
+            ))
+        );
     }
 
     private void removeModifier(Identifier modifierId) {
@@ -119,15 +104,14 @@ public class OrthopedistPlayerComponent implements AutoSyncedComponent, ServerTi
         if (attribute == null || !attribute.hasModifier(modifierId)) {
             return;
         }
+        withStaminaRatio(attribute, () -> attribute.removeModifier(modifierId));
+    }
 
-        double oldMax = attribute.getValue();
-        double ratio = 1.0D;
+    private void withStaminaRatio(EntityAttributeInstance attribute, Runnable modifierAction) {
         PlayerStaminaComponent stamina = PlayerStaminaComponent.KEY.get(this.player);
-        if (oldMax > 0.0D) {
-            ratio = Math.max(0.0D, Math.min(1.0D, stamina.getSprintingTicks() / oldMax));
-        }
-
-        attribute.removeModifier(modifierId);
+        double oldMax = attribute.getValue();
+        double ratio = oldMax > 0.0D ? Math.max(0.0D, Math.min(1.0D, stamina.getSprintingTicks() / oldMax)) : 1.0D;
+        modifierAction.run();
         int newMax = (int) Math.round(attribute.getValue());
         stamina.setMaxSprintTime(newMax);
         stamina.setSprintingTicks((int) Math.round(newMax * ratio));

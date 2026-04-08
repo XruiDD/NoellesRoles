@@ -21,7 +21,6 @@ import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
 import org.ladysnake.cca.api.v3.component.tick.ServerTickingComponent;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 public class HunterPlayerComponent implements AutoSyncedComponent, ServerTickingComponent {
@@ -32,6 +31,7 @@ public class HunterPlayerComponent implements AutoSyncedComponent, ServerTicking
 
     public static final int TRAP_ROOT_TICKS = 20 * 3;
     public static final int FRACTURE_LAYER_TICKS = 20 * 60;
+    public static final int MAX_FRACTURE_LAYERS = 5;
 
     private final PlayerEntity player;
     private final List<Integer> fractureTimers = new ArrayList<>();
@@ -48,6 +48,9 @@ public class HunterPlayerComponent implements AutoSyncedComponent, ServerTicking
     }
 
     public void addFractureLayer() {
+        if (this.fractureTimers.size() >= MAX_FRACTURE_LAYERS) {
+            return;
+        }
         this.fractureTimers.add(FRACTURE_LAYER_TICKS);
         this.sync();
         this.refreshFractureEffect();
@@ -121,15 +124,18 @@ public class HunterPlayerComponent implements AutoSyncedComponent, ServerTicking
     @Override
     public void serverTick() {
         if (this.trappedTicks > 0) {
+            boolean wasTrapped = this.trappedTicks > 1;
             this.trappedTicks--;
             this.player.setVelocity(Vec3d.ZERO);
             this.player.velocityModified = true;
             this.player.setSprinting(false);
 
             PlayerStaminaComponent stamina = PlayerStaminaComponent.KEY.get(this.player);
-            stamina.setSprintingTicks(stamina.getMaxSprintTime());
-            stamina.setExhausted(true);
-            stamina.sync();
+            if (!stamina.isExhausted()) {
+                stamina.setSprintingTicks(stamina.getMaxSprintTime());
+                stamina.setExhausted(true);
+                stamina.sync();
+            }
 
             if (this.trappedTicks % 20 == 0 || this.trappedTicks == 0) {
                 this.sync();
@@ -138,22 +144,23 @@ public class HunterPlayerComponent implements AutoSyncedComponent, ServerTicking
 
         if (!this.fractureTimers.isEmpty()) {
             boolean changed = false;
-            for (int i = 0; i < this.fractureTimers.size(); i++) {
-                this.fractureTimers.set(i, this.fractureTimers.get(i) - 1);
-            }
-
-            for (Iterator<Integer> iterator = this.fractureTimers.iterator(); iterator.hasNext(); ) {
-                if (iterator.next() <= 0) {
-                    iterator.remove();
+            for (int i = this.fractureTimers.size() - 1; i >= 0; i--) {
+                int remaining = this.fractureTimers.get(i) - 1;
+                if (remaining <= 0) {
+                    this.fractureTimers.remove(i);
                     changed = true;
+                } else {
+                    this.fractureTimers.set(i, remaining);
                 }
             }
 
             this.player.setSprinting(false);
             PlayerStaminaComponent stamina = PlayerStaminaComponent.KEY.get(this.player);
-            stamina.setSprintingTicks(stamina.getMaxSprintTime());
-            stamina.setExhausted(true);
-            stamina.sync();
+            if (!stamina.isExhausted()) {
+                stamina.setSprintingTicks(stamina.getMaxSprintTime());
+                stamina.setExhausted(true);
+                stamina.sync();
+            }
 
             this.refreshFractureEffect();
             if (changed || this.player.age % 20 == 0) {

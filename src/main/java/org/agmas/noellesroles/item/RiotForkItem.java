@@ -53,6 +53,9 @@ public class RiotForkItem extends Item {
             user.getItemCooldownManager().set(this, COOLDOWN_TICKS);
             user.getWorld().playSound(null, user.getBlockPos(), SoundEvents.ITEM_TRIDENT_HIT, SoundCategory.PLAYERS, 1.0F, 0.9F);
 
+            if (target instanceof ServerPlayerEntity serverTarget) {
+                serverTarget.sendMessage(Text.translatable("tip.noellesroles.riot_fork.rooted"), true);
+            }
             if (user instanceof ServerPlayerEntity serverUser && target instanceof ServerPlayerEntity serverTarget) {
                 GameRecordManager.recordItemUse(serverUser, Registries.ITEM.getId(this), serverTarget, null);
             }
