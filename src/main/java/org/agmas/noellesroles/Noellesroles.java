@@ -212,7 +212,7 @@ public class Noellesroles implements ModInitializer {
     public static Role PATHOGEN = WatheRoles.registerRole(new Role(PATHOGEN_ID, 0x7FFF00, false, false, Role.MoodType.FAKE, Integer.MAX_VALUE, false));
     // 饕餮角色 - 中立阵营，吞噬玩家获胜
     public static Role TAOTIE = WatheRoles.registerRole(new Role(TAOTIE_ID, new Color(139, 69, 19).getRGB(), false, false, Role.MoodType.FAKE, Integer.MAX_VALUE, false));
-    // 犯罪推理学家角色 - 中立阵营，将死者与仍然存活的凶手正确匹配即可完成一次成功推理
+    // 犯罪推理学家角色 - 中立阵营，将死者与凶手正确匹配获胜
     public static Role CRIMINAL_REASONER = WatheRoles.registerRole(new Role(CRIMINAL_REASONER_ID, new Color(112, 75, 75).getRGB(), false, false, Role.MoodType.FAKE, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
 
     public static final CustomPayload.Id<MorphC2SPacket> MORPH_PACKET = MorphC2SPacket.ID;
