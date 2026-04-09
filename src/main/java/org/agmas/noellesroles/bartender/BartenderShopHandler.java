@@ -21,6 +21,8 @@ public class BartenderShopHandler {
                 addIngredientEntry(context, ModItems.TEQUILA);
                 addIngredientEntry(context, ModItems.WHISKEY);
                 addIngredientEntry(context, ModItems.ICE_CUBE);
+                addIngredientEntry(context, ModItems.LIQUEUR);
+                addIngredientEntry(context, ModItems.SPECIAL_SPICE);
             }
         });
     }

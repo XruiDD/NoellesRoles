@@ -19,6 +19,14 @@ import java.util.Map;
  * 通过静态注册表支持 string ID 查找（用于 NBT 反序列化）。
  */
 public abstract class IngredientItem extends Item {
+    public record EffectContext(int durationMultiplier, boolean suppressMoodBonus) {
+        public static final EffectContext DEFAULT = new EffectContext(1, false);
+
+        public int scaleDuration(int ticks) {
+            return ticks * Math.max(1, this.durationMultiplier);
+        }
+    }
+
     private final String ingredientId;
 
     private static final Map<String, IngredientItem> REGISTRY = new HashMap<>();
@@ -31,7 +39,7 @@ public abstract class IngredientItem extends Item {
     // --- 子类必须实现 ---
 
     /** 应用调剂效果到玩家（药水效果 + 心情恢复等） */
-    public abstract void applyEffect(ServerPlayerEntity player);
+    public abstract void applyEffect(ServerPlayerEntity player, EffectContext context);
 
     /** 调剂在 tooltip 中的显示颜色（RGB） */
     public abstract int getDisplayColorRgb();
@@ -52,10 +60,20 @@ public abstract class IngredientItem extends Item {
         return ingredientId;
     }
 
+    public final void applyEffect(ServerPlayerEntity player) {
+        this.applyEffect(player, EffectContext.DEFAULT);
+    }
+
     /** 通用心情恢复 helper，子类调用 */
     protected void addMoodBonus(ServerPlayerEntity player, float amount) {
         PlayerMoodComponent mood = PlayerMoodComponent.KEY.get(player);
         mood.setMood(Math.min(1.0f, mood.getMood() + amount));
+    }
+
+    protected void addMoodBonus(ServerPlayerEntity player, float amount, EffectContext context) {
+        if (!context.suppressMoodBonus()) {
+            addMoodBonus(player, amount);
+        }
     }
 
     @Override

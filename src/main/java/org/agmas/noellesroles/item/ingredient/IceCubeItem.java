@@ -9,8 +9,7 @@ public class IceCubeItem extends IngredientItem {
     }
 
     @Override
-    public void applyEffect(ServerPlayerEntity player) {
-        // 冰块本身不提供效果
+    public void applyEffect(ServerPlayerEntity player, EffectContext context) {
     }
 
     @Override
@@ -20,7 +19,7 @@ public class IceCubeItem extends IngredientItem {
 
     @Override
     public int getDisplayColorRgb() {
-        return 0xE0E0E0; // 白
+        return 0xE0E0E0;
     }
 
     @Override

@@ -19,16 +19,16 @@ public class VodkaItem extends IngredientItem {
     }
 
     @Override
-    public void applyEffect(ServerPlayerEntity player) {
+    public void applyEffect(ServerPlayerEntity player, EffectContext context) {
         // 15 秒亢奋效果
         player.addStatusEffect(new StatusEffectInstance(
-                ModEffects.STIMULATION, 15 * 20, 0, false, false, true));
+                ModEffects.STIMULATION, context.scaleDuration(15 * 20), Math.max(0, context.durationMultiplier() - 1), false, false, true));
         // 无限体力（属性修饰符）
         StimulationEffect.applyStaminaModifier(player);
         // 生效瞬间减少所有冷却 20%
         reduceAllCooldowns(player);
         // 心情恢复
-        addMoodBonus(player, 0.2f);
+        addMoodBonus(player, 0.2f, context);
     }
 
     /**

@@ -11,9 +11,9 @@ public class WhiskeyItem extends IngredientItem {
     }
 
     @Override
-    public void applyEffect(ServerPlayerEntity player) {
-        WhiskeyShieldEffect.addShieldLayer(player, 25 * 20);
-        addMoodBonus(player, 0.2f);
+    public void applyEffect(ServerPlayerEntity player, EffectContext context) {
+        WhiskeyShieldEffect.addShieldLayer(player, context.scaleDuration(20 * 20));
+        addMoodBonus(player, 0.2f, context);
     }
 
     @Override
@@ -23,6 +23,6 @@ public class WhiskeyItem extends IngredientItem {
 
     @Override
     public int getShopPrice() {
-        return 275;
+        return 175;
     }
 }

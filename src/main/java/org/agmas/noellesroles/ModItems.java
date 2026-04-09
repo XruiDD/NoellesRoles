@@ -9,7 +9,12 @@ import org.agmas.noellesroles.item.PoisonNeedleItem;
 import org.agmas.noellesroles.item.PoisonGasBombItem;
 import org.agmas.noellesroles.item.CatalystItem;
 import org.agmas.noellesroles.item.RepairToolItem;
+import org.agmas.noellesroles.item.RiotForkItem;
+import org.agmas.noellesroles.item.RiotShieldItem;
 import org.agmas.noellesroles.item.ThrowingAxeItem;
+import org.agmas.noellesroles.item.HunterTrapItem;
+import org.agmas.noellesroles.item.DoubleBarrelShotgunItem;
+import org.agmas.noellesroles.item.DoubleBarrelShellItem;
 import org.agmas.noellesroles.item.BaseSpiritItem;
 import org.agmas.noellesroles.item.IngredientItem;
 import org.agmas.noellesroles.item.ingredient.*;
@@ -26,6 +31,8 @@ public class ModItems {
         IngredientItem.register((IngredientItem) TEQUILA);
         IngredientItem.register((IngredientItem) WHISKEY);
         IngredientItem.register((IngredientItem) ICE_CUBE);
+        IngredientItem.register((IngredientItem) LIQUEUR);
+        IngredientItem.register((IngredientItem) SPECIAL_SPICE);
     }
 
     public static final Item MASTER_KEY = register(
@@ -76,6 +83,26 @@ public class ModItems {
             new CatalystItem(new Item.Settings().maxCount(1)),
             "catalyst"
     );
+    public static final Item RIOT_SHIELD = register(
+            new RiotShieldItem(new Item.Settings().maxCount(1)),
+            "riot_shield"
+    );
+    public static final Item RIOT_FORK = register(
+            new RiotForkItem(new Item.Settings().maxCount(1)),
+            "riot_fork"
+    );
+    public static final Item HUNTER_TRAP = register(
+            new HunterTrapItem(new Item.Settings().maxCount(16)),
+            "hunter_trap"
+    );
+    public static final Item DOUBLE_BARREL_SHOTGUN = register(
+            new DoubleBarrelShotgunItem(new Item.Settings().maxCount(1)),
+            "double_barrel_shotgun"
+    );
+    public static final Item DOUBLE_BARREL_SHELL = register(
+            new DoubleBarrelShellItem(new Item.Settings().maxCount(16)),
+            "double_barrel_shell"
+    );
 
     // ---- 工程师系统 ----
     public static final Item REPAIR_TOOL = register(
@@ -111,6 +138,14 @@ public class ModItems {
     public static final Item ICE_CUBE = register(
             new IceCubeItem(new Item.Settings().maxCount(1)),
             "ice_cube"
+    );
+    public static final Item LIQUEUR = register(
+            new LiqueurItem(new Item.Settings().maxCount(1)),
+            "liqueur"
+    );
+    public static final Item SPECIAL_SPICE = register(
+            new SpecialSpiceItem(new Item.Settings().maxCount(1)),
+            "special_spice"
     );
 
     public static Item register(Item item, String id) {
