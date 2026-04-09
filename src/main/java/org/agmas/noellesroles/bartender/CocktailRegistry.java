@@ -61,6 +61,8 @@ public class CocktailRegistry {
     public static @Nullable CocktailEntry getEntry(List<String> ingredients) {
         Set<String> set = ingredients.stream()
                 .filter(id -> !"ice_cube".equals(id))
+                .filter(id -> !"liqueur".equals(id))
+                .filter(id -> !"special_spice".equals(id))
                 .collect(Collectors.toSet());
         if (set.isEmpty()) return null;
         return COCKTAILS.get(set);

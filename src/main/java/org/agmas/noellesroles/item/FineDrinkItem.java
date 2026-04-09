@@ -13,6 +13,8 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.world.World;
 
 public class FineDrinkItem extends CocktailItem {
+    private static final int DRINK_USE_TIME = 24;
+
     public FineDrinkItem(Settings settings) {
         super(settings);
     }
@@ -31,5 +33,10 @@ public class FineDrinkItem extends CocktailItem {
             }
         }
         return stack;
+    }
+
+    @Override
+    public int getMaxUseTime(ItemStack stack, LivingEntity user) {
+        return DRINK_USE_TIME;
     }
 }

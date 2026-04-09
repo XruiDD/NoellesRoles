@@ -62,6 +62,9 @@ import org.agmas.noellesroles.silencer.SilencerPlayerComponent;
 import org.agmas.noellesroles.client.music.WorldMusicManager;
 import org.agmas.noellesroles.reporter.ReporterPlayerComponent;
 import org.agmas.noellesroles.bodyguard.BodyguardPlayerComponent;
+import org.agmas.noellesroles.entity.HunterTrapEntity;
+import org.agmas.noellesroles.hunter.HunterPlayerComponent;
+import org.agmas.noellesroles.riotpatrol.RiotPatrolPlayerComponent;
 import org.agmas.noellesroles.serialkiller.SerialKillerPlayerComponent;
 import org.agmas.noellesroles.bomber.BomberPlayerComponent;
 import org.agmas.noellesroles.survivalmaster.SurvivalMasterPlayerComponent;
@@ -70,6 +73,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.client.render.entity.FlyingItemEntityRenderer;
 import net.minecraft.client.render.entity.EmptyEntityRenderer;
 import org.agmas.noellesroles.client.renderer.ThrowingAxeEntityRenderer;
+import org.agmas.noellesroles.client.renderer.HunterTrapEntityRenderer;
 import org.lwjgl.glfw.GLFW;
 
 import java.awt.*;
@@ -120,6 +124,7 @@ public class NoellesrolesClient implements ClientModInitializer {
         EntityRendererRegistry.register(NoellesRolesEntities.POISON_GAS_BOMB_ENTITY, FlyingItemEntityRenderer::new);
         EntityRendererRegistry.register(NoellesRolesEntities.POISON_GAS_CLOUD_ENTITY, EmptyEntityRenderer::new);
         EntityRendererRegistry.register(NoellesRolesEntities.THROWING_AXE_ENTITY, ThrowingAxeEntityRenderer::new);
+        EntityRendererRegistry.register(NoellesRolesEntities.HUNTER_TRAP_ENTITY, HunterTrapEntityRenderer::new);
 
         CanSeeMoney.EVENT.register(player -> {
             if (!GameFunctions.isPlayerPlayingAndAlive(player)) return null;
@@ -332,6 +337,51 @@ public class NoellesrolesClient implements ClientModInitializer {
             return null; // 不处理，使用默认逻辑
         });
 
+        GetInstinctHighlight.EVENT.register(entity -> {
+            if (!(entity instanceof HunterTrapEntity trap)) return null;
+            if (MinecraftClient.getInstance().player == null) return null;
+            if (!WatheClient.isPlayerPlayingAndAlive()) return null;
+
+            PlayerEntity localPlayer = MinecraftClient.getInstance().player;
+            if (!trap.canBeSeenBy(localPlayer)) return null;
+
+            return GetInstinctHighlight.HighlightResult.withKeybind(Noellesroles.HUNTER.color());
+        });
+
+        ClientTickEvents.START_CLIENT_TICK.register(client -> {
+            ClientPlayerEntity player = client.player;
+            if (player == null) {
+                return;
+            }
+
+            RiotPatrolPlayerComponent riotPatrolComponent = RiotPatrolPlayerComponent.KEY.get(player);
+            if (!riotPatrolComponent.isRooted()) {
+            } else {
+                client.options.forwardKey.setPressed(false);
+                client.options.backKey.setPressed(false);
+                client.options.leftKey.setPressed(false);
+                client.options.rightKey.setPressed(false);
+                client.options.jumpKey.setPressed(false);
+                client.options.sprintKey.setPressed(false);
+                client.options.sneakKey.setPressed(false);
+            }
+
+            HunterPlayerComponent hunterComponent = HunterPlayerComponent.KEY.get(player);
+            if (hunterComponent.isTrapped()) {
+                client.options.forwardKey.setPressed(false);
+                client.options.backKey.setPressed(false);
+                client.options.leftKey.setPressed(false);
+                client.options.rightKey.setPressed(false);
+                client.options.jumpKey.setPressed(false);
+                client.options.sprintKey.setPressed(false);
+                client.options.sneakKey.setPressed(false);
+            }
+
+            if (player.getMainHandStack().isOf(ModItems.RIOT_SHIELD)
+                    && player.getItemCooldownManager().isCoolingDown(ModItems.RIOT_SHIELD)) {
+                client.options.attackKey.setPressed(false);
+            }
+        });
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             // 更新世界BGM管理器
             WorldMusicManager.tick();

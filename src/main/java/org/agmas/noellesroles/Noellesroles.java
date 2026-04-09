@@ -2,6 +2,8 @@ package org.agmas.noellesroles;
 
 import dev.doctor4t.wathe.api.Role;
 import dev.doctor4t.wathe.api.RoleAppearanceCondition;
+import dev.doctor4t.wathe.api.WatheGameModes;
+import dev.doctor4t.wathe.api.WatheMapEffects;
 import dev.doctor4t.wathe.api.WatheRoles;
 import org.agmas.noellesroles.bartender.CocktailRegistry;
 import dev.doctor4t.wathe.api.event.*;
@@ -27,6 +29,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.minecraft.entity.EntityStatuses;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
@@ -37,12 +40,14 @@ import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.Registries;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.TypeFilter;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import org.agmas.noellesroles.bartender.BartenderPlayerComponent;
 import org.agmas.noellesroles.bartender.BartenderShopHandler;
@@ -62,6 +67,9 @@ import org.agmas.noellesroles.jester.JesterPlayerComponent;
 import org.agmas.noellesroles.pathogen.InfectedPlayerComponent;
 import org.agmas.noellesroles.pathogen.PathogenPlayerComponent;
 import org.agmas.noellesroles.noisemaker.NoisemakerPlayerComponent;
+import org.agmas.noellesroles.riotpatrol.RiotPatrolPlayerComponent;
+import org.agmas.noellesroles.hunter.HunterPlayerComponent;
+import org.agmas.noellesroles.orthopedist.OrthopedistPlayerComponent;
 import org.agmas.noellesroles.bomber.BomberPlayerComponent;
 import org.agmas.noellesroles.bomber.BomberShopHandler;
 import org.agmas.noellesroles.assassin.AssassinPlayerComponent;
@@ -86,6 +94,7 @@ import org.agmas.noellesroles.item.RepairToolItem;
 import org.agmas.noellesroles.music.WorldMusicComponent;
 import org.agmas.noellesroles.poisoner.PoisonerShopHandler;
 import org.agmas.noellesroles.bandit.BanditShopHandler;
+import org.agmas.noellesroles.hunter.HunterShopHandler;
 import org.agmas.noellesroles.survivalmaster.SurvivalMasterPlayerComponent;
 import dev.doctor4t.wathe.compat.TrainVoicePlugin;
 import net.minecraft.component.DataComponentTypes;
@@ -136,6 +145,9 @@ public class Noellesroles implements ModInitializer {
     public static Identifier BANDIT_ID = Identifier.of(MOD_ID, "bandit");
     public static Identifier SURVIVAL_MASTER_ID = Identifier.of(MOD_ID, "survival_master");
     public static Identifier ENGINEER_ID = Identifier.of(MOD_ID, "engineer");
+    public static Identifier RIOT_PATROL_ID = Identifier.of(MOD_ID, "riot_patrol");
+    public static Identifier HUNTER_ID = Identifier.of(MOD_ID, "hunter");
+    public static Identifier ORTHOPEDIST_ID = Identifier.of(MOD_ID, "orthopedist");
 
     // 炸弹死亡原因
     public static Identifier DEATH_REASON_BOMB = Identifier.of(MOD_ID, "bomb");
@@ -154,6 +166,7 @@ public class Noellesroles implements ModInitializer {
     // 下毒来源
     public static Identifier POISON_SOURCE_NEEDLE = Identifier.of(MOD_ID, "needle");
     public static Identifier POISON_SOURCE_GAS_BOMB = Identifier.of(MOD_ID, "gas_bomb");
+    public static Identifier POISON_SOURCE_TRAP = Identifier.of(MOD_ID, "trap");
 
     public static Role SWAPPER = WatheRoles.registerRole(new Role(SWAPPER_ID, new Color(57, 4, 170).getRGB(),false,true, Role.MoodType.FAKE,Integer.MAX_VALUE,true));
     public static Role PHANTOM =WatheRoles.registerRole(new Role(PHANTOM_ID, new Color(80, 5, 5, 192).getRGB(),false,true, Role.MoodType.FAKE,Integer.MAX_VALUE,true));
@@ -173,6 +186,7 @@ public class Noellesroles implements ModInitializer {
     public static Role POISONER = WatheRoles.registerRole(new Role(POISONER_ID, new Color(30, 80, 20).getRGB(), false, true, Role.MoodType.FAKE, Integer.MAX_VALUE, true));
     // 强盗角色 - 杀手阵营，使用投掷斧远程贯穿击杀
     public static Role BANDIT = WatheRoles.registerRole(new Role(BANDIT_ID, new Color(90, 100, 40).getRGB(), false, true, Role.MoodType.FAKE, Integer.MAX_VALUE, true));
+    public static Role HUNTER = WatheRoles.registerRole(new Role(HUNTER_ID, new Color(92, 76, 52).getRGB(), false, true, Role.MoodType.FAKE, Integer.MAX_VALUE, true));
 
 
     public static HashMap<Role, RoleAnnouncementTexts.RoleAnnouncementText> roleRoleAnnouncementTextHashMap = new HashMap<>();
@@ -198,6 +212,8 @@ public class Noellesroles implements ModInitializer {
     public static Role SURVIVAL_MASTER = WatheRoles.registerRole(new Role(SURVIVAL_MASTER_ID, new Color(50, 180, 160).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
     // 工程师角色 - 无辜者阵营，感知被撬/被锁的门，维修工具修复/上锁/解锁
     public static Role ENGINEER = WatheRoles.registerRole(new Role(ENGINEER_ID, new Color(200, 160, 60).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
+    public static Role RIOT_PATROL = WatheRoles.registerRole(new Role(RIOT_PATROL_ID, new Color(45, 95, 145).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
+    public static Role ORTHOPEDIST = WatheRoles.registerRole(new Role(ORTHOPEDIST_ID, new Color(144, 179, 88).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
 
 
     // 小丑角色 - 中立阵营，被无辜者杀死时获胜
@@ -320,10 +336,12 @@ public class Noellesroles implements ModInitializer {
         PoisonerShopHandler.register();
         BanditShopHandler.register();
         ReporterShopHandler.register();
+        HunterShopHandler.register();
 
         // 毒师手持毒针时允许攻击玩家
         AllowPlayerPunching.EVENT.register((attacker, victim) ->
                 attacker.getMainHandStack().isOf(ModItems.POISON_NEEDLE)
+                        || attacker.getMainHandStack().isOf(ModItems.RIOT_SHIELD)
         );
 
         // 注册 DLC 回放格式化器
@@ -507,6 +525,23 @@ public class Noellesroles implements ModInitializer {
                 whiskeyEvent.record();
                 return KillPlayer.KillResult.cancel();
             }
+            if (victim instanceof ServerPlayerEntity serverVictim3
+                    && killer instanceof ServerPlayerEntity serverKiller
+                    && (deathReason == GameConstants.DeathReasons.KNIFE
+                    || deathReason == GameConstants.DeathReasons.GUN
+                    || deathReason == GameConstants.DeathReasons.SHOT_INNOCENT
+                    || deathReason == DEATH_REASON_THROWING_AXE)) {
+                RiotPatrolPlayerComponent riotPatrolComponent = RiotPatrolPlayerComponent.KEY.get(serverVictim3);
+                if (riotPatrolComponent.blocksAttacker(serverKiller)) {
+                    var deathBlockedEvent = GameRecordManager.event("death_blocked")
+                        .actor(serverVictim3)
+                        .put("block_reason", "riot_shield")
+                        .put("death_reason", deathReason.toString());
+                    deathBlockedEvent.target(serverKiller);
+                    deathBlockedEvent.record();
+                    return KillPlayer.KillResult.cancel();
+                }
+            }
 
             // 保镖保护逻辑：如果受害者是保镖的保护目标且保镖在3格内，保镖牺牲自己保护目标
             if (deathReason == GameConstants.DeathReasons.KNIFE) {
@@ -539,6 +574,47 @@ public class Noellesroles implements ModInitializer {
                 return true;
             }
             return false;
+        });
+        UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
+            Box box = new Box(hitResult.getBlockPos()).expand(1.5);
+            org.agmas.noellesroles.entity.HunterTrapEntity trap = world.getEntitiesByClass(org.agmas.noellesroles.entity.HunterTrapEntity.class, box, entity -> entity.squaredDistanceTo(hitResult.getPos()) < 2.25)
+                .stream()
+                .findFirst()
+                .orElse(null);
+
+            if (player.isSneaking() && trap != null && player.getUuid().equals(trap.getOwnerUuid())) {
+                if (!world.isClient) {
+                    player.giveItemStack(org.agmas.noellesroles.ModItems.HUNTER_TRAP.getDefaultStack());
+                    world.playSound(null, trap.getBlockPos(), SoundEvents.BLOCK_CHAIN_FALL, SoundCategory.PLAYERS, 0.8F, 1.2F);
+                    if (player instanceof ServerPlayerEntity serverPlayer) {
+                        NbtCompound extra = new NbtCompound();
+                        GameRecordManager.putBlockPos(extra, "pos", trap.getBlockPos());
+                        extra.putString("action", "pickup");
+                        GameRecordManager.recordItemUse(serverPlayer, Registries.ITEM.getId(ModItems.HUNTER_TRAP), null, extra);
+                    }
+                    trap.discard();
+                }
+                return net.minecraft.util.ActionResult.SUCCESS;
+            }
+
+            if (!player.getStackInHand(hand).isOf(WatheItems.POISON_VIAL)) {
+                return net.minecraft.util.ActionResult.PASS;
+            }
+            if (!GameWorldComponent.KEY.get(world).canUseKillerFeatures(player)) {
+                return net.minecraft.util.ActionResult.PASS;
+            }
+
+            if (trap == null || trap.isPoisoned()) {
+                return net.minecraft.util.ActionResult.PASS;
+            }
+
+            if (!world.isClient) {
+                trap.setPoisoned(true);
+                trap.setPoisonerUuid(player.getUuid());
+                world.playSound(null, trap.getBlockPos(), SoundEvents.ITEM_BOTTLE_EMPTY, SoundCategory.PLAYERS, 0.8F, 1.1F);
+                player.getStackInHand(hand).decrement(1);
+            }
+            return net.minecraft.util.ActionResult.SUCCESS;
         });
         RoleAssigned.EVENT.register((player, role)->{
             AbilityPlayerComponent abilityPlayerComponent = (AbilityPlayerComponent) AbilityPlayerComponent.KEY.get(player);
@@ -630,6 +706,20 @@ public class Noellesroles implements ModInitializer {
                 engineerComp.reset();
                 player.giveItemStack(ModItems.REPAIR_TOOL.getDefaultStack());
                 player.getItemCooldownManager().set(ModItems.REPAIR_TOOL, GameConstants.getInTicks(0, 60));
+            }
+            if (role.equals(RIOT_PATROL)) {
+                RiotPatrolPlayerComponent riotPatrolComponent = RiotPatrolPlayerComponent.KEY.get(player);
+                riotPatrolComponent.reset();
+                player.giveItemStack(ModItems.RIOT_SHIELD.getDefaultStack());
+                player.giveItemStack(ModItems.RIOT_FORK.getDefaultStack());
+            }
+            if (role.equals(HUNTER)) {
+                HunterPlayerComponent hunterPlayerComponent = HunterPlayerComponent.KEY.get(player);
+                hunterPlayerComponent.reset();
+            }
+            if (role.equals(ORTHOPEDIST)) {
+                OrthopedistPlayerComponent orthopedistPlayerComponent = OrthopedistPlayerComponent.KEY.get(player);
+                orthopedistPlayerComponent.reset();
             }
             if (role.equals(ATTENDANT)) {
                 // 乘务员开局获得一本房间信息书
@@ -734,6 +824,9 @@ public class Noellesroles implements ModInitializer {
             BodyguardPlayerComponent.KEY.get(player).reset();
             NoisemakerPlayerComponent.KEY.get(player).reset();
             SurvivalMasterPlayerComponent.KEY.get(player).reset();
+            RiotPatrolPlayerComponent.KEY.get(player).reset();
+            HunterPlayerComponent.KEY.get(player).reset();
+            OrthopedistPlayerComponent.KEY.get(player).reset();
         });
 
         // Bartender and Recaller get +50 coins when completing tasks
@@ -1039,8 +1132,15 @@ public class Noellesroles implements ModInitializer {
             if (gameComponent.isRole(shooter, CORRUPT_COP)) {
                 return ShouldPunishGunShooter.PunishResult.cancel();
             }
+            if (gameComponent.isRole(shooter, HUNTER)) {
+                return ShouldPunishGunShooter.PunishResult.cancel();
+            }
             return null;
         });
+
+        ShouldDropOnDeath.EVENT.register((stack, victim) ->
+            stack.isOf(ModItems.DOUBLE_BARREL_SHOTGUN) || stack.isOf(ModItems.DOUBLE_BARREL_SHELL)
+        );
 
         DoorInteraction.EVENT.register((DoorInteraction.DoorInteractionContext context) -> {
             if (context.isBlasted() || context.isJammed()) {
@@ -1225,6 +1325,9 @@ public class Noellesroles implements ModInitializer {
                 for (var entity : serverWorld.getEntitiesByType(TypeFilter.equals(org.agmas.noellesroles.entity.ThrowingAxeEntity.class), e -> true)) {
                     entity.discard();
                 }
+                for (var entity : serverWorld.getEntitiesByType(TypeFilter.equals(org.agmas.noellesroles.entity.HunterTrapEntity.class), e -> true)) {
+                    entity.discard();
+                }
             }
 
             // 重置BGM组件，确保对局结束后不会继续播放
@@ -1242,6 +1345,9 @@ public class Noellesroles implements ModInitializer {
 
         // 游戏胜利确定时，杀死所有被饕餮吞噬的玩家
         GameEvents.ON_WIN_DETERMINED.register((world, gameComponent, winStatus, neutralWinner) -> {
+            for (var trap : world.getEntitiesByType(TypeFilter.equals(org.agmas.noellesroles.entity.HunterTrapEntity.class), e -> true)) {
+                trap.discard();
+            }
             for (UUID taotieUuid : gameComponent.getAllWithRole(TAOTIE)) {
                 ServerPlayerEntity taotie = (ServerPlayerEntity) world.getPlayerByUuid(taotieUuid);
                 if (taotie != null && GameFunctions.isPlayerPlayingAndAlive(taotie)) {
@@ -1258,6 +1364,23 @@ public class Noellesroles implements ModInitializer {
         });
     }
 
+    private static void movePlayerIntoReadyArea(ServerPlayerEntity player, MinecraftServer server) {
+        if (player == null || server == null) {
+            return;
+        }
+
+        GameFunctions.teleportPlayer(player);
+
+        ServerWorld world = player.getServerWorld();
+        dev.doctor4t.wathe.cca.MapVariablesWorldComponent mapVariables = dev.doctor4t.wathe.cca.MapVariablesWorldComponent.KEY.get(world);
+        Box readyArea = mapVariables.getReadyArea();
+        if (readyArea != null && !readyArea.contains(player.getPos())) {
+            Vec3d center = readyArea.getCenter();
+            player.teleport(world, center.getX(), readyArea.minY + 1, center.getZ(), player.getYaw(), player.getPitch());
+        }
+
+        GameFunctions.setPlayerSpawnToMapSpawn(player, world);
+    }
 
     public void registerPackets() {
         ServerPlayNetworking.registerGlobalReceiver(Noellesroles.MORPH_PACKET, (payload, context) -> {
@@ -1447,6 +1570,28 @@ public class Noellesroles implements ModInitializer {
         ServerPlayNetworking.registerGlobalReceiver(Noellesroles.ABILITY_PACKET, (payload, context) -> {
             AbilityPlayerComponent abilityPlayerComponent = (AbilityPlayerComponent) AbilityPlayerComponent.KEY.get(context.player());
             GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(context.player().getWorld());
+            if (gameWorldComponent.isRole(context.player(), ORTHOPEDIST) && abilityPlayerComponent.cooldown <= 0 && GameFunctions.isPlayerPlayingAndAlive(context.player()) && !SwallowedPlayerComponent.isPlayerSwallowed(context.player())) {
+                PlayerEntity target = org.agmas.noellesroles.util.CrosshairTargetHelper.findCrosshairTarget(context.player(), 3.0D, 0.85D);
+
+                if (target != null) {
+                    HunterPlayerComponent hunterTarget = HunterPlayerComponent.KEY.get(target);
+                    boolean healed = hunterTarget.healOneFractureLayer();
+                    if (healed) {
+                        abilityPlayerComponent.setCooldown(GameConstants.getInTicks(1, 0));
+                        ServerPlayerEntity recordTarget = target instanceof ServerPlayerEntity serverTarget ? serverTarget : null;
+                        NbtCompound extra = new NbtCompound();
+                        extra.putString("action", "heal_fracture");
+                        GameRecordManager.recordSkillUse(context.player(), ORTHOPEDIST_ID, recordTarget, extra);
+                    } else if (target instanceof ServerPlayerEntity serverTarget && !serverTarget.hasStatusEffect(ModEffects.BONE_SETTING)) {
+                        OrthopedistPlayerComponent.applyBoneSetting(serverTarget);
+                        abilityPlayerComponent.setCooldown(GameConstants.getInTicks(1, 0));
+                        ServerPlayerEntity recordTarget = serverTarget;
+                        NbtCompound extra = new NbtCompound();
+                        extra.putString("action", "bone_setting");
+                        GameRecordManager.recordSkillUse(context.player(), ORTHOPEDIST_ID, recordTarget, extra);
+                    }
+                }
+            }
             if (gameWorldComponent.isRole(context.player(), RECALLER) && abilityPlayerComponent.cooldown <= 0 && GameFunctions.isPlayerPlayingAndAlive(context.player()) && !SwallowedPlayerComponent.isPlayerSwallowed(context.player())) {
                 RecallerPlayerComponent recallerPlayerComponent = RecallerPlayerComponent.KEY.get(context.player());
                 PlayerShopComponent playerShopComponent = PlayerShopComponent.KEY.get(context.player());
@@ -2057,6 +2202,49 @@ public class Noellesroles implements ModInitializer {
             if (actorUuid == null) return null;
             Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
             return Text.translatable("replay.item_use.noellesroles.throwing_axe", actorText);
+        });
+
+        Identifier hunterTrapId = Registries.ITEM.getId(ModItems.HUNTER_TRAP);
+        ReplayRegistry.registerItemUseFormatter(hunterTrapId, (event, match, world) -> {
+            var playerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
+            NbtCompound data = event.data();
+            UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+            if (actorUuid == null) return null;
+
+            Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
+            String action = data.getString("action");
+            if ("pickup".equals(action)) {
+                return Text.translatable("replay.item_use.noellesroles.hunter_trap.pickup", actorText);
+            }
+            return Text.translatable("replay.item_use.noellesroles.hunter_trap.place", actorText);
+        });
+
+        ReplayRegistry.registerFormatter(org.agmas.noellesroles.entity.HunterTrapEntity.EVENT_TRIGGERED, (event, match, world) -> {
+            var playerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
+            NbtCompound data = event.data();
+            UUID targetUuid = data.containsUuid("target") ? data.getUuid("target") : null;
+            if (targetUuid == null) return null;
+
+            Text targetText = ReplayGenerator.formatPlayerName(targetUuid, playerInfoCache);
+            boolean poisoned = "true".equals(data.getString("poisoned"));
+            UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+            if (actorUuid == null) {
+                return Text.translatable(
+                    poisoned ? "replay.global.noellesroles.hunter_trap_triggered.poisoned_no_owner" : "replay.global.noellesroles.hunter_trap_triggered.no_owner",
+                    targetText
+                );
+            }
+
+            Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
+            if (poisoned && data.containsUuid("poisoner")) {
+                Text poisonerText = ReplayGenerator.formatPlayerName(data.getUuid("poisoner"), playerInfoCache);
+                return Text.translatable("replay.global.noellesroles.hunter_trap_triggered.poisoned", actorText, targetText, poisonerText);
+            }
+            return Text.translatable(
+                poisoned ? "replay.global.noellesroles.hunter_trap_triggered.owner_poisoned" : "replay.global.noellesroles.hunter_trap_triggered",
+                actorText,
+                targetText
+            );
         });
 
         // ===== 基酒/鸡尾酒格式化器 =====

@@ -9,6 +9,7 @@ import org.agmas.noellesroles.entity.RoleMineEntity;
 import org.agmas.noellesroles.entity.PoisonGasBombEntity;
 import org.agmas.noellesroles.entity.PoisonGasCloudEntity;
 import org.agmas.noellesroles.entity.ThrowingAxeEntity;
+import org.agmas.noellesroles.entity.HunterTrapEntity;
 
 public class NoellesRolesEntities {
     public static final EntityType<RoleMineEntity> ROLE_MINE_ENTITY_ENTITY_TYPE = Registry.register(
@@ -33,6 +34,12 @@ public class NoellesRolesEntities {
             Registries.ENTITY_TYPE,
             Identifier.of(Noellesroles.MOD_ID, "throwing_axe"),
             EntityType.Builder.<ThrowingAxeEntity>create(ThrowingAxeEntity::new, SpawnGroup.MISC).dimensions(0.5f, 0.5f).build("throwing_axe")
+    );
+
+    public static final EntityType<HunterTrapEntity> HUNTER_TRAP_ENTITY = Registry.register(
+            Registries.ENTITY_TYPE,
+            Identifier.of(Noellesroles.MOD_ID, "hunter_trap"),
+            EntityType.Builder.<HunterTrapEntity>create(HunterTrapEntity::new, SpawnGroup.MISC).dimensions(0.6f, 0.1f).build("hunter_trap")
     );
 
     public static void init() {}

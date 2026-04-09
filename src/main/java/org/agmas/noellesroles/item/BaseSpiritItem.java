@@ -34,6 +34,9 @@ import java.util.List;
 public class BaseSpiritItem extends CocktailItem {
     public static final int MAX_INGREDIENTS = 3;
     private static final int DEBUFF_DURATION = 3 * 20;
+    private static final int DRINK_USE_TIME = 24;
+    private static final String LIQUEUR_ID = "liqueur";
+    private static final String SPECIAL_SPICE_ID = "special_spice";
 
     public BaseSpiritItem(Settings settings) {
         super(settings);
@@ -102,6 +105,9 @@ public class BaseSpiritItem extends CocktailItem {
 
             List<String> ingredients = getIngredients(stack);
             boolean hasIce = hasAnyRemovesDebuff(ingredients);
+            boolean hasLiqueur = ingredients.contains(LIQUEUR_ID);
+            boolean hasSpecialSpice = ingredients.contains(SPECIAL_SPICE_ID);
+            IngredientItem.EffectContext effectContext = new IngredientItem.EffectContext(hasLiqueur ? 2 : 1, hasSpecialSpice);
 
             // 记录饮用事件
             NbtCompound extra = null;
@@ -114,13 +120,14 @@ public class BaseSpiritItem extends CocktailItem {
             GameRecordManager.recordItemUse(player, Registries.ITEM.getId(this), null, extra);
 
             if (hasIce) {
-                addBaseMoodBonus(player);
-                applyIngredientEffectsStatic(player, ingredients);
+                addBaseMoodBonus(player, hasSpecialSpice ? 0.6f : 0.2f);
+                applyIngredientEffectsStatic(player, ingredients, effectContext);
             } else {
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, DEBUFF_DURATION, 1, false, false, true));
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, DEBUFF_DURATION, 0, false, false, true));
+                int debuffDuration = effectContext.scaleDuration(DEBUFF_DURATION);
+                player.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, debuffDuration, 1, false, false, true));
+                player.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, debuffDuration, 0, false, false, true));
                 List<String> capturedIngredients = List.copyOf(ingredients);
-                Scheduler.schedule(() -> applyDelayedEffects(player, capturedIngredients), DEBUFF_DURATION);
+                Scheduler.schedule(() -> applyDelayedEffects(player, capturedIngredients, effectContext), debuffDuration);
             }
 
             if (!player.isCreative()) {
@@ -132,22 +139,22 @@ public class BaseSpiritItem extends CocktailItem {
 
     // ===== 效果方法 =====
 
-    private static void addBaseMoodBonus(ServerPlayerEntity player) {
+    private static void addBaseMoodBonus(ServerPlayerEntity player, float amount) {
         PlayerMoodComponent moodComponent = PlayerMoodComponent.KEY.get(player);
-        moodComponent.setMood(Math.min(1.0f, moodComponent.getMood() + 0.2f));
+        moodComponent.setMood(Math.min(1.0f, moodComponent.getMood() + amount));
     }
 
-    public static void applyIngredientEffectsStatic(ServerPlayerEntity player, List<String> ingredients) {
+    public static void applyIngredientEffectsStatic(ServerPlayerEntity player, List<String> ingredients, IngredientItem.EffectContext context) {
         for (String id : ingredients) {
             IngredientItem item = IngredientItem.fromId(id);
-            if (item != null) item.applyEffect(player);
+            if (item != null) item.applyEffect(player, context);
         }
     }
 
-    public static void applyDelayedEffects(ServerPlayerEntity player, List<String> ingredients) {
+    public static void applyDelayedEffects(ServerPlayerEntity player, List<String> ingredients, IngredientItem.EffectContext context) {
         if (!GameFunctions.isPlayerPlayingAndAlive(player)) return;
-        addBaseMoodBonus(player);
-        applyIngredientEffectsStatic(player, ingredients);
+        addBaseMoodBonus(player, context.suppressMoodBonus() ? 0.6f : 0.2f);
+        applyIngredientEffectsStatic(player, ingredients, context);
     }
 
     private static boolean hasAnyRemovesDebuff(List<String> ingredients) {
@@ -217,5 +224,10 @@ public class BaseSpiritItem extends CocktailItem {
         if (remaining > 0) {
             tooltip.add(Text.translatable("item.noellesroles.base_spirit.slots_remaining", remaining).formatted(Formatting.DARK_GRAY));
         }
+    }
+
+    @Override
+    public int getMaxUseTime(ItemStack stack, LivingEntity user) {
+        return DRINK_USE_TIME;
     }
 }

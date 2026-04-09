@@ -55,6 +55,9 @@
       "noellesroles:noisemaker",
       "noellesroles:survival_master",
       "noellesroles:engineer",
+      "noellesroles:riot_patrol",
+      "noellesroles:hunter",
+      "noellesroles:orthopedist",
       "noellesroles:world_music"
     ]
   },

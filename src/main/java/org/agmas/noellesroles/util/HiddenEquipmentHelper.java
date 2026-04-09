@@ -47,6 +47,8 @@ public final class HiddenEquipmentHelper {
         if (stack.isOf(ModItems.TEQUILA)) return true;
         if (stack.isOf(ModItems.WHISKEY)) return true;
         if (stack.isOf(ModItems.ICE_CUBE)) return true;
+        if (stack.isOf(ModItems.LIQUEUR)) return true;
+        if (stack.isOf(ModItems.SPECIAL_SPICE)) return true;
         if (stack.isOf(ModItems.REPAIR_TOOL)) return true;
 
         // 基酒瓶 — 酒保手中隐藏，其他角色手中可见

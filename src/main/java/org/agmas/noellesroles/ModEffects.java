@@ -9,6 +9,8 @@ import org.agmas.noellesroles.effect.GinImmunityEffect;
 import org.agmas.noellesroles.effect.StimulationEffect;
 import org.agmas.noellesroles.effect.NoCollisionEffect;
 import org.agmas.noellesroles.effect.WhiskeyShieldEffect;
+import org.agmas.noellesroles.effect.FractureEffect;
+import org.agmas.noellesroles.effect.BoneSettingEffect;
 
 public class ModEffects {
     public static final RegistryEntry<StatusEffect> STIMULATION = Registry.registerReference(
@@ -33,6 +35,18 @@ public class ModEffects {
             Registries.STATUS_EFFECT,
             Identifier.of(Noellesroles.MOD_ID, "whiskey_shield"),
             new WhiskeyShieldEffect()
+    );
+
+    public static final RegistryEntry<StatusEffect> FRACTURE = Registry.registerReference(
+            Registries.STATUS_EFFECT,
+            Identifier.of(Noellesroles.MOD_ID, "fracture"),
+            new FractureEffect()
+    );
+
+    public static final RegistryEntry<StatusEffect> BONE_SETTING = Registry.registerReference(
+            Registries.STATUS_EFFECT,
+            Identifier.of(Noellesroles.MOD_ID, "bone_setting"),
+            new BoneSettingEffect()
     );
 
     public static void init() {
