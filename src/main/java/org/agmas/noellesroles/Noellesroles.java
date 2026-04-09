@@ -987,25 +987,6 @@ public class Noellesroles implements ModInitializer {
                 }
             }
 
-            // 犯罪推理学家独自存活胜利（兜底）：所有其他胜利条件（包括其他中立）都未触发时，
-            // 如果推理学家是唯一存活者则获胜，防止游戏卡住。
-            for (UUID uuid : gameComponent.getAllWithRole(CRIMINAL_REASONER)) {
-                ServerPlayerEntity criminalReasoner = (ServerPlayerEntity) world.getPlayerByUuid(uuid);
-                if (!GameFunctions.isPlayerPlayingAndAlive(criminalReasoner)) continue;
-
-                boolean everyoneElseDead = true;
-                for (UUID playerUuid : gameComponent.getAllPlayers()) {
-                    if (playerUuid.equals(criminalReasoner.getUuid())) continue;
-                    if (!gameComponent.isPlayerDead(playerUuid)) {
-                        everyoneElseDead = false;
-                        break;
-                    }
-                }
-                if (everyoneElseDead) {
-                    return CheckWinCondition.WinResult.neutralWin(criminalReasoner);
-                }
-            }
-
             return null;
         });
 
