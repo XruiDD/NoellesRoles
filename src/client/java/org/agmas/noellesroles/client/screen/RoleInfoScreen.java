@@ -66,8 +66,8 @@ public class RoleInfoScreen extends Screen {
 
         // Top and bottom accent bars
         super.render(context, mouseX, mouseY, delta);
-        context.fillGradient(0, 0, this.width, 18, 0x55333355, 0x00333355);
-        context.fillGradient(0, this.height - 18, this.width, this.height, 0x00333355, 0x55333355);
+        context.fillGradient(0, 0, this.width, 25, 0x55333355, 0x00333355);
+        context.fillGradient(0, this.height - 25, this.width, this.height, 0x00333355, 0x55333355);
 
         TextRenderer font = MinecraftClient.getInstance().textRenderer;
         int contentWidth = Math.min(this.width - PADDING * 2, 320);
