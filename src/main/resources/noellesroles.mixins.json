@@ -27,6 +27,7 @@
     "taotie.SwallowedPlayerSkyVisibilityMixin",
     "silencer.SilencedEatingMixin",
     "silencer.SilencedDrinkingMixin",
+    "silencer.SilencerPsychoStopMixin",
     "accessor.ItemCooldownManagerAccessor",
     "accessor.ItemCooldownEntryAccessor",
     "accessor.ServerItemCooldownManagerAccessor",
