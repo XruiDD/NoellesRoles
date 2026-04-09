@@ -107,6 +107,7 @@ import org.agmas.noellesroles.music.WorldMusicComponent;
 import org.agmas.noellesroles.poisoner.PoisonerShopHandler;
 import org.agmas.noellesroles.bandit.BanditShopHandler;
 import org.agmas.noellesroles.hunter.HunterShopHandler;
+import org.agmas.noellesroles.silencer.SilencerShopHandler;
 import org.agmas.noellesroles.survivalmaster.SurvivalMasterPlayerComponent;
 import dev.doctor4t.wathe.compat.TrainVoicePlugin;
 import net.minecraft.component.DataComponentTypes;
@@ -351,6 +352,7 @@ public class Noellesroles implements ModInitializer {
         ReporterShopHandler.register();
         HunterShopHandler.register();
         CommanderShopHandler.register();
+        SilencerShopHandler.register();
 
         // 毒师手持毒针时允许攻击玩家
         AllowPlayerPunching.EVENT.register((attacker, victim) ->
