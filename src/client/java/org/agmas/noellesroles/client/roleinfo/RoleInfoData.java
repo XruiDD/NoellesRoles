@@ -4,8 +4,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Data class for role information, serialized to/from JSON config.
- * All string values are translation keys that get resolved via Minecraft's i18n system.
+ * Data class for role information.
+ * String values are translation keys resolved via Minecraft i18n.
  */
 public class RoleInfoData {
     public String nameKey;
@@ -59,4 +59,3 @@ public class RoleInfoData {
         public String effectKey;
     }
 }
-
