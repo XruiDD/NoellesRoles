@@ -24,6 +24,7 @@
     "phantom.PhantomHudMixin",
     "recaller.RecallerHudMixin",
     "reporter.ReporterHudMixin",
+    "roleinfo.RoleInfoHudMixin",
     "hunter.HunterClientTrapCullMixin",
     "riotpatrol.BuiltinModelItemRendererMixin",
     "riotpatrol.ItemRendererMixin",

@@ -39,6 +39,7 @@ import org.agmas.noellesroles.Noellesroles;
 import org.agmas.noellesroles.assassin.AssassinPlayerComponent;
 import org.agmas.noellesroles.bartender.BartenderPlayerComponent;
 import org.agmas.noellesroles.client.gui.JesterTimeRenderer;
+import org.agmas.noellesroles.client.screen.RoleInfoScreen;
 import org.agmas.noellesroles.util.HiddenEquipmentHelper;
 import dev.doctor4t.wathe.index.WatheItems;
 import org.agmas.noellesroles.client.screen.AssassinScreen;
@@ -68,12 +69,12 @@ import org.agmas.noellesroles.hunter.HunterPlayerComponent;
 import org.agmas.noellesroles.riotpatrol.RiotPatrolPlayerComponent;
 import org.agmas.noellesroles.serialkiller.SerialKillerPlayerComponent;
 import org.agmas.noellesroles.bomber.BomberPlayerComponent;
-import org.agmas.noellesroles.survivalmaster.SurvivalMasterPlayerComponent;
 import org.agmas.noellesroles.NoellesRolesEntities;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.client.render.entity.FlyingItemEntityRenderer;
 import net.minecraft.client.render.entity.EmptyEntityRenderer;
 import org.agmas.noellesroles.client.renderer.ThrowingAxeEntityRenderer;
+import org.agmas.noellesroles.client.roleinfo.RoleInfoRegistry;
 import org.agmas.noellesroles.client.renderer.HunterTrapEntityRenderer;
 import org.lwjgl.glfw.GLFW;
 
@@ -84,6 +85,7 @@ import java.util.List;
 public class NoellesrolesClient implements ClientModInitializer {
     public static int insanityTime = 0;
     public static KeyBinding abilityBind;
+    public static KeyBinding roleInfoBind;
     public static PlayerBodyEntity targetBody;
     public static PlayerEntity pathogenNearestTarget;
     public static double pathogenNearestTargetDistance;
@@ -101,6 +103,9 @@ public class NoellesrolesClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         abilityBind = KeyBindingHelper.registerKeyBinding(new KeyBinding("key." + Noellesroles.MOD_ID + ".ability", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_G, "category.wathe.keybinds"));
+        roleInfoBind = KeyBindingHelper.registerKeyBinding(new KeyBinding("key." + Noellesroles.MOD_ID + ".role_info", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_TAB, "category.wathe.keybinds"));
+        // 加载角色信息配置
+        RoleInfoRegistry.load();
 
         // 注册解毒剂冷却模型谓词
         ModelPredicateProviderRegistry.register(ModItems.ANTIDOTE, Identifier.of(Noellesroles.MOD_ID, "cooldown"),
@@ -516,6 +521,9 @@ public class NoellesrolesClient implements ClientModInitializer {
                     if (MinecraftClient.getInstance().player == null) return;
                     GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(MinecraftClient.getInstance().player.getWorld());
 
+                    // 按 H 打开角色信息界面
+                    // (此处不处理，下方单独处理)
+
                     // 刺客角色按G打开刺客界面
                     if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.ASSASSIN)) {
                         if (GameFunctions.isPlayerPlayingAndAlive(MinecraftClient.getInstance().player) && !SwallowedPlayerComponent.isPlayerSwallowed(MinecraftClient.getInstance().player)) {
@@ -593,6 +601,21 @@ public class NoellesrolesClient implements ClientModInitializer {
 
                     ClientPlayNetworking.send(new AbilityC2SPacket());
                 });
+            }
+            if (roleInfoBind.wasPressed()) {
+                if (MinecraftClient.getInstance().player == null) {
+                    return;
+                }
+                if (!GameFunctions.isPlayerPlayingAndAlive(MinecraftClient.getInstance().player)) {
+                    return;
+                }
+                GameWorldComponent gwc = GameWorldComponent.KEY.get(MinecraftClient.getInstance().player.getWorld());
+                if (!gwc.hasAnyRole(MinecraftClient.getInstance().player)) {
+                    return;
+                }
+                if (MinecraftClient.getInstance().currentScreen == null) {
+                    MinecraftClient.getInstance().setScreen(new RoleInfoScreen());
+                };
             }
 
             ClientPlayerEntity player = MinecraftClient.getInstance().player;
