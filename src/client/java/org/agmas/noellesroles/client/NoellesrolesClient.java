@@ -42,6 +42,7 @@ import org.agmas.noellesroles.client.gui.JesterTimeRenderer;
 import org.agmas.noellesroles.util.HiddenEquipmentHelper;
 import dev.doctor4t.wathe.index.WatheItems;
 import org.agmas.noellesroles.client.screen.AssassinScreen;
+import org.agmas.noellesroles.client.screen.CriminalReasonerScreen;
 import org.agmas.noellesroles.corruptcop.CorruptCopPlayerComponent;
 import org.agmas.noellesroles.jester.JesterPlayerComponent;
 import org.agmas.noellesroles.morphling.MorphlingPlayerComponent;
@@ -524,6 +525,19 @@ public class NoellesrolesClient implements ClientModInitializer {
                                 MinecraftClient.getInstance().setScreen(new AssassinScreen((net.minecraft.client.network.ClientPlayerEntity) MinecraftClient.getInstance().player));
                             }
                             // 如果不能使用，不打开界面，HUD 会显示相应的提示信息
+                        }
+                        return;
+                    }
+
+                    if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.CRIMINAL_REASONER)) {
+                        if (GameFunctions.isPlayerPlayingAndAlive(MinecraftClient.getInstance().player)
+                                && !SwallowedPlayerComponent.isPlayerSwallowed(MinecraftClient.getInstance().player)) {
+                            AbilityPlayerComponent abilityComp = AbilityPlayerComponent.KEY.get(MinecraftClient.getInstance().player);
+                            if (abilityComp.getCooldown() > 0) {
+                                return;
+                            }
+                            // 犯罪推理学家按G打开推理菜单，冷却中则不打开界面
+                            MinecraftClient.getInstance().setScreen(new CriminalReasonerScreen(MinecraftClient.getInstance().player));
                         }
                         return;
                     }
