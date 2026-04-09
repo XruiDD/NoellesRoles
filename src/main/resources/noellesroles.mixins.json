@@ -21,6 +21,7 @@
     "equipment.EntityTrackerMixin",
     "hunter.HunterPlayerMoveMixin",
     "riotpatrol.PlayerAttackMixin",
+    "saint.SaintItemUseMixin",
     "taotie.SpectatorTeleportMixin",
     "taotie.SwallowedPlayerEntityMixin",
     "taotie.SwallowedPlayerSpectatorMixin",
