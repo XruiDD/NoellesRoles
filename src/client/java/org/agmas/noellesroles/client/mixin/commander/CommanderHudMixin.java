@@ -1,16 +1,16 @@
 package org.agmas.noellesroles.client.mixin.commander;
 
 import dev.doctor4t.wathe.cca.GameWorldComponent;
-import dev.doctor4t.wathe.game.GameFunctions;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.text.Text;
 import org.agmas.noellesroles.AbilityPlayerComponent;
 import org.agmas.noellesroles.Noellesroles;
 import org.agmas.noellesroles.client.NoellesrolesClient;
+import org.agmas.noellesroles.client.util.HudRenderHelper;
 import org.agmas.noellesroles.commander.CommanderPlayerComponent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -26,22 +26,20 @@ public abstract class CommanderHudMixin {
 
     @Inject(method = "render", at = @At("TAIL"))
     public void renderCommanderHud(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
-        if (MinecraftClient.getInstance().player == null) return;
-        if (!GameFunctions.isPlayerPlayingAndAlive(MinecraftClient.getInstance().player)) return;
+        ClientPlayerEntity player = HudRenderHelper.getActivePlayer();
+        if (player == null) return;
 
-        GameWorldComponent gameWorld = GameWorldComponent.KEY.get(MinecraftClient.getInstance().player.getWorld());
-        if (!gameWorld.isRole(MinecraftClient.getInstance().player, Noellesroles.COMMANDER)) return;
+        GameWorldComponent gameWorld = GameWorldComponent.KEY.get(player.getWorld());
+        if (!gameWorld.isRole(player, Noellesroles.COMMANDER)) return;
 
-        CommanderPlayerComponent commanderComp = CommanderPlayerComponent.KEY.get(MinecraftClient.getInstance().player);
-        AbilityPlayerComponent abilityComp = AbilityPlayerComponent.KEY.get(MinecraftClient.getInstance().player);
+        CommanderPlayerComponent commanderComp = CommanderPlayerComponent.KEY.get(player);
+        AbilityPlayerComponent abilityComp = AbilityPlayerComponent.KEY.get(player);
 
         int drawY = context.getScaledWindowHeight();
         List<String> markedNames = commanderComp.getThreatTargetNames();
         if (!markedNames.isEmpty()) {
             Text line2 = Text.translatable("tip.commander.marked", String.join(" / ", markedNames));
-            drawY -= getTextRenderer().getWrappedLinesHeight(line2, 999999);
-            context.drawTextWithShadow(getTextRenderer(), line2,
-                    context.getScaledWindowWidth() - getTextRenderer().getWidth(line2), drawY, 0x7E9ED8);
+            drawY = HudRenderHelper.drawBottomRight(context, getTextRenderer(), line2, drawY, 0x7E9ED8);
         }
 
         Text line1;
@@ -55,8 +53,6 @@ public abstract class CommanderHudMixin {
             line1 = Text.translatable("tip.commander.no_marks");
         }
 
-        drawY -= getTextRenderer().getWrappedLinesHeight(line1, 999999);
-        context.drawTextWithShadow(getTextRenderer(), line1,
-                context.getScaledWindowWidth() - getTextRenderer().getWidth(line1), drawY, 0x7E9ED8);
+        HudRenderHelper.drawBottomRight(context, getTextRenderer(), line1, drawY, 0x7E9ED8);
     }
 }

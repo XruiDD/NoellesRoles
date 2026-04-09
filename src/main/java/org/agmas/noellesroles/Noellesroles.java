@@ -96,7 +96,12 @@ import org.agmas.noellesroles.bodyguard.BodyguardPlayerComponent;
 import org.agmas.noellesroles.criminalreasoner.CriminalReasonerPlayerComponent;
 import org.agmas.noellesroles.packet.CriminalReasonerReasonC2SPacket;
 import org.agmas.noellesroles.engineer.EngineerPlayerComponent;
+import org.agmas.noellesroles.ferryman.FerrymanHelper;
 import org.agmas.noellesroles.ferryman.FerrymanPlayerComponent;
+import org.agmas.noellesroles.commander.CommanderHelper;
+import org.agmas.noellesroles.saint.SaintHelper;
+import org.agmas.noellesroles.util.RoleUtils;
+import org.agmas.noellesroles.vulture.VultureHelper;
 import org.agmas.noellesroles.item.RepairToolItem;
 import org.agmas.noellesroles.music.WorldMusicComponent;
 import org.agmas.noellesroles.poisoner.PoisonerShopHandler;
@@ -232,7 +237,7 @@ public class Noellesroles implements ModInitializer {
 
     // 小丑角色 - 中立阵营，被无辜者杀死时获胜
     public static Role JESTER = WatheRoles.registerRole(new Role(JESTER_ID, new Color(248, 200, 220).getRGB(), false, false, Role.MoodType.FAKE, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
-    public static Role VULTURE = WatheRoles.registerRole(new Role(VULTURE_ID, new Color(181, 103, 0).getRGB(), false, false, Role.MoodType.FAKE, -1, false, Noellesroles::canSpawnVulture));
+    public static Role VULTURE = WatheRoles.registerRole(new Role(VULTURE_ID, new Color(181, 103, 0).getRGB(), false, false, Role.MoodType.FAKE, -1, false, VultureHelper::canSpawn));
     // 黑警角色 - 中立阵营，杀光所有人获胜，阻止其他阵营获胜
     public static Role CORRUPT_COP = WatheRoles.registerRole(new Role(CORRUPT_COP_ID, new Color(25, 50, 100).getRGB(), false, false, Role.MoodType.FAKE, WatheRoles.CIVILIAN.getMaxSprintTime(), true));
     // 病原体角色 - 中立阵营，感染所有存活玩家获胜
@@ -241,7 +246,7 @@ public class Noellesroles implements ModInitializer {
     public static Role TAOTIE = WatheRoles.registerRole(new Role(TAOTIE_ID, new Color(139, 69, 19).getRGB(), false, false, Role.MoodType.FAKE, Integer.MAX_VALUE, false));
     // 犯罪推理学家角色 - 中立阵营，将死者与凶手正确匹配获胜
     public static Role CRIMINAL_REASONER = WatheRoles.registerRole(new Role(CRIMINAL_REASONER_ID, new Color(112, 75, 75).getRGB(), false, false, Role.MoodType.FAKE, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
-    public static Role FERRYMAN = WatheRoles.registerRole(new Role(FERRYMAN_ID, new Color(129, 170, 196).getRGB(), false, false, Role.MoodType.FAKE, WatheRoles.CIVILIAN.getMaxSprintTime(), false, Noellesroles::canSpawnFerryman));
+    public static Role FERRYMAN = WatheRoles.registerRole(new Role(FERRYMAN_ID, new Color(129, 170, 196).getRGB(), false, false, Role.MoodType.FAKE, WatheRoles.CIVILIAN.getMaxSprintTime(), false, FerrymanHelper::canSpawn));
 
     public static final CustomPayload.Id<MorphC2SPacket> MORPH_PACKET = MorphC2SPacket.ID;
     public static final CustomPayload.Id<SwapperC2SPacket> SWAP_PACKET = SwapperC2SPacket.ID;
@@ -258,180 +263,15 @@ public class Noellesroles implements ModInitializer {
     // 中立万能钥匙可用角色集合
     private static final Set<Role> NEUTRAL_MASTER_KEY_ROLES = Set.of(VULTURE, PATHOGEN, TAOTIE, FERRYMAN);
     private static final int MOMENT_TRIGGER_MIN_THRESHOLD = 2;
-    private static final int FERRYMAN_COUNTER_STUN_AMPLIFIER = 6;
-    private static final int FERRYMAN_CORPSE_RANGE = 5;
-
-    private static boolean isFerrymanReactionDeathReason(Identifier deathReason) {
-        return deathReason != GameConstants.DeathReasons.FELL_OUT_OF_TRAIN
-                && deathReason != GameConstants.DeathReasons.ESCAPED;
-    }
-
-    private static boolean canSpawnVulture(dev.doctor4t.wathe.api.RoleSelectionContext ctx) {
-        Role ferryman = WatheRoles.getRole(FERRYMAN_ID);
-        return ferryman == null || !ctx.isRoleAssigned(ferryman);
-    }
-
-    private static boolean canSpawnFerryman(dev.doctor4t.wathe.api.RoleSelectionContext ctx) {
-        Role vulture = WatheRoles.getRole(VULTURE_ID);
-        return vulture == null || !ctx.isRoleAssigned(vulture);
-    }
-
-    private static PlayerBodyEntity findFerrymanTargetBody(ServerPlayerEntity player, FerrymanPlayerComponent ferrymanComponent) {
-        int decomposedAge = GameConstants.TIME_TO_DECOMPOSITION + GameConstants.DECOMPOSING_TIME;
-        Vec3d eyePos = player.getEyePos();
-        Vec3d look = player.getRotationVec(1.0F).normalize();
-        PlayerBodyEntity best = null;
-        double bestScore = Double.NEGATIVE_INFINITY;
-
-        for (PlayerBodyEntity body : player.getWorld().getEntitiesByType(
-                TypeFilter.equals(PlayerBodyEntity.class),
-                player.getBoundingBox().expand(FERRYMAN_CORPSE_RANGE),
-                corpse -> corpse.getPlayerUuid() != null
-                        && !ferrymanComponent.hasFerriedBody(corpse.getUuid())
-                        && corpse.age < decomposedAge)) {
-            Vec3d toBody = body.getPos().add(0.0, 0.6, 0.0).subtract(eyePos);
-            double distance = toBody.length();
-            if (distance > FERRYMAN_CORPSE_RANGE || distance <= 0.001D) continue;
-
-            double alignment = look.dotProduct(toBody.normalize());
-            if (alignment < 0.78D) continue;
-            if (!player.canSee(body)) continue;
-
-            double score = alignment - distance * 0.02D;
-            if (score > bestScore) {
-                bestScore = score;
-                best = body;
-            }
-        }
-
-        return best;
-    }
-
-    private static boolean isActualKillerRole(Role role) {
-        return role == WatheRoles.KILLER
-                || role == SWAPPER
-                || role == PHANTOM
-                || role == MORPHLING
-                || role == THE_INSANE_DAMNED_PARANOID_KILLER_OF_DOOM_DEATH_DESTRUCTION_AND_WAFFLES
-                || role == BOMBER
-                || role == ASSASSIN
-                || role == SCAVENGER
-                || role == SERIAL_KILLER
-                || role == SILENCER
-                || role == POISONER
-                || role == BANDIT
-                || role == HUNTER
-                || role == COMMANDER;
-    }
-
-    private static boolean isCommanderNotificationRecipient(GameWorldComponent gameWorldComponent, PlayerEntity player) {
-        Role role = gameWorldComponent.getRole(player);
-        return role == UNDERCOVER || isActualKillerRole(role);
-    }
-
-    private static boolean isCommanderPayoutRecipient(GameWorldComponent gameWorldComponent, PlayerEntity player) {
-        return isActualKillerRole(gameWorldComponent.getRole(player));
-    }
-
-    private static boolean isSaintProtectedFrom(PlayerEntity victim, PlayerEntity killer, GameWorldComponent gameWorldComponent) {
-        if (killer == null || !gameWorldComponent.isRole(victim, SAINT)) {
-            return false;
-        }
-        Role killerRole = gameWorldComponent.getRole(killer);
-        return killerRole != null && killerRole.isInnocent();
-    }
-
-    private static boolean shouldTrackSaintKarma(PlayerEntity player, GameWorldComponent gameWorldComponent) {
-        if (player == null || !GameFunctions.isPlayerPlayingAndAlive(player)) {
-            return false;
-        }
-        Role role = gameWorldComponent.getRole(player);
-        return role != null && !role.isInnocent();
-    }
-
-    private static void tryTriggerSaintKarmaLock(ServerPlayerEntity player, GameWorldComponent gameWorldComponent) {
-        SaintPlayerComponent saintComponent = SaintPlayerComponent.KEY.get(player);
-        if (!saintComponent.hasKarma() || saintComponent.isKarmaLocked()) {
-            return;
-        }
-        saintComponent.triggerKarmaLock(gameWorldComponent.isRole(player, BOMBER));
-        player.sendMessage(Text.translatable("tip.saint.karma_triggered", Math.max(1, saintComponent.getKarmaLockTicks() / 20)), true);
-    }
-
-    private static void notifyCommanderIdentity(ServerWorld world, ServerPlayerEntity commander) {
-        GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(world);
-        for (ServerPlayerEntity player : world.getPlayers()) {
-            if (!GameFunctions.isPlayerPlayingAndAlive(player)) continue;
-            if (!isActualKillerRole(gameWorldComponent.getRole(player))) continue;
-            if (player.getUuid().equals(commander.getUuid())) continue;
-            player.sendMessage(Text.translatable("tip.commander.identity_known", commander.getName()), true);
-        }
-    }
-
-    private static void tryBroadcastCommanderIdentity(ServerWorld world) {
-        GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(world);
-        for (UUID uuid : gameWorldComponent.getAllWithRole(COMMANDER)) {
-            PlayerEntity commanderEntity = world.getPlayerByUuid(uuid);
-            if (!(commanderEntity instanceof ServerPlayerEntity commander) || !GameFunctions.isPlayerPlayingAndAlive(commander)) continue;
-            CommanderPlayerComponent commanderComp = CommanderPlayerComponent.KEY.get(commander);
-            if (commanderComp.isIntroBroadcasted()) continue;
-            notifyCommanderIdentity(world, commander);
-            commanderComp.setIntroBroadcasted(true);
-        }
-    }
-
-    private static void broadcastCommanderDeath(ServerWorld world, ServerPlayerEntity commander) {
-        GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(world);
-        for (ServerPlayerEntity player : world.getPlayers()) {
-            if (!GameFunctions.isPlayerPlayingAndAlive(player)) continue;
-            if (!isCommanderNotificationRecipient(gameWorldComponent, player)) continue;
-            player.sendMessage(Text.translatable("tip.commander.dead", commander.getName()), true);
-        }
-    }
-
-    private static void checkCommanderLastKillerDeath(ServerWorld world) {
-        GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(world);
-        for (UUID uuid : gameWorldComponent.getAllWithRole(COMMANDER)) {
-            PlayerEntity commanderEntity = world.getPlayerByUuid(uuid);
-            if (!(commanderEntity instanceof ServerPlayerEntity commander) || !GameFunctions.isPlayerPlayingAndAlive(commander)) continue;
-
-            boolean hasOtherLivingKillers = false;
-            for (UUID killerUuid : gameWorldComponent.getAllKillerTeamPlayers()) {
-                if (killerUuid.equals(commander.getUuid())) continue;
-                PlayerEntity killer = world.getPlayerByUuid(killerUuid);
-                if (killer == null || !GameFunctions.isPlayerPlayingAndAlive(killer)) continue;
-                if (!isActualKillerRole(gameWorldComponent.getRole(killer))) continue;
-                hasOtherLivingKillers = true;
-                break;
-            }
-
-            if (!hasOtherLivingKillers) {
-                GameFunctions.killPlayer(commander, true, null, DEATH_REASON_COMMANDER_SUICIDE);
-            }
-        }
-    }
-
-    /**
-     * 统计存活且未被饕餮吞噬的玩家数量（用于时刻触发和胜利判定）
-     */
-    public static int countAliveAndNotSwallowed(ServerWorld serverWorld) {
-        int count = 0;
-        for (ServerPlayerEntity p : serverWorld.getPlayers()) {
-            if (!GameFunctions.isPlayerPlayingAndAlive(p) || p.isSpectator()) continue;
-            SwallowedPlayerComponent swallowed = SwallowedPlayerComponent.KEY.get(p);
-            if (!swallowed.isSwallowed()) {
-                count++;
-            }
-        }
-        return count;
-    }
+    // Static helpers have been moved to:
+    // - FerrymanHelper, VultureHelper, SaintHelper, CommanderHelper, RoleUtils
 
     public static void checkAndTriggerMomentsForWorld(ServerWorld serverWorld) {
         if (serverWorld == null) return;
         GameWorldComponent gameComponent = GameWorldComponent.KEY.get(serverWorld);
 
         // 单次遍历统计存活且未被吞噬的玩家数
-        int aliveNotSwallowed = countAliveAndNotSwallowed(serverWorld);
+        int aliveNotSwallowed = RoleUtils.countAliveAndNotSwallowed(serverWorld);
 
         // 黑警时刻检查
         if (aliveNotSwallowed >= MOMENT_TRIGGER_MIN_THRESHOLD) {
@@ -630,27 +470,8 @@ public class Noellesroles implements ModInitializer {
                 }
             }
 
-            if (isSaintProtectedFrom(victim, killer, gameWorldComponent)) {
-                if (victim instanceof ServerPlayerEntity serverVictim) {
-                    var event = GameRecordManager.event("death_blocked")
-                            .actor(serverVictim)
-                            .put("block_reason", "saint_innocent_immunity")
-                            .put("death_reason", deathReason.toString());
-                    if (killer instanceof ServerPlayerEntity serverKiller) {
-                        event.target(serverKiller);
-                    }
-                    event.record();
-                }
-                return KillPlayer.KillResult.cancel();
-            }
-
-            if (killer instanceof ServerPlayerEntity serverKiller) {
-                SaintPlayerComponent saintComponent = SaintPlayerComponent.KEY.get(serverKiller);
-                if (saintComponent.isKarmaLocked()) {
-                    serverKiller.sendMessage(Text.translatable("tip.saint.karma_locked", Math.max(1, saintComponent.getKarmaLockTicks() / 20)), true);
-                    return KillPlayer.KillResult.cancel();
-                }
-            }
+            KillPlayer.KillResult saintResult = SaintHelper.handleBeforeKill(victim, killer, deathReason, gameWorldComponent);
+            if (saintResult != null) return saintResult;
 
             if (deathReason == GameConstants.DeathReasons.FELL_OUT_OF_TRAIN) return null;
 
@@ -739,22 +560,8 @@ public class Noellesroles implements ModInitializer {
                 }
             }
 
-            // 保镖保护逻辑：如果受害者是保镖的保护目标且保镖在3格内，保镖牺牲自己保护目标
-            if (victim instanceof ServerPlayerEntity serverVictim
-                    && gameWorldComponent.isRole(serverVictim, FERRYMAN)
-                    && GameFunctions.isPlayerPlayingAndAlive(serverVictim)
-                    && !SwallowedPlayerComponent.isPlayerSwallowed(serverVictim)
-                    && isFerrymanReactionDeathReason(deathReason)) {
-                FerrymanPlayerComponent ferrymanComponent = FerrymanPlayerComponent.KEY.get(serverVictim);
-                AbilityPlayerComponent abilityComponent = AbilityPlayerComponent.KEY.get(serverVictim);
-                if (!ferrymanComponent.isReactionActive() && abilityComponent.getCooldown() <= 0) {
-                    UUID attackerUuid = killer != null ? killer.getUuid() : null;
-                    if (ferrymanComponent.beginReaction(attackerUuid, deathReason)) {
-                        serverVictim.getWorld().sendEntityStatus(serverVictim, EntityStatuses.ADD_PORTAL_PARTICLES);
-                        return KillPlayer.KillResult.cancel();
-                    }
-                }
-            }
+            KillPlayer.KillResult ferrymanResult = FerrymanHelper.handleBeforeKill(victim, killer, deathReason, gameWorldComponent);
+            if (ferrymanResult != null) return ferrymanResult;
 
             if (deathReason == GameConstants.DeathReasons.KNIFE) {
                 if (victim.getWorld() instanceof ServerWorld bodyguardWorld) {
@@ -1234,22 +1041,7 @@ public class Noellesroles implements ModInitializer {
                 }
             }
 
-            if (victim instanceof ServerPlayerEntity serverVictim
-                    && killer instanceof ServerPlayerEntity serverKiller
-                    && gameComponent.isRole(victim, SAINT)
-                    && shouldTrackSaintKarma(serverKiller, gameComponent)) {
-                SaintPlayerComponent.KEY.get(serverKiller).markKarma();
-                serverKiller.sendMessage(Text.translatable("tip.saint.karmic_debt"), true);
-                GameRecordManager.event("saint_karma")
-                        .actor(serverVictim)
-                        .target(serverKiller)
-                        .put("action", "marked")
-                        .record();
-            }
-
-            if (killer instanceof ServerPlayerEntity serverKiller && shouldTrackSaintKarma(serverKiller, gameComponent)) {
-                tryTriggerSaintKarmaLock(serverKiller, gameComponent);
-            }
+            SaintHelper.handleAfterKill(victim, killer, gameComponent);
 
             // 记录被吞玩家肚内死亡标记
             SwallowedPlayerComponent victimSwallowedCheck = SwallowedPlayerComponent.KEY.get(victim);
@@ -1381,29 +1173,7 @@ public class Noellesroles implements ModInitializer {
                 corruptCopComp.endCorruptCopMoment();
             }
 
-            if (victim instanceof ServerPlayerEntity serverVictim && gameComponent.isRole(victim, COMMANDER) && victim.getWorld() instanceof ServerWorld serverWorld3) {
-                broadcastCommanderDeath(serverWorld3, serverVictim);
-            }
-
-            if (killer != null && victim.getWorld() instanceof ServerWorld rewardWorld) {
-                for (UUID commanderUuid : gameComponent.getAllWithRole(COMMANDER)) {
-                    PlayerEntity commanderEntity = rewardWorld.getPlayerByUuid(commanderUuid);
-                    if (!(commanderEntity instanceof ServerPlayerEntity commander)) continue;
-                    CommanderPlayerComponent commanderComp = CommanderPlayerComponent.KEY.get(commander);
-                    if (!commanderComp.isThreatTarget(victim.getUuid())) continue;
-
-                    if (!killer.getUuid().equals(commander.getUuid()) && isActualKillerRole(gameComponent.getRole(killer))) {
-                        for (ServerPlayerEntity player : rewardWorld.getPlayers()) {
-                            if (!GameFunctions.isPlayerPlayingAndAlive(player)) continue;
-                            if (!isCommanderPayoutRecipient(gameComponent, player)) continue;
-                            PlayerShopComponent.KEY.get(player).addToBalance(50);
-                            player.sendMessage(Text.translatable("tip.commander.reward", victim.getName()), true);
-                        }
-                    }
-
-                    commanderComp.removeThreatTarget(victim.getUuid());
-                }
-            }
+            CommanderHelper.handleAfterKill(victim, killer, gameComponent);
 
             // 生存大师被杀时结束生存时刻
             if (gameComponent.isRole(victim, SURVIVAL_MASTER)) {
@@ -1654,32 +1424,9 @@ public class Noellesroles implements ModInitializer {
             if (world.getServer().getTicks() % 5 != 0) return;
             checkAndTriggerMomentsForWorld(world);
 
-            for (UUID uuid : gc.getAllWithRole(FERRYMAN)) {
-                PlayerEntity ferrymanEntity = world.getPlayerByUuid(uuid);
-                if (!(ferrymanEntity instanceof ServerPlayerEntity ferryman) || !GameFunctions.isPlayerPlayingAndAlive(ferryman)) continue;
-
-                FerrymanPlayerComponent ferrymanComponent = FerrymanPlayerComponent.KEY.get(ferryman);
-                if (ferrymanComponent.isReactionActive()) continue;
-
-                Identifier pendingDeathReason = ferrymanComponent.getPendingDeathReason();
-                if (pendingDeathReason == null) continue;
-
-                ServerPlayerEntity attacker = null;
-                UUID attackerUuid = ferrymanComponent.getPendingAttackerUuid();
-                if (attackerUuid != null) {
-                    PlayerEntity attackerEntity = world.getPlayerByUuid(attackerUuid);
-                    if (attackerEntity instanceof ServerPlayerEntity serverAttacker) {
-                        attacker = serverAttacker;
-                    }
-                }
-
-                ferrymanComponent.clearReaction();
-                AbilityPlayerComponent.KEY.get(ferryman).setCooldown(1);
-                GameFunctions.killPlayer(ferryman, true, attacker, pendingDeathReason);
-            }
-
-            tryBroadcastCommanderIdentity(world);
-            checkCommanderLastKillerDeath(world);
+            FerrymanHelper.handleTick(world, gc);
+            CommanderHelper.tryBroadcastIdentity(world);
+            CommanderHelper.checkLastKillerDeath(world);
         });
 
         // 游戏胜利确定时，杀死所有被饕餮吞噬的玩家
@@ -1947,7 +1694,7 @@ public class Noellesroles implements ModInitializer {
 
                     if (result.consumeBlessing()) {
                         if (attacker != null) {
-                            attacker.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, FerrymanPlayerComponent.COUNTER_STUN_TICKS, FERRYMAN_COUNTER_STUN_AMPLIFIER, false, true, true));
+                            attacker.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, FerrymanPlayerComponent.COUNTER_STUN_TICKS, FerrymanHelper.COUNTER_STUN_AMPLIFIER, false, true, true));
                             attacker.sendMessage(Text.translatable("tip.ferryman.attacker_warn"), true);
                         }
                         context.player().addStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, FerrymanPlayerComponent.COUNTER_SPEED_TICKS, 1, false, true, true));
@@ -1965,7 +1712,7 @@ public class Noellesroles implements ModInitializer {
                     return;
                 }
 
-                PlayerBodyEntity body = findFerrymanTargetBody(context.player(), ferrymanComponent);
+                PlayerBodyEntity body = FerrymanHelper.findTargetBody(context.player(), ferrymanComponent);
                 if (body == null) {
                     abilityPlayerComponent.setCooldown(FerrymanPlayerComponent.EMPTY_PENALTY_TICKS);
                     return;
@@ -2257,7 +2004,7 @@ public class Noellesroles implements ModInitializer {
             abilityPlayerComponent.setCooldown(GameConstants.getInTicks(0, 30));
             for (ServerPlayerEntity player : commander.getServerWorld().getPlayers()) {
                 if (!GameFunctions.isPlayerPlayingAndAlive(player)) continue;
-                if (!isCommanderNotificationRecipient(gameWorldComponent, player)) continue;
+                if (!CommanderHelper.isNotificationRecipient(gameWorldComponent, player)) continue;
                 player.sendMessage(Text.translatable("tip.commander.target_marked", target.getName()), true);
             }
 

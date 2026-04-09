@@ -1,16 +1,16 @@
 package org.agmas.noellesroles.client.mixin.ferryman;
 
 import dev.doctor4t.wathe.cca.GameWorldComponent;
-import dev.doctor4t.wathe.game.GameFunctions;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.text.Text;
 import org.agmas.noellesroles.AbilityPlayerComponent;
 import org.agmas.noellesroles.Noellesroles;
 import org.agmas.noellesroles.client.NoellesrolesClient;
+import org.agmas.noellesroles.client.util.HudRenderHelper;
 import org.agmas.noellesroles.ferryman.FerrymanPlayerComponent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -63,23 +63,15 @@ public abstract class FerrymanHudMixin {
 
     @Inject(method = "render", at = @At("TAIL"))
     private void noellesroles$renderFerrymanHud(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client.player == null) {
-            return;
-        }
-        if (!GameFunctions.isPlayerPlayingAndAlive(client.player)) {
-            return;
-        }
+        ClientPlayerEntity player = HudRenderHelper.getActivePlayer();
+        if (player == null) return;
 
-        GameWorldComponent gameWorld = GameWorldComponent.KEY.get(client.player.getWorld());
-        if (!gameWorld.isRole(client.player, Noellesroles.FERRYMAN)) {
-            return;
-        }
+        GameWorldComponent gameWorld = GameWorldComponent.KEY.get(player.getWorld());
+        if (!gameWorld.isRole(player, Noellesroles.FERRYMAN)) return;
 
-        FerrymanPlayerComponent ferryman = FerrymanPlayerComponent.KEY.get(client.player);
-        AbilityPlayerComponent ability = AbilityPlayerComponent.KEY.get(client.player);
+        FerrymanPlayerComponent ferryman = FerrymanPlayerComponent.KEY.get(player);
+        AbilityPlayerComponent ability = AbilityPlayerComponent.KEY.get(player);
 
-        int drawY = context.getScaledWindowHeight();
         Text line;
         if (ferryman.isReactionActive()) {
             line = Text.translatable("tip.ferryman.reaction_ready", NoellesrolesClient.abilityBind.getBoundKeyLocalizedText());
@@ -91,8 +83,8 @@ public abstract class FerrymanHudMixin {
             line = Text.translatable("tip.ferryman.progress", ferryman.getFerriedCount(), ferryman.getFerriedRequired(), ferryman.getBlessingStacks());
         }
 
-        drawY -= getTextRenderer().getWrappedLinesHeight(line, 999999);
-        context.drawTextWithShadow(getTextRenderer(), line, context.getScaledWindowWidth() - getTextRenderer().getWidth(line), drawY, Noellesroles.FERRYMAN.color());
+        int drawY = context.getScaledWindowHeight();
+        HudRenderHelper.drawBottomRight(context, getTextRenderer(), line, drawY, Noellesroles.FERRYMAN.color());
 
         if (ferryman.isReactionActive()) {
             noellesroles$renderReactionParticles(context, System.currentTimeMillis());
