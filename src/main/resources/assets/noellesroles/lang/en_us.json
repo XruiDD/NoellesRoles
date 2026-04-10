@@ -760,7 +760,7 @@
   "item.noellesroles.liqueur.effect": "Doubles the duration of all drink effects, including base spirit debuffs and Vodka drawbacks",
   "item.noellesroles.special_spice": "Special Spice",
   "item.noellesroles.special_spice.effect": "Makes the drink restore 60% sanity instead of the normal amount",
-  "key.noellesroles.ability": "Role Ability"
+  "key.noellesroles.ability": "Role Ability",
   "announcement.goals.commander": "You are part of the killer faction. Other killers know your player name at the start and can identify you by a special color in instinct vision. You can open a menu to mark up to two Threat Targets. If another killer eliminates them, every killer-faction player gains 50 coins. If every other killer dies, you immediately shoot yourself.",
   "announcement.role.commander": "Commander",
   "announcement.win.commander": "Killers Win!",
