@@ -1,7 +1,6 @@
 package org.agmas.noellesroles.entity;
 
 import dev.doctor4t.wathe.cca.GameWorldComponent;
-import dev.doctor4t.wathe.cca.PlayerShopComponent;
 import dev.doctor4t.wathe.cca.PlayerPoisonComponent;
 import dev.doctor4t.wathe.api.WatheRoles;
 import dev.doctor4t.wathe.game.GameFunctions;
@@ -17,7 +16,6 @@ import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
@@ -34,9 +32,6 @@ public class HunterTrapEntity extends Entity {
     private static final int MAX_LIFESPAN_TICKS = 20 * 60 * 10;
     private static final double TRIGGER_EXPAND_XZ = 0.35;
     private static final double TRIGGER_EXPAND_Y = 0.15;
-    private static final int POISON_TRIGGER_REWARD_POISONER = 75;
-    private static final int POISON_TRIGGER_REWARD_OWNER = 50;
-
     private UUID ownerUuid;
     private UUID poisonerUuid;
     private boolean poisoned;
@@ -128,7 +123,8 @@ public class HunterTrapEntity extends Entity {
             PlayerEntity owner = this.ownerUuid == null ? null : this.getWorld().getPlayerByUuid(this.ownerUuid);
             PlayerPoisonComponent poisonComponent = PlayerPoisonComponent.KEY.get(player);
             poisonComponent.setPoisonTicks(20 * 40, owner == null ? null : owner.getUuid(), Noellesroles.POISON_SOURCE_TRAP);
-            this.rewardPoisonTrigger();
+            // 将猎人和下毒者信息存储在受害者身上，死亡时才发放奖励
+            HunterPlayerComponent.KEY.get(player).setTrapPoisonInfo(this.ownerUuid, this.poisonerUuid);
         }
 
         this.getWorld().playSound(null, this.getBlockPos(), SoundEvents.BLOCK_CHAIN_BREAK, SoundCategory.PLAYERS, 0.8F, 0.8F);
@@ -179,26 +175,6 @@ public class HunterTrapEntity extends Entity {
             this.discard();
         }
         return true;
-    }
-
-    private void rewardPoisonTrigger() {
-        if (this.getWorld().isClient) {
-            return;
-        }
-
-        if (this.poisonerUuid != null) {
-            PlayerEntity poisoner = this.getWorld().getPlayerByUuid(this.poisonerUuid);
-            if (poisoner != null) {
-                PlayerShopComponent.KEY.get(poisoner).addToBalance(POISON_TRIGGER_REWARD_POISONER);
-            }
-        }
-
-        if (this.ownerUuid != null) {
-            PlayerEntity owner = this.getWorld().getPlayerByUuid(this.ownerUuid);
-            if (owner != null) {
-                PlayerShopComponent.KEY.get(owner).addToBalance(POISON_TRIGGER_REWARD_OWNER);
-            }
-        }
     }
 
     private void recordTrigger(PlayerEntity player) {

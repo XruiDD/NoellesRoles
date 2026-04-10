@@ -40,6 +40,10 @@ public class HunterPlayerComponent implements AutoSyncedComponent, ServerTicking
     private final List<UUID> ownedTrapUuids = new ArrayList<>();
     private int trappedTicks = 0;
 
+    // 记录毒捕兽夹信息，用于死亡时发放奖励
+    private UUID trapPoisonOwnerUuid;    // 放置捕兽夹的猎人
+    private UUID trapPoisonPoisonerUuid; // 给捕兽夹下毒的人
+
     public HunterPlayerComponent(PlayerEntity player) {
         this.player = player;
     }
@@ -48,7 +52,31 @@ public class HunterPlayerComponent implements AutoSyncedComponent, ServerTicking
         this.fractureTimers.clear();
         this.ownedTrapUuids.clear();
         this.trappedTicks = 0;
+        this.trapPoisonOwnerUuid = null;
+        this.trapPoisonPoisonerUuid = null;
         this.sync();
+    }
+
+    public void setTrapPoisonInfo(UUID ownerUuid, UUID poisonerUuid) {
+        this.trapPoisonOwnerUuid = ownerUuid;
+        this.trapPoisonPoisonerUuid = poisonerUuid;
+    }
+
+    public UUID getTrapPoisonOwnerUuid() {
+        return this.trapPoisonOwnerUuid;
+    }
+
+    public UUID getTrapPoisonPoisonerUuid() {
+        return this.trapPoisonPoisonerUuid;
+    }
+
+    public boolean hasTrapPoisonInfo() {
+        return this.trapPoisonOwnerUuid != null || this.trapPoisonPoisonerUuid != null;
+    }
+
+    public void clearTrapPoisonInfo() {
+        this.trapPoisonOwnerUuid = null;
+        this.trapPoisonPoisonerUuid = null;
     }
 
     public void addFractureLayer() {
@@ -258,6 +286,12 @@ public class HunterPlayerComponent implements AutoSyncedComponent, ServerTicking
         for (int i = 0; i < this.ownedTrapUuids.size(); i++) {
             tag.putUuid("ownedTrap" + i, this.ownedTrapUuids.get(i));
         }
+        if (this.trapPoisonOwnerUuid != null) {
+            tag.putUuid("trapPoisonOwner", this.trapPoisonOwnerUuid);
+        }
+        if (this.trapPoisonPoisonerUuid != null) {
+            tag.putUuid("trapPoisonPoisoner", this.trapPoisonPoisonerUuid);
+        }
     }
 
     @Override
@@ -275,5 +309,7 @@ public class HunterPlayerComponent implements AutoSyncedComponent, ServerTicking
                 this.ownedTrapUuids.add(tag.getUuid("ownedTrap" + i));
             }
         }
+        this.trapPoisonOwnerUuid = tag.containsUuid("trapPoisonOwner") ? tag.getUuid("trapPoisonOwner") : null;
+        this.trapPoisonPoisonerUuid = tag.containsUuid("trapPoisonPoisoner") ? tag.getUuid("trapPoisonPoisoner") : null;
     }
 }

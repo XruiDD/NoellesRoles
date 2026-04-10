@@ -246,12 +246,11 @@ public class RoleInfoRegistry {
                 .addSkill("shop", "inventory")); // 商店
 
         // 指挥官
-        RoleInfoData commander = r("noellesroles", "commander");
-        sk(commander, "noellesroles", "commander", "killer_id", null);
-        sk(commander, "noellesroles", "commander", "threat_mark", "ability");
-        sk(commander, "noellesroles", "commander", "last_bullet", null);
-        sk(commander, "noellesroles", "commander", "shop", "inventory");
-        m.put("noellesroles:commander", commander);
+        m.put("noellesroles:commander", r("commander")
+                .addSkill("killer_id")
+                .addSkill("threat_mark", "ability")
+                .addSkill("last_bullet")
+                .addSkill("shop", "inventory"));
 
         // ===================== 乘客阵营 =====================
 
@@ -326,26 +325,22 @@ public class RoleInfoRegistry {
                 .addSkill("stealth") // 免疫杀手本能透视
                 .addSkill("survival_moment")); // 触发生存时刻
 
-        RoleInfoData riotPatrol = r("noellesroles", "riot_patrol");
-        sk(riotPatrol, "noellesroles", "riot_patrol", "riot_shield", "use");
-        sk(riotPatrol, "noellesroles", "riot_patrol", "riot_fork", "use");
-        m.put("noellesroles:riot_patrol", riotPatrol);
+        m.put("noellesroles:riot_patrol", r("riot_patrol")
+                .addSkill("riot_shield", "use")
+                .addSkill("riot_fork", "use"));
 
-        RoleInfoData hunter = r("noellesroles", "hunter");
-        sk(hunter, "noellesroles", "hunter", "trap", "use");
-        sk(hunter, "noellesroles", "hunter", "shotgun", "inventory");
-        m.put("noellesroles:hunter", hunter);
+        m.put("noellesroles:hunter", r("hunter")
+                .addSkill("trap", "use")
+                .addSkill("shotgun", "inventory"));
 
-        RoleInfoData orthopedist = r("noellesroles", "orthopedist");
-        sk(orthopedist, "noellesroles", "orthopedist", "ancient_healing", "ability");
-        sk(orthopedist, "noellesroles", "orthopedist", "swift_stride", null);
-        m.put("noellesroles:orthopedist", orthopedist);
+        m.put("noellesroles:orthopedist", r("orthopedist")
+                .addSkill("ancient_healing", "ability")
+                .addSkill("swift_stride"));
 
         // 圣徒
-        RoleInfoData saint = r("noellesroles", "saint");
-        sk(saint, "noellesroles", "saint", "hellfire", null);
-        sk(saint, "noellesroles", "saint", "divine_focus", null);
-        m.put("noellesroles:saint", saint);
+        m.put("noellesroles:saint", r("saint")
+                .addSkill("hellfire")
+                .addSkill("divine_focus"));
 
         // ===================== 中立阵营 =====================
 
@@ -382,10 +377,9 @@ public class RoleInfoRegistry {
                 .addSkill("swallow_skill", "ability") // 吞噬玩家
                 .addSkill("moment")); // 触发饕餮时刻
 
-        RoleInfoData ferryman = r("noellesroles", "ferryman");
-        sk(ferryman, "noellesroles", "ferryman", "netherwalker", "ability");
-        sk(ferryman, "noellesroles", "ferryman", "ferry", "ability");
-        m.put("noellesroles:ferryman", ferryman);
+        m.put("noellesroles:ferryman", r("ferryman")
+                .addSkill("netherwalker", "ability")
+                .addSkill("ferry", "ability"));
 
         return m;
     }

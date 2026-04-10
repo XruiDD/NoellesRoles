@@ -36,6 +36,8 @@ public abstract class NeutralMoodMixin {
     private static final Identifier MOOD_CORRUPT_COP = Identifier.of(Noellesroles.MOD_ID, "hud/mood_corruptedcop");
     @Unique
     private static final Identifier MOOD_CORRUPT_COP_MOMENT = Identifier.of(Noellesroles.MOD_ID, "hud/mood_corrupted_moment");
+    @Unique
+    private static final Identifier MOOD_FERRYMAN = Identifier.of(Noellesroles.MOD_ID, "hud/mood_ferryman");
 
     @Unique
     private static @Nullable Identifier getNeutralMoodIdentifier(ClientPlayerEntity player) {
@@ -48,6 +50,7 @@ public abstract class NeutralMoodMixin {
         if (gwc.isRole(player, Noellesroles.VULTURE)) return MOOD_VULTURE;
         if (gwc.isRole(player, Noellesroles.TAOTIE)) return MOOD_TAOTIE;
         if (gwc.isRole(player, Noellesroles.CRIMINAL_REASONER)) return MOOD_CRIMINAL_REASONER;
+        if (gwc.isRole(player, Noellesroles.FERRYMAN)) return MOOD_FERRYMAN;
         if (gwc.isRole(player, Noellesroles.CORRUPT_COP)) {
             CorruptCopPlayerComponent comp = CorruptCopPlayerComponent.KEY.get(player);
             return comp.isCorruptCopMomentActive() ? MOOD_CORRUPT_COP_MOMENT : MOOD_CORRUPT_COP;

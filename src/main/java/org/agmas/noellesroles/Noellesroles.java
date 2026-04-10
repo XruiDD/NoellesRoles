@@ -1092,6 +1092,27 @@ public class Noellesroles implements ModInitializer {
                 PlayerShopComponent.KEY.get(killer).addToBalance(-25);
             }
 
+            // 毒捕兽夹致死奖励：被毒死时给猎人和下毒者加钱
+            if (deathReason == GameConstants.DeathReasons.POISON) {
+                HunterPlayerComponent hunterComp = HunterPlayerComponent.KEY.get(victim);
+                if (hunterComp.hasTrapPoisonInfo()) {
+                    UUID trapOwner = hunterComp.getTrapPoisonOwnerUuid();
+                    UUID trapPoisoner = hunterComp.getTrapPoisonPoisonerUuid();
+                    if (trapOwner != null) {
+                        PlayerEntity owner = victim.getWorld().getPlayerByUuid(trapOwner);
+                        if (owner != null) {
+                            PlayerShopComponent.KEY.get(owner).addToBalance(50);
+                        }
+                    }
+                    if (trapPoisoner != null) {
+                        PlayerEntity poisoner = victim.getWorld().getPlayerByUuid(trapPoisoner);
+                        if (poisoner != null) {
+                            PlayerShopComponent.KEY.get(poisoner).addToBalance(75);
+                        }
+                    }
+                    hunterComp.clearTrapPoisonInfo();
+                }
+            }
 
             // 记录清道夫杀人
             if (killer != null && deathReason == GameConstants.DeathReasons.KNIFE && gameComponent.isRole(killer, SCAVENGER) && !gameComponent.isRole(victim, NOISEMAKER)) {
