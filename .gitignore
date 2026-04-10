@@ -9,3 +9,5 @@ libs/*
 /libs
 .claude/
 bin/
+dev/
+net/
