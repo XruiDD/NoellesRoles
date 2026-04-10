@@ -147,7 +147,7 @@ public class RoleInfoScreen extends Screen {
                 RoleInfoData.SkillInfoData skill = entry.getValue();
 
                 // Skill name with star icon
-                Text skillName = Text.literal("* ").append(RoleInfoRegistry.resolveText(skill.nameKey));
+                Text skillName = Text.literal("| ").append(RoleInfoRegistry.resolveText(skill.nameKey));
                 context.drawTextWithShadow(font, skillName, startX, y, 0xFF00CCFF);
                 y += LINE_HEIGHT;
 
@@ -156,7 +156,7 @@ public class RoleInfoScreen extends Screen {
                 Text triggerLabel = Text.translatable("roleinfo.skill.trigger_label", triggerText);
                 List<OrderedText> triggerLines = font.wrapLines(triggerLabel, contentWidth - 16);
                 for (OrderedText line : triggerLines) {
-                    context.drawTextWithShadow(font, line, startX + 12, y, 0xFF88CC88);
+                    context.drawTextWithShadow(font, line, startX + 12, y, 0xFF666666);
                     y += LINE_HEIGHT;
                 }
 
