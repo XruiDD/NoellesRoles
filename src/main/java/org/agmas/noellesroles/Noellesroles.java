@@ -81,6 +81,8 @@ import org.agmas.noellesroles.scavenger.ScavengerShopHandler;
 import org.agmas.noellesroles.timekeeper.TimekeeperShopHandler;
 import org.agmas.noellesroles.corruptcop.CorruptCopPlayerComponent;
 import org.agmas.noellesroles.packet.ReporterMarkC2SPacket;
+import org.agmas.noellesroles.packet.RoleBroadcastS2CPacket;
+import org.agmas.noellesroles.packet.SilencedStateS2CPacket;
 import org.agmas.noellesroles.packet.CommanderMarkC2SPacket;
 import org.agmas.noellesroles.professor.IronManPlayerComponent;
 import org.agmas.noellesroles.reporter.ReporterPlayerComponent;
@@ -340,6 +342,8 @@ public class Noellesroles implements ModInitializer {
         PayloadTypeRegistry.playC2S().register(TaotieSwallowC2SPacket.ID, TaotieSwallowC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(SilencerSilenceC2SPacket.ID, SilencerSilenceC2SPacket.CODEC);
         PayloadTypeRegistry.playS2C().register(EngineerDoorHighlightS2CPacket.ID, EngineerDoorHighlightS2CPacket.CODEC);
+        PayloadTypeRegistry.playS2C().register(RoleBroadcastS2CPacket.ID, RoleBroadcastS2CPacket.CODEC);
+        PayloadTypeRegistry.playS2C().register(SilencedStateS2CPacket.ID, SilencedStateS2CPacket.CODEC);
 
         registerEvents();
 
@@ -360,6 +364,9 @@ public class Noellesroles implements ModInitializer {
                         || attacker.getMainHandStack().isOf(ModItems.RIOT_SHIELD)
         );
 
+        // 注册职业聊天处理器（大嗓门广播、饕餮肚子、静语者拦截）
+        org.agmas.noellesroles.chat.RoleChatHandler.register();
+
         // 注册 DLC 回放格式化器
         registerReplayFormatters();
 
@@ -376,13 +383,18 @@ public class Noellesroles implements ModInitializer {
             GameWorldComponent.KEY.get(world).setRoleEnabled(AWESOME_BINGLUS, false);
         });
 
-        // 修复：断线重连后清理语音群组
+        // 修复：断线重连后清理语音群组 + 同步静语状态
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             ServerPlayerEntity player = handler.getPlayer();
             server.execute(() -> {
                 SwallowedPlayerComponent swallowedComp = SwallowedPlayerComponent.KEY.get(player);
                 if (!swallowedComp.isSwallowed()) {
                     TrainVoicePlugin.addPlayer(player.getUuid());
+                }
+                // 断线重连时同步静语状态
+                SilencedPlayerComponent silencedComp = SilencedPlayerComponent.KEY.get(player);
+                if (silencedComp.isSilenced()) {
+                    ServerPlayNetworking.send(player, new SilencedStateS2CPacket(true));
                 }
             });
         });
