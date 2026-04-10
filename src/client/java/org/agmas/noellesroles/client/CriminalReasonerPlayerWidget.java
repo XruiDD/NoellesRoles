@@ -36,18 +36,21 @@ public class CriminalReasonerPlayerWidget extends ButtonWidget {
         if (clipEnabled) {
             context.enableScissor(clipLeft, clipTop, clipRight, clipBottom);
         }
-        super.renderWidget(context, mouseX, mouseY, delta);
+        try {
+            super.renderWidget(context, mouseX, mouseY, delta);
 
-        context.drawGuiTexture(ShopEntry.Type.POISON.getTexture(), this.getX() - 7, this.getY() - 7, 30, 30);
-        PlayerSkinDrawer.draw(context, getSkinTextures().texture(), this.getX(), this.getY(), 16);
+            context.drawGuiTexture(ShopEntry.Type.POISON.getTexture(), this.getX() - 7, this.getY() - 7, 30, 30);
+            PlayerSkinDrawer.draw(context, getSkinTextures().texture(), this.getX(), this.getY(), 16);
 
-        if (this.isHovered()) {
-            Text name = getNameText(targetUuid);
-            int tooltipX = this.getX() - 4 - MinecraftClient.getInstance().textRenderer.getWidth(name) / 2;
-            context.drawTooltip(MinecraftClient.getInstance().textRenderer, name, tooltipX, this.getY() - 9);
-        }
-        if (clipEnabled) {
-            context.disableScissor();
+            if (this.isHovered()) {
+                Text name = getNameText(targetUuid);
+                int tooltipX = this.getX() - 4 - MinecraftClient.getInstance().textRenderer.getWidth(name) / 2;
+                context.drawTooltip(MinecraftClient.getInstance().textRenderer, name, tooltipX, this.getY() - 9);
+            }
+        } finally {
+            if (clipEnabled) {
+                context.disableScissor();
+            }
         }
     }
 

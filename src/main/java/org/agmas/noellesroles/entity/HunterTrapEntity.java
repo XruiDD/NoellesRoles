@@ -31,6 +31,12 @@ import java.util.UUID;
 
 public class HunterTrapEntity extends Entity {
     public static final String EVENT_TRIGGERED = "hunter_trap_triggered";
+    private static final int MAX_LIFESPAN_TICKS = 20 * 60 * 10;
+    private static final double TRIGGER_EXPAND_XZ = 0.35;
+    private static final double TRIGGER_EXPAND_Y = 0.15;
+    private static final int POISON_TRIGGER_REWARD_POISONER = 75;
+    private static final int POISON_TRIGGER_REWARD_OWNER = 50;
+
     private UUID ownerUuid;
     private UUID poisonerUuid;
     private boolean poisoned;
@@ -86,11 +92,13 @@ public class HunterTrapEntity extends Entity {
 
         BlockPos supportPos = this.getBlockPos().down();
         if (!this.getWorld().getBlockState(supportPos).isSolidBlock(this.getWorld(), supportPos)) {
+            this.unregisterFromOwner();
             this.discard();
             return;
         }
 
-        if (this.age > 20 * 60 * 10) {
+        if (this.age > MAX_LIFESPAN_TICKS) {
+            this.unregisterFromOwner();
             this.discard();
             return;
         }
@@ -99,7 +107,7 @@ public class HunterTrapEntity extends Entity {
             return;
         }
 
-        Box triggerBox = this.getBoundingBox().expand(0.35, 0.15, 0.35);
+        Box triggerBox = this.getBoundingBox().expand(TRIGGER_EXPAND_XZ, TRIGGER_EXPAND_Y, TRIGGER_EXPAND_XZ);
         for (PlayerEntity player : this.getWorld().getEntitiesByClass(PlayerEntity.class, triggerBox, this::canTrigger)) {
             this.trigger(player);
             break;
@@ -107,14 +115,7 @@ public class HunterTrapEntity extends Entity {
     }
 
     private boolean canTrigger(PlayerEntity player) {
-        if (!GameFunctions.isPlayerAliveAndSurvival(player)) {
-            return false;
-        }
-
-        if (this.isVultureSpeeding(player)) {
-            return false;
-        }
-        return true;
+        return GameFunctions.isPlayerAliveAndSurvival(player) && !this.isVultureSpeeding(player);
     }
 
     private void trigger(PlayerEntity player) {
@@ -132,6 +133,7 @@ public class HunterTrapEntity extends Entity {
 
         this.getWorld().playSound(null, this.getBlockPos(), SoundEvents.BLOCK_CHAIN_BREAK, SoundCategory.PLAYERS, 0.8F, 0.8F);
         ((net.minecraft.server.world.ServerWorld) this.getWorld()).spawnParticles(ParticleTypes.CRIT, this.getX(), this.getY() + 0.05, this.getZ(), 8, 0.2, 0.05, 0.2, 0.05);
+        this.unregisterFromOwner();
         this.discard();
     }
 
@@ -173,6 +175,7 @@ public class HunterTrapEntity extends Entity {
         if (!this.getWorld().isClient) {
             this.dropStack(this.asPickupStack());
             this.getWorld().playSound(null, this.getBlockPos(), SoundEvents.BLOCK_CHAIN_FALL, SoundCategory.PLAYERS, 0.8F, 1.2F);
+            this.unregisterFromOwner();
             this.discard();
         }
         return true;
@@ -186,14 +189,14 @@ public class HunterTrapEntity extends Entity {
         if (this.poisonerUuid != null) {
             PlayerEntity poisoner = this.getWorld().getPlayerByUuid(this.poisonerUuid);
             if (poisoner != null) {
-                PlayerShopComponent.KEY.get(poisoner).addToBalance(75);
+                PlayerShopComponent.KEY.get(poisoner).addToBalance(POISON_TRIGGER_REWARD_POISONER);
             }
         }
 
         if (this.ownerUuid != null) {
             PlayerEntity owner = this.getWorld().getPlayerByUuid(this.ownerUuid);
             if (owner != null) {
-                PlayerShopComponent.KEY.get(owner).addToBalance(50);
+                PlayerShopComponent.KEY.get(owner).addToBalance(POISON_TRIGGER_REWARD_OWNER);
             }
         }
     }
@@ -230,6 +233,15 @@ public class HunterTrapEntity extends Entity {
             return true;
         }
         return VulturePlayerComponent.KEY.get(player).getHighlightTicks() > 0;
+    }
+
+    public void unregisterFromOwner() {
+        if (!this.getWorld().isClient && this.ownerUuid != null) {
+            PlayerEntity owner = this.getWorld().getPlayerByUuid(this.ownerUuid);
+            if (owner != null) {
+                HunterPlayerComponent.KEY.get(owner).unregisterTrap(this.getUuid());
+            }
+        }
     }
 
     @Override

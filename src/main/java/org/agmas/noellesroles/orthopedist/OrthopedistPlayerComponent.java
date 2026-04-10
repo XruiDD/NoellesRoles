@@ -34,6 +34,7 @@ public class OrthopedistPlayerComponent implements AutoSyncedComponent, ServerTi
 
     private final PlayerEntity player;
     private boolean passiveApplied = false;
+    private boolean lastBoneSettingActive = false;
 
     public OrthopedistPlayerComponent(PlayerEntity player) {
         this.player = player;
@@ -41,6 +42,7 @@ public class OrthopedistPlayerComponent implements AutoSyncedComponent, ServerTi
 
     public void reset() {
         this.passiveApplied = false;
+        this.lastBoneSettingActive = false;
         removeModifier(PASSIVE_STAMINA_MODIFIER_ID);
         removeModifier(BONE_SETTING_STAMINA_MODIFIER_ID);
         this.player.removeStatusEffect(ModEffects.BONE_SETTING);
@@ -78,10 +80,13 @@ public class OrthopedistPlayerComponent implements AutoSyncedComponent, ServerTi
         }
 
         boolean hasBoneSetting = serverPlayer.hasStatusEffect(ModEffects.BONE_SETTING);
-        if (hasBoneSetting) {
-            applyModifier(BONE_SETTING_STAMINA_MODIFIER_ID, BONE_SETTING_STAMINA_BONUS);
-        } else {
-            removeModifier(BONE_SETTING_STAMINA_MODIFIER_ID);
+        if (hasBoneSetting != this.lastBoneSettingActive) {
+            this.lastBoneSettingActive = hasBoneSetting;
+            if (hasBoneSetting) {
+                applyModifier(BONE_SETTING_STAMINA_MODIFIER_ID, BONE_SETTING_STAMINA_BONUS);
+            } else {
+                removeModifier(BONE_SETTING_STAMINA_MODIFIER_ID);
+            }
         }
     }
 

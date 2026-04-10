@@ -778,6 +778,7 @@
   "item.noellesroles.liqueur.effect": "使这杯酒的所有效果持续时间延长100%，包括基酒的负面效果与伏特加结束后的负面效果",
   "item.noellesroles.special_spice": "特制香料",
   "item.noellesroles.special_spice.effect": "使这杯酒改为恢复60%的理智值",
+  "key.noellesroles.ability": "角色技能"
   "roleinfo.win_condition.ferryman": "引渡达到总玩家数一半的亡魂即可获胜。",
   "replay.death_blocked.ferryman_reaction": "%s 用§b冥界行者§r化解了一次致命攻击",
   "replay.death_blocked.saint_innocent_immunity": "%s 受§b神注§r庇护，免疫了好人阵营的击杀",

@@ -4,6 +4,7 @@ import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.record.GameRecordManager;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
@@ -21,14 +22,13 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
 import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
 import org.agmas.noellesroles.NoellesRolesEntities;
 import org.agmas.noellesroles.Noellesroles;
 import org.agmas.noellesroles.entity.HunterTrapEntity;
+import org.agmas.noellesroles.hunter.HunterPlayerComponent;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -57,12 +57,19 @@ public class HunterTrapItem extends Item {
         }
 
         if (!world.isClient) {
-            this.removeOldestTrapIfNeeded(world, user.getUuid());
+            HunterPlayerComponent hunterComponent = HunterPlayerComponent.KEY.get(user);
+            for (UUID oldTrapUuid : hunterComponent.removeOldestTrapsIfNeeded()) {
+                Entity oldTrap = ((net.minecraft.server.world.ServerWorld) world).getEntity(oldTrapUuid);
+                if (oldTrap != null) {
+                    oldTrap.discard();
+                }
+            }
             HunterTrapEntity trap = new HunterTrapEntity(NoellesRolesEntities.HUNTER_TRAP_ENTITY, world);
             trap.refreshPositionAndAngles(placePos.getX() + 0.5, placePos.getY() + 0.02, placePos.getZ() + 0.5, 0.0F, 0.0F);
             trap.setOwner(user);
             trap.setPoisoned(isPoisoned(stack));
             world.spawnEntity(trap);
+            hunterComponent.registerTrap(trap.getUuid());
             world.playSound(null, placePos, SoundEvents.BLOCK_METAL_PLACE, SoundCategory.PLAYERS, 0.8F, 1.1F);
             if (user instanceof ServerPlayerEntity serverPlayer) {
                 NbtCompound extra = new NbtCompound();
@@ -100,38 +107,10 @@ public class HunterTrapItem extends Item {
     }
 
     public static void setPoisoned(ItemStack stack, boolean poisoned) {
-        NbtCompound nbt = stack.get(DataComponentTypes.CUSTOM_DATA) != null
-            ? stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt()
-            : new NbtCompound();
+        NbtComponent customData = stack.get(DataComponentTypes.CUSTOM_DATA);
+        NbtCompound nbt = customData != null ? customData.copyNbt() : new NbtCompound();
         nbt.putBoolean(POISONED_KEY, poisoned);
         stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
     }
 
-    private void removeOldestTrapIfNeeded(World world, UUID ownerUuid) {
-        Box searchBox = new Box(
-            world.getWorldBorder().getBoundWest(),
-            world.getBottomY(),
-            world.getWorldBorder().getBoundNorth(),
-            world.getWorldBorder().getBoundEast(),
-            world.getTopY(),
-            world.getWorldBorder().getBoundSouth()
-        );
-
-        List<HunterTrapEntity> ownedTraps = world.getEntitiesByClass(
-            HunterTrapEntity.class,
-            searchBox,
-            trap -> ownerUuid.equals(trap.getOwnerUuid())
-        );
-
-        while (ownedTraps.size() >= 2) {
-            HunterTrapEntity oldestTrap = ownedTraps.stream()
-                .max(Comparator.comparingInt(trap -> trap.age))
-                .orElse(null);
-            if (oldestTrap == null) {
-                break;
-            }
-            oldestTrap.discard();
-            ownedTraps.remove(oldestTrap);
-        }
-    }
 }

@@ -17,6 +17,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import net.minecraft.nbt.NbtList;
+import net.minecraft.nbt.NbtString;
 
 public class CriminalReasonerPlayerComponent implements AutoSyncedComponent {
     public static final ComponentKey<CriminalReasonerPlayerComponent> KEY = ComponentRegistry.getOrCreate(
@@ -124,10 +126,10 @@ public class CriminalReasonerPlayerComponent implements AutoSyncedComponent {
         }
 
         if (nbtCompound.contains("solvedVictims")) {
-            NbtCompound solvedTag = nbtCompound.getCompound("solvedVictims");
-            for (String key : solvedTag.getKeys()) {
+            NbtList solvedList = nbtCompound.getList("solvedVictims", NbtString.STRING_TYPE);
+            for (int i = 0; i < solvedList.size(); i++) {
                 try {
-                    this.solvedVictims.add(UUID.fromString(key));
+                    this.solvedVictims.add(UUID.fromString(solvedList.getString(i)));
                 } catch (IllegalArgumentException ignored) {
                 }
             }
@@ -142,11 +144,11 @@ public class CriminalReasonerPlayerComponent implements AutoSyncedComponent {
         }
         nbtCompound.put("victimToKiller", mappingTag);
 
-        NbtCompound solvedTag = new NbtCompound();
+        NbtList solvedList = new NbtList();
         for (UUID solvedVictim : this.solvedVictims) {
-            solvedTag.putBoolean(solvedVictim.toString(), true);
+            solvedList.add(NbtString.of(solvedVictim.toString()));
         }
-        nbtCompound.put("solvedVictims", solvedTag);
+        nbtCompound.put("solvedVictims", solvedList);
         nbtCompound.putInt("successfulReasoningCount", this.successfulReasoningCount);
     }
 }
