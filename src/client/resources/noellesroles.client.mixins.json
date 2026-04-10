@@ -34,9 +34,11 @@
     "swapper.SwapperScreenMixin",
     "taotie.TaotieHudMixin",
     "taotie.SpectatorHudMixin",
+    "taotie.SwallowedChatHudMixin",
     "voodoo.VoodoScreenMixin",
     "vulture.VultureHudMixin",
     "silencer.SilencerHudMixin",
+    "silencer.SilencedBroadcastFilterMixin",
     "bartender.StimulationVignetteHudMixin",
     "bartender.StimulationMoodMixin",
     "neutral.NeutralMoodMixin"

@@ -96,6 +96,9 @@ public class NoellesrolesClient implements ClientModInitializer {
 
     public static Map<UUID, UUID> SHUFFLED_PLAYER_ENTRIES_CACHE = Maps.newHashMap();
 
+    /** 客户端玩家是否处于被静语状态（由服务端同步） */
+    public static boolean isClientSilenced = false;
+
     // 不可见物品提示：切换到不可见物品时提示
     private static boolean wasHoldingInvisible = false;
 
@@ -124,6 +127,18 @@ public class NoellesrolesClient implements ClientModInitializer {
         ClientPlayNetworking.registerGlobalReceiver(EngineerDoorHighlightS2CPacket.ID,
                 (payload, context) -> context.client().execute(() ->
                         EngineerDoorHighlightRenderer.onPacketReceived(payload.doorPos())
+                ));
+
+        // 注册职业广播 S2C 包接收：复用对讲机渲染器在屏幕上方显示
+        ClientPlayNetworking.registerGlobalReceiver(org.agmas.noellesroles.packet.RoleBroadcastS2CPacket.ID,
+                (payload, context) -> context.client().execute(() ->
+                        dev.doctor4t.wathe.client.gui.WalkieTalkieBroadcastRenderer.addMessage(payload.message())
+                ));
+
+        // 注册静语状态同步 S2C 包接收
+        ClientPlayNetworking.registerGlobalReceiver(org.agmas.noellesroles.packet.SilencedStateS2CPacket.ID,
+                (payload, context) -> context.client().execute(() ->
+                        isClientSilenced = payload.silenced()
                 ));
 
         // 注册实体渲染器

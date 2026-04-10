@@ -2,12 +2,14 @@ package org.agmas.noellesroles.silencer;
 
 import dev.doctor4t.wathe.cca.PlayerMoodComponent;
 import dev.doctor4t.wathe.game.GameConstants;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.util.Identifier;
 import org.agmas.noellesroles.Noellesroles;
+import org.agmas.noellesroles.packet.SilencedStateS2CPacket;
 import org.jetbrains.annotations.NotNull;
 import org.ladysnake.cca.api.v3.component.Component;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
@@ -45,6 +47,8 @@ public class SilencedPlayerComponent implements Component, ServerTickingComponen
     public void applySilence(UUID silencerUuid) {
         this.silenceTicks = SILENCE_DURATION_TICKS;
         this.silencedBy = silencerUuid;
+        // 同步静语状态到客户端
+        sendSilencedState(true);
     }
 
     /**
@@ -72,8 +76,12 @@ public class SilencedPlayerComponent implements Component, ServerTickingComponen
      * Reset the silence state
      */
     public void reset() {
+        boolean wasSilenced = this.silenceTicks > 0;
         this.silenceTicks = 0;
         this.silencedBy = null;
+        if (wasSilenced) {
+            sendSilencedState(false);
+        }
     }
 
     /**
@@ -102,7 +110,18 @@ public class SilencedPlayerComponent implements Component, ServerTickingComponen
             // Clear silencer reference when silence ends
             if (this.silenceTicks <= 0) {
                 this.silencedBy = null;
+                // 静语结束，同步状态到客户端
+                sendSilencedState(false);
             }
+        }
+    }
+
+    /**
+     * 发送静语状态同步包给客户端
+     */
+    private void sendSilencedState(boolean silenced) {
+        if (this.player instanceof ServerPlayerEntity serverPlayer) {
+            ServerPlayNetworking.send(serverPlayer, new SilencedStateS2CPacket(silenced));
         }
     }
 
