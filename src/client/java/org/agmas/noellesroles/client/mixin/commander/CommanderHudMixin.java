@@ -38,8 +38,8 @@ public abstract class CommanderHudMixin {
         int drawY = context.getScaledWindowHeight();
         List<String> markedNames = commanderComp.getThreatTargetNames();
         if (!markedNames.isEmpty()) {
-            Text line2 = Text.translatable("tip.commander.marked", String.join(" / ", markedNames));
-            drawY = HudRenderHelper.drawBottomRight(context, getTextRenderer(), line2, drawY, 0x7E9ED8);
+            Text line2 = Text.translatable("tip.commander.marked", String.join("、", markedNames));
+            drawY = HudRenderHelper.drawBottomRight(context, getTextRenderer(), line2, drawY, 0xCAA1FF);
         }
 
         Text line1;
@@ -53,6 +53,6 @@ public abstract class CommanderHudMixin {
             line1 = Text.translatable("tip.commander.no_marks");
         }
 
-        HudRenderHelper.drawBottomRight(context, getTextRenderer(), line1, drawY, 0x7E9ED8);
+        HudRenderHelper.drawBottomRight(context, getTextRenderer(), line1, drawY, 0xCAA1FF);
     }
 }

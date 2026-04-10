@@ -298,7 +298,7 @@ public class NoellesrolesClient implements ClientModInitializer {
 
             if (gameWorldComponent.canUseKillerFeatures(localPlayer)) {
                 if (gameWorldComponent.isRole(player, Noellesroles.COMMANDER) && player != localPlayer) {
-                    return GetInstinctHighlight.HighlightResult.withKeybind(0x1B2C58, GetInstinctHighlight.HighlightResult.PRIORITY_HIGH);
+                    return GetInstinctHighlight.HighlightResult.withKeybind(0x2E006B, GetInstinctHighlight.HighlightResult.PRIORITY_HIGH);
                 }
 
                 for (UUID commanderUuid : gameWorldComponent.getAllWithRole(Noellesroles.COMMANDER)) {
@@ -306,7 +306,7 @@ public class NoellesrolesClient implements ClientModInitializer {
                     if (commander == null) continue;
                     CommanderPlayerComponent commanderComp = CommanderPlayerComponent.KEY.get(commander);
                     if (commanderComp.isThreatTarget(player.getUuid())) {
-                        return GetInstinctHighlight.HighlightResult.always(0x7E9ED8);
+                        return GetInstinctHighlight.HighlightResult.always(0xCAA1FF);
                     }
                 }
             }

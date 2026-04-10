@@ -39,7 +39,7 @@ public class CommanderTargetWidget extends ButtonWidget {
         PlayerSkinDrawer.draw(context, getSkinTextures().texture(), this.getX(), this.getY(), 16);
 
         if (marked || this.isHovered()) {
-            drawSlotHighlight(context, this.getX(), this.getY(), 0, marked ? 0xAA2B4C7E : 0x913D3D3D);
+            drawSlotHighlight(context, this.getX(), this.getY(), 0, marked ? 0xAA4B1A8E : 0x913D3D3D);
             Text name = getNameText(this.targetUuid);
             context.drawTooltip(MinecraftClient.getInstance().textRenderer, name,
                     this.getX() - 4 - MinecraftClient.getInstance().textRenderer.getWidth(name) / 2,

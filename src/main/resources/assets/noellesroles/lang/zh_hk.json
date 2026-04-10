@@ -255,6 +255,7 @@
 
   "replay.voodoo_chain_death": "%s 死亡，§5巫毒詛咒§r觸發，目標 %s",
   "replay.death_in_stomach": "%s 在§6饕餮§r的肚子裡死亡",
+  "replay.death.noellesroles.commander_suicide.died": "%s 因失去所有殺手隊友而§5飲彈自盡§r",
 
   "replay.skill.noellesroles.morphling.target": "%s §b變形§r為 %s",
   "replay.skill.noellesroles.assassin.target": "%s 試圖§c刺殺§r %s",
