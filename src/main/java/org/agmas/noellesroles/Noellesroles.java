@@ -181,6 +181,8 @@ public class Noellesroles implements ModInitializer {
     // 投掷斧死亡原因
     public static Identifier DEATH_REASON_THROWING_AXE = Identifier.of(MOD_ID, "throwing_axe");
     public static Identifier DEATH_REASON_COMMANDER_SUICIDE = Identifier.of(MOD_ID, "commander_suicide");
+    // 巫毒诅咒死亡原因
+    public static Identifier DEATH_REASON_VOODOO = Identifier.of(MOD_ID, "voodoo");
 
 
     // 下毒来源
@@ -1112,17 +1114,7 @@ public class Noellesroles implements ModInitializer {
                                             .put("voodoo_death_reason", deathReason.toString())
                                             .record();
                                 }
-                                // 为犯罪推理学家记录巫毒诅咒死亡（凶手为杀死巫毒师的人，而非巫毒师本身）
-                                if (killer != null && victim.getWorld() instanceof ServerWorld serverWorld2) {
-                                    for (UUID crUuid : gameComponent.getAllWithRole(CRIMINAL_REASONER)) {
-                                        PlayerEntity criminalReasoner = serverWorld2.getPlayerByUuid(crUuid);
-                                        if (criminalReasoner != null) {
-                                            CriminalReasonerPlayerComponent crComp = CriminalReasonerPlayerComponent.KEY.get(criminalReasoner);
-                                            crComp.recordReasoningTarget(voodooed.getUuid(), killer.getUuid());
-                                        }
-                                    }
-                                }
-                                GameFunctions.killPlayer(voodooed, true, null, Identifier.of(Noellesroles.MOD_ID, "voodoo"));
+                                GameFunctions.killPlayer(voodooed, true, victim, DEATH_REASON_VOODOO);
                             }
                         }
                     }
