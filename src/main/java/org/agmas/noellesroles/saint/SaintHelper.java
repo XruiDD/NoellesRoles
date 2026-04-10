@@ -6,9 +6,14 @@ import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.game.GameFunctions;
 import dev.doctor4t.wathe.record.GameRecordManager;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.network.packet.s2c.play.PlaySoundS2CPacket;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvent;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import org.agmas.noellesroles.ModSounds;
 import org.agmas.noellesroles.Noellesroles;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,6 +42,11 @@ public final class SaintHelper {
             return;
         }
         saintComponent.triggerKarmaLock(gameWorldComponent.isRole(player, Noellesroles.BOMBER));
+        GameRecordManager.event("saint_karma")
+                .actor(player)
+                .put("action", "triggered")
+                .put("duration", Integer.toString(saintComponent.getKarmaLockTicks()))
+                .record();
         player.sendMessage(Text.translatable("tip.saint.karma_triggered", Math.max(1, saintComponent.getKarmaLockTicks() / 20)), true);
     }
 
@@ -80,6 +90,26 @@ public final class SaintHelper {
                 && gameComponent.isRole(victim, Noellesroles.SAINT)
                 && shouldTrackKarma(serverKiller, gameComponent)) {
             SaintPlayerComponent.KEY.get(serverKiller).markKarma();
+            serverKiller.networkHandler.sendPacket(new PlaySoundS2CPacket(
+                    RegistryEntry.of(ModSounds.SAINT_BELL),
+                    SoundCategory.PLAYERS,
+                    serverKiller.getX(),
+                    serverKiller.getY(),
+                    serverKiller.getZ(),
+                    5.0F,
+                    1.0F,
+                    serverKiller.getWorld().random.nextLong()
+            ));
+            serverKiller.networkHandler.sendPacket(new PlaySoundS2CPacket(
+                    RegistryEntry.of(ModSounds.SAINT_BELL),
+                    SoundCategory.PLAYERS,
+                    serverKiller.getX(),
+                    serverKiller.getY(),
+                    serverKiller.getZ(),
+                    5.0F,
+                    0.97F,
+                    serverKiller.getWorld().random.nextLong()
+            ));
             serverKiller.sendMessage(Text.translatable("tip.saint.karmic_debt"), true);
             GameRecordManager.event("saint_karma")
                     .actor(serverVictim)

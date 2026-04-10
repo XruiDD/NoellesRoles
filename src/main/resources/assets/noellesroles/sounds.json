@@ -32,6 +32,13 @@
         ],
         "subtitle": "subtitles.noellesroles.ambient.jester_laugh"
     },
+    "ambient.saint_bell": {
+        "sounds": [
+            {
+                "name": "noellesroles:ambient/saint_bell"
+            }
+        ]
+    },
     "ambient.corrupt_cop_execution": {
         "sounds": [
             {

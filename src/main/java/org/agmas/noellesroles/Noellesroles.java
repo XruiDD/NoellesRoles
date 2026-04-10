@@ -633,6 +633,12 @@ public class Noellesroles implements ModInitializer {
                 trap.setPoisoned(true);
                 trap.setPoisonerUuid(player.getUuid());
                 world.playSound(null, trap.getBlockPos(), SoundEvents.ITEM_BOTTLE_EMPTY, SoundCategory.PLAYERS, 0.8F, 1.1F);
+                if (player instanceof ServerPlayerEntity serverPlayer) {
+                    NbtCompound extra = new NbtCompound();
+                    extra.putString("action", "poison");
+                    GameRecordManager.putBlockPos(extra, "pos", trap.getBlockPos());
+                    GameRecordManager.recordItemUse(serverPlayer, Registries.ITEM.getId(ModItems.HUNTER_TRAP), null, extra);
+                }
                 player.getStackInHand(hand).decrement(1);
             }
             return net.minecraft.util.ActionResult.SUCCESS;
@@ -2490,7 +2496,32 @@ public class Noellesroles implements ModInitializer {
             if ("pickup".equals(action)) {
                 return Text.translatable("replay.item_use.noellesroles.hunter_trap.pickup", actorText);
             }
+            if ("poison".equals(action)) {
+                return Text.translatable("replay.item_use.noellesroles.hunter_trap.poison", actorText);
+            }
             return Text.translatable("replay.item_use.noellesroles.hunter_trap.place", actorText);
+        });
+
+        Identifier doubleBarrelShotgunId = Registries.ITEM.getId(ModItems.DOUBLE_BARREL_SHOTGUN);
+        ReplayRegistry.registerItemUseFormatter(doubleBarrelShotgunId, (event, match, world) -> {
+            var playerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
+            NbtCompound data = event.data();
+            UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+            if (actorUuid == null) return null;
+
+            Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
+            String action = data.getString("action");
+            if ("reload".equals(action)) {
+                int loadedShells = data.getInt("loaded_shells");
+                return Text.translatable("replay.item_use.noellesroles.double_barrel_shotgun.reload", actorText, loadedShells);
+            }
+
+            UUID targetUuid = data.containsUuid("target") ? data.getUuid("target") : null;
+            if (targetUuid != null) {
+                Text targetText = ReplayGenerator.formatPlayerName(targetUuid, playerInfoCache);
+                return Text.translatable("replay.item_use.noellesroles.double_barrel_shotgun.fire_hit", actorText, targetText);
+            }
+            return Text.translatable("replay.item_use.noellesroles.double_barrel_shotgun.fire", actorText);
         });
 
         ReplayRegistry.registerFormatter(org.agmas.noellesroles.entity.HunterTrapEntity.EVENT_TRIGGERED, (event, match, world) -> {
@@ -2613,6 +2644,85 @@ public class Noellesroles implements ModInitializer {
                     victimText,
                     suspectText
             );
+        });
+
+        ReplayRegistry.registerSkillFormatter(ORTHOPEDIST_ID, (event, match, world) -> {
+            var playerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
+            NbtCompound data = event.data();
+            UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+            UUID targetUuid = data.containsUuid("target") ? data.getUuid("target") : null;
+            if (actorUuid == null || targetUuid == null) return null;
+
+            Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
+            Text targetText = ReplayGenerator.formatPlayerName(targetUuid, playerInfoCache);
+            String action = data.getString("action");
+            if ("heal_fracture".equals(action)) {
+                return Text.translatable("replay.skill.noellesroles.orthopedist.heal_fracture", actorText, targetText);
+            }
+            if ("bone_setting".equals(action)) {
+                return Text.translatable("replay.skill.noellesroles.orthopedist.bone_setting", actorText, targetText);
+            }
+            return null;
+        });
+
+        ReplayRegistry.registerSkillFormatter(FERRYMAN_ID, (event, match, world) -> {
+            var playerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
+            NbtCompound data = event.data();
+            UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+            if (actorUuid == null) return null;
+
+            Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
+            String action = data.getString("action");
+            if ("reaction".equals(action)) {
+                UUID attackerUuid = data.containsUuid("attacker") ? data.getUuid("attacker") : null;
+                if (data.getBoolean("blessing") && attackerUuid != null) {
+                    Text attackerText = ReplayGenerator.formatPlayerName(attackerUuid, playerInfoCache);
+                    return Text.translatable("replay.skill.noellesroles.ferryman.reaction_blessed", actorText, attackerText);
+                }
+                return Text.translatable("replay.skill.noellesroles.ferryman.reaction", actorText);
+            }
+
+            UUID targetUuid = data.containsUuid("target") ? data.getUuid("target") : null;
+            if ("ferry".equals(action) && targetUuid != null) {
+                Text targetText = ReplayGenerator.formatPlayerName(targetUuid, playerInfoCache);
+                return Text.translatable("replay.skill.noellesroles.ferryman.target", actorText, targetText);
+            }
+            return null;
+        });
+
+        ReplayRegistry.registerSkillFormatter(COMMANDER_ID, (event, match, world) -> {
+            var playerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
+            NbtCompound data = event.data();
+            UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+            UUID targetUuid = data.containsUuid("target") ? data.getUuid("target") : null;
+            if (actorUuid == null || targetUuid == null) return null;
+
+            Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
+            Text targetText = ReplayGenerator.formatPlayerName(targetUuid, playerInfoCache);
+            return Text.translatable("replay.skill.noellesroles.commander.target", actorText, targetText);
+        });
+
+        ReplayRegistry.registerFormatter("saint_karma", (event, match, world) -> {
+            var playerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
+            NbtCompound data = event.data();
+            String action = data.getString("action");
+            UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+            UUID targetUuid = data.containsUuid("target") ? data.getUuid("target") : null;
+
+            if ("marked".equals(action)) {
+                if (actorUuid == null || targetUuid == null) return null;
+                Text saintText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
+                Text killerText = ReplayGenerator.formatPlayerName(targetUuid, playerInfoCache);
+                return Text.translatable("replay.global.noellesroles.saint_karma.marked", saintText, killerText);
+            }
+
+            if ("triggered".equals(action) && actorUuid != null) {
+                Text killerText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
+                int duration = data.getInt("duration");
+                return Text.translatable("replay.global.noellesroles.saint_karma.triggered", killerText, Math.max(1, duration / 20));
+            }
+
+            return null;
         });
 
     }

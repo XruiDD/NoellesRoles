@@ -121,10 +121,40 @@ public class HunterPlayerComponent implements AutoSyncedComponent, ServerTicking
         }
     }
 
+    private void lockSprintForFracture() {
+        PlayerStaminaComponent stamina = PlayerStaminaComponent.KEY.get(this.player);
+        if (stamina.isInfiniteStamina()) {
+            return;
+        }
+
+        // Keep the stamina bar pinned at 0 while fractured to avoid regen flicker.
+        if (stamina.getSprintingTicks() != 0) {
+            stamina.setSprintingTicks(0);
+        }
+        if (!stamina.isExhausted()) {
+            stamina.setExhausted(true);
+        }
+        stamina.sync();
+    }
+
+    private void restoreSprintForFracture() {
+        PlayerStaminaComponent stamina = PlayerStaminaComponent.KEY.get(this.player);
+        if (stamina.isInfiniteStamina()) {
+            return;
+        }
+
+        if (stamina.isExhausted()) {
+            stamina.setExhausted(false);
+        }
+        if (stamina.getSprintingTicks() == 0) {
+            stamina.setSprintingTicks(stamina.getMaxSprintTime());
+        }
+        stamina.sync();
+    }
+
     @Override
     public void serverTick() {
         if (this.trappedTicks > 0) {
-            boolean wasTrapped = this.trappedTicks > 1;
             this.trappedTicks--;
             this.player.setVelocity(Vec3d.ZERO);
             this.player.velocityModified = true;
@@ -155,12 +185,7 @@ public class HunterPlayerComponent implements AutoSyncedComponent, ServerTicking
             }
 
             this.player.setSprinting(false);
-            PlayerStaminaComponent stamina = PlayerStaminaComponent.KEY.get(this.player);
-            if (!stamina.isExhausted()) {
-                stamina.setSprintingTicks(stamina.getMaxSprintTime());
-                stamina.setExhausted(true);
-                stamina.sync();
-            }
+            lockSprintForFracture();
 
             this.refreshFractureEffect();
             if (changed || this.player.age % 20 == 0) {
@@ -169,6 +194,7 @@ public class HunterPlayerComponent implements AutoSyncedComponent, ServerTicking
         } else if (this.player.hasStatusEffect(ModEffects.FRACTURE)) {
             this.player.removeStatusEffect(ModEffects.FRACTURE);
             removeFractureSpeedModifier();
+            restoreSprintForFracture();
         }
     }
 

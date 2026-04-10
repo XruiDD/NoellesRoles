@@ -3,6 +3,7 @@ package org.agmas.noellesroles.item;
 import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.game.GameFunctions;
+import dev.doctor4t.wathe.record.GameRecordManager;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.player.PlayerEntity;
@@ -11,6 +12,7 @@ import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.item.Item;
 import net.minecraft.inventory.StackReference;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.Registries;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
@@ -66,9 +68,22 @@ public class DoubleBarrelShotgunItem extends Item {
             nbt.putInt(LOADED_SHELLS_KEY, Math.max(0, remainingShells));
             nbt.remove(RELOAD_WINDOW_UNTIL_KEY);
             stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
+
             PlayerEntity target = findTarget(user);
             if (target instanceof ServerPlayerEntity serverTarget && user instanceof ServerPlayerEntity serverUser) {
                 GameFunctions.killPlayer(serverTarget, true, serverUser, GameConstants.DeathReasons.GUN);
+            }
+            if (user instanceof ServerPlayerEntity serverUser) {
+                NbtCompound extra = new NbtCompound();
+                extra.putString("action", "fire");
+                extra.putInt("remaining_shells", remainingShells);
+                extra.putBoolean("hit", target instanceof ServerPlayerEntity);
+                GameRecordManager.recordItemUse(
+                    serverUser,
+                    Registries.ITEM.getId(this),
+                    target instanceof ServerPlayerEntity serverTarget ? serverTarget : null,
+                    extra
+                );
             }
             world.playSound(null, user.getBlockPos(), SoundEvents.ENTITY_GENERIC_EXPLODE.value(), SoundCategory.PLAYERS, 0.6F, 1.7F);
             user.getItemCooldownManager().set(this, remainingShells <= 0 ? EMPTY_COOLDOWN_TICKS : FIRE_COOLDOWN_TICKS);
@@ -107,6 +122,12 @@ public class DoubleBarrelShotgunItem extends Item {
         }
 
         if (!player.getWorld().isClient) {
+            if (player instanceof ServerPlayerEntity serverPlayer) {
+                NbtCompound extra = new NbtCompound();
+                extra.putString("action", "reload");
+                extra.putInt("loaded_shells", loaded + 1);
+                GameRecordManager.recordItemUse(serverPlayer, Registries.ITEM.getId(this), null, extra);
+            }
             player.getWorld().playSound(null, player.getBlockPos(), SoundEvents.ITEM_ARMOR_EQUIP_CHAIN.value(), SoundCategory.PLAYERS, 0.6F, 1.4F);
         }
         return true;
