@@ -10,6 +10,7 @@ import dev.doctor4t.wathe.entity.PlayerBodyEntity;
 import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.game.GameFunctions;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -88,6 +89,7 @@ import java.util.*;
 import java.util.List;
 
 public class NoellesrolesClient implements ClientModInitializer {
+    public static final Identifier RIOT_FORK_IN_HAND_MODEL_ID = Identifier.of(Noellesroles.MOD_ID, "item/riot_fork_inhand");
     public static int insanityTime = 0;
     public static KeyBinding abilityBind;
     public static KeyBinding roleInfoBind;
@@ -107,6 +109,8 @@ public class NoellesrolesClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
+        ModelLoadingPlugin.register(pluginContext -> pluginContext.addModels(RIOT_FORK_IN_HAND_MODEL_ID));
+
         abilityBind = KeyBindingHelper.registerKeyBinding(new KeyBinding("key." + Noellesroles.MOD_ID + ".ability", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_G, "category.wathe.keybinds"));
         roleInfoBind = KeyBindingHelper.registerKeyBinding(new KeyBinding("key." + Noellesroles.MOD_ID + ".role_info", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_TAB, "category.wathe.keybinds"));
         // 加载角色信息配置

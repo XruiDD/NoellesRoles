@@ -3,7 +3,6 @@ package org.agmas.noellesroles.client.mixin.riotpatrol;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.model.ShieldEntityModel;
-import net.minecraft.client.render.entity.model.TridentEntityModel;
 import net.minecraft.client.render.item.BuiltinModelItemRenderer;
 import net.minecraft.client.render.item.ItemRenderer;
 import net.minecraft.client.render.model.json.ModelTransformationMode;
@@ -22,11 +21,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(BuiltinModelItemRenderer.class)
 public class BuiltinModelItemRendererMixin {
-    private static final Identifier RIOT_SHIELD_TEXTURE = Identifier.of("noellesroles", "textures/entity/riot_shield_base_nopattern.png");
-    private static final Identifier RIOT_TRIDENT_TEXTURE = Identifier.of("noellesroles", "textures/entity/riot_trident.png");
+    private static final Identifier RIOT_SHIELD_TEXTURE = Identifier.of("noellesroles", "textures/entity/riot_shield.png");
 
     @Shadow private ShieldEntityModel modelShield;
-    @Shadow private TridentEntityModel modelTrident;
 
     @Redirect(
         method = "render",
@@ -38,18 +35,6 @@ public class BuiltinModelItemRendererMixin {
     )
     private boolean noellesroles$allowRiotShieldBuiltinRender(ItemStack stack, Item item) {
         return stack.isOf(item) || item == Items.SHIELD && stack.isOf(ModItems.RIOT_SHIELD);
-    }
-
-    @Redirect(
-        method = "render",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/item/ItemStack;isOf(Lnet/minecraft/item/Item;)Z",
-            ordinal = 1
-        )
-    )
-    private boolean noellesroles$allowRiotForkBuiltinRender(ItemStack stack, Item item) {
-        return stack.isOf(item) || item == Items.TRIDENT && stack.isOf(ModItems.RIOT_FORK);
     }
 
     @Inject(
@@ -71,21 +56,6 @@ public class BuiltinModelItemRendererMixin {
 
             this.modelShield.getHandle().render(matrices, vertexConsumer, light, overlay);
             this.modelShield.getPlate().render(matrices, vertexConsumer, light, overlay);
-            matrices.pop();
-            ci.cancel();
-            return;
-        }
-
-        if (stack.isOf(ModItems.RIOT_FORK)) {
-            matrices.push();
-            matrices.scale(1.0F, -1.0F, -1.0F);
-            VertexConsumer vertexConsumer = ItemRenderer.getDirectItemGlintConsumer(
-                vertexConsumers,
-                this.modelTrident.getLayer(RIOT_TRIDENT_TEXTURE),
-                false,
-                stack.hasGlint()
-            );
-            this.modelTrident.render(matrices, vertexConsumer, light, overlay);
             matrices.pop();
             ci.cancel();
         }

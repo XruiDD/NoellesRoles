@@ -3,6 +3,7 @@ package org.agmas.noellesroles.riotpatrol;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.registry.RegistryWrapper;
@@ -130,6 +131,10 @@ public class RiotPatrolPlayerComponent implements AutoSyncedComponent, ServerTic
             return true;
         }
         return horizontalLook.normalize().dotProduct(horizontalAttacker.normalize()) > 0.35;
+    }
+
+    public void playShieldBlockEffects() {
+        this.player.getWorld().playSound(null, this.player.getBlockPos(), SoundEvents.ITEM_SHIELD_BLOCK, this.player.getSoundCategory(), 1.0F, 0.9F + this.player.getWorld().random.nextFloat() * 0.2F);
     }
 
     @Override

@@ -547,11 +547,13 @@ public class Noellesroles implements ModInitializer {
             if (victim instanceof ServerPlayerEntity serverVictim3
                     && killer instanceof ServerPlayerEntity serverKiller
                     && (deathReason == GameConstants.DeathReasons.KNIFE
+                    || deathReason == GameConstants.DeathReasons.BAT
                     || deathReason == GameConstants.DeathReasons.GUN
                     || deathReason == GameConstants.DeathReasons.SHOT_INNOCENT
                     || deathReason == DEATH_REASON_THROWING_AXE)) {
                 RiotPatrolPlayerComponent riotPatrolComponent = RiotPatrolPlayerComponent.KEY.get(serverVictim3);
                 if (riotPatrolComponent.blocksAttacker(serverKiller)) {
+                    riotPatrolComponent.playShieldBlockEffects();
                     var deathBlockedEvent = GameRecordManager.event("death_blocked")
                         .actor(serverVictim3)
                         .put("block_reason", "riot_shield")
@@ -2188,6 +2190,7 @@ public class Noellesroles implements ModInitializer {
             var playerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
             NbtCompound data = event.data();
             UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+            UUID targetUuid = data.containsUuid("target") ? data.getUuid("target") : null;
             String blockReason = data.getString("block_reason");
 
             if (actorUuid == null) return null;
@@ -2196,6 +2199,12 @@ public class Noellesroles implements ModInitializer {
 
             // 铁人药剂和威士忌护盾由各自专属事件处理，此处返回null避免重复
             if ("iron_man_buff".equals(blockReason) || "whiskey_shield".equals(blockReason)) return null;
+
+            if ("riot_shield".equals(blockReason)) {
+                if (targetUuid == null) return null;
+                Text targetText = ReplayGenerator.formatPlayerName(targetUuid, playerInfoCache);
+                return Text.translatable("replay.death_blocked.riot_shield", actorText, targetText);
+            }
 
             // 根据 block_reason 选择翻译键
             String translationKey = switch (blockReason) {
@@ -2441,6 +2450,18 @@ public class Noellesroles implements ModInitializer {
             if (actorUuid == null) return null;
             Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
             return Text.translatable("replay.item_use.noellesroles.throwing_axe", actorText);
+        });
+
+        Identifier riotForkId = Registries.ITEM.getId(ModItems.RIOT_FORK);
+        ReplayRegistry.registerItemUseFormatter(riotForkId, (event, match, world) -> {
+            var playerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
+            NbtCompound data = event.data();
+            UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+            UUID targetUuid = data.containsUuid("target") ? data.getUuid("target") : null;
+            if (actorUuid == null || targetUuid == null) return null;
+            Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
+            Text targetText = ReplayGenerator.formatPlayerName(targetUuid, playerInfoCache);
+            return Text.translatable("replay.item_use.noellesroles.riot_fork", actorText, targetText);
         });
 
         Identifier hunterTrapId = Registries.ITEM.getId(ModItems.HUNTER_TRAP);

@@ -21,6 +21,17 @@ public class PlayerAttackMixin {
     @Inject(method = "attack", at = @At("HEAD"), cancellable = true)
     private void noellesroles$riotShieldKnockback(Entity target, CallbackInfo ci) {
         PlayerEntity player = (PlayerEntity) (Object) this;
+        if (target instanceof PlayerEntity targetPlayer) {
+            RiotPatrolPlayerComponent targetComponent = RiotPatrolPlayerComponent.KEY.get(targetPlayer);
+            if (targetComponent.blocksAttacker(player)) {
+                if (!player.getWorld().isClient) {
+                    targetComponent.playShieldBlockEffects();
+                }
+                ci.cancel();
+                return;
+            }
+        }
+
         if (!player.getMainHandStack().isOf(ModItems.RIOT_SHIELD)) {
             return;
         }
