@@ -20,6 +20,10 @@ import org.agmas.noellesroles.taotie.TaotiePlayerComponent;
 import org.jetbrains.annotations.Nullable;
 
 public final class HudRenderHelper {
+    private static final int UNLIMITED_WIDTH = Integer.MAX_VALUE;
+    private static final int LINE_GAP = 2;
+    private static final int ASSASSIN_BOTTOM_PADDING = 5;
+
     private HudRenderHelper() {}
 
     /**
@@ -38,7 +42,7 @@ public final class HudRenderHelper {
      * Returns the new drawY (above the drawn line) for stacking multiple lines.
      */
     public static int drawBottomRight(DrawContext context, TextRenderer renderer, Text text, int drawY, int color) {
-        drawY -= renderer.getWrappedLinesHeight(text, 999999);
+        drawY -= measure(renderer, text);
         context.drawTextWithShadow(renderer, text, context.getScaledWindowWidth() - renderer.getWidth(text), drawY, color);
         return drawY;
     }
@@ -49,132 +53,114 @@ public final class HudRenderHelper {
      */
     public static int getBottomRightSkillHudTopY(DrawContext context, TextRenderer renderer, ClientPlayerEntity player) {
         GameWorldComponent gameWorld = GameWorldComponent.KEY.get(player.getWorld());
+        int bottom = context.getScaledWindowHeight();
 
-        if (gameWorld.isRole(player, Noellesroles.ASSASSIN)) {
-            return noellesroles$getAssassinHudTopY(context, renderer, player);
-        }
-        if (gameWorld.isRole(player, Noellesroles.COMMANDER)) {
-            return noellesroles$getCommanderHudTopY(context, renderer, player);
-        }
-        if (gameWorld.isRole(player, Noellesroles.CORRUPT_COP)) {
-            return noellesroles$getCorruptCopHudTopY(context, renderer, player);
-        }
-        if (gameWorld.isRole(player, Noellesroles.MORPHLING)) {
-            return noellesroles$getMorphlingHudTopY(context, renderer, player);
-        }
-        if (gameWorld.isRole(player, Noellesroles.PATHOGEN)) {
-            return noellesroles$getPathogenHudTopY(context, renderer, player);
-        }
-        if (gameWorld.isRole(player, Noellesroles.SILENCER) && !SwallowedPlayerComponent.isPlayerSwallowed(player)) {
-            return noellesroles$getSilencerHudTopY(context, renderer, player);
-        }
-        if (gameWorld.isRole(player, Noellesroles.TAOTIE)) {
-            return noellesroles$getTaotieHudTopY(context, renderer, player);
-        }
+        if (gameWorld.isRole(player, Noellesroles.ASSASSIN))    return getAssassinHudTopY(renderer, player, bottom);
+        if (gameWorld.isRole(player, Noellesroles.COMMANDER))   return getCommanderHudTopY(renderer, player, bottom);
+        if (gameWorld.isRole(player, Noellesroles.CORRUPT_COP)) return getCorruptCopHudTopY(renderer, player, bottom);
+        if (gameWorld.isRole(player, Noellesroles.MORPHLING))   return getMorphlingHudTopY(renderer, player, bottom);
+        if (gameWorld.isRole(player, Noellesroles.PATHOGEN))    return getPathogenHudTopY(renderer, player, bottom);
+        if (gameWorld.isRole(player, Noellesroles.SILENCER))    return getSilencerHudTopY(renderer, player, bottom);
+        if (gameWorld.isRole(player, Noellesroles.TAOTIE))      return getTaotieHudTopY(renderer, player, bottom);
 
-        return context.getScaledWindowHeight();
+        return bottom;
     }
 
     public static int getBottomRightSkillHudRightPadding(ClientPlayerEntity player) {
         GameWorldComponent gameWorld = GameWorldComponent.KEY.get(player.getWorld());
-        return gameWorld.isRole(player, Noellesroles.ASSASSIN) ? 5 : 0;
+        return gameWorld.isRole(player, Noellesroles.ASSASSIN) ? ASSASSIN_BOTTOM_PADDING : 0;
     }
 
-    private static int noellesroles$getAssassinHudTopY(DrawContext context, TextRenderer renderer, ClientPlayerEntity player) {
-        AssassinPlayerComponent assassinComp = AssassinPlayerComponent.KEY.get(player);
-        int drawY = context.getScaledWindowHeight() - 5;
+    private static int measure(TextRenderer renderer, Text text) {
+        return renderer.getWrappedLinesHeight(text, UNLIMITED_WIDTH);
+    }
 
-        Text guessesText = Text.translatable(
-                "hud.assassin.guesses_remaining",
-                assassinComp.getGuessesRemaining(),
-                assassinComp.getMaxGuesses()
-        );
-        drawY -= renderer.getWrappedLinesHeight(guessesText, 999999);
+    /**
+     * Moves drawY up by one stacked text line (plus an extra gap above it).
+     */
+    private static int stackLine(int drawY, TextRenderer renderer, Text text, int gap) {
+        return drawY - measure(renderer, text) - gap;
+    }
 
-        if (assassinComp.getCooldownTicks() > 0) {
-            int cooldownSeconds = (assassinComp.getCooldownTicks() + 19) / 20;
-            Text cooldownText = Text.translatable("hud.assassin.cooldown", cooldownSeconds);
-            drawY -= renderer.getWrappedLinesHeight(cooldownText, 999999) + 2;
+    private static int getAssassinHudTopY(TextRenderer renderer, ClientPlayerEntity player, int bottom) {
+        AssassinPlayerComponent comp = AssassinPlayerComponent.KEY.get(player);
+        int drawY = bottom - ASSASSIN_BOTTOM_PADDING;
+
+        drawY = stackLine(drawY, renderer,
+                Text.translatable("hud.assassin.guesses_remaining", comp.getGuessesRemaining(), comp.getMaxGuesses()),
+                0);
+
+        if (comp.getCooldownTicks() > 0) {
+            int cooldownSeconds = (comp.getCooldownTicks() + 19) / 20;
+            drawY = stackLine(drawY, renderer, Text.translatable("hud.assassin.cooldown", cooldownSeconds), LINE_GAP);
         }
 
-        if (assassinComp.canGuess()) {
-            Text hintText = Text.translatable("hud.assassin.press_key_hint", noellesroles$getAbilityKeyName());
-            drawY -= renderer.getWrappedLinesHeight(hintText, 999999) + 2;
-        } else if (assassinComp.getCooldownTicks() > 0) {
-            Text statusText = Text.translatable("hud.assassin.on_cooldown");
-            drawY -= renderer.getWrappedLinesHeight(statusText, 999999) + 2;
-        } else if (assassinComp.getGuessesRemaining() <= 0) {
-            Text statusText = Text.translatable("hud.assassin.no_guesses");
-            drawY -= renderer.getWrappedLinesHeight(statusText, 999999) + 2;
+        if (comp.canGuess()) {
+            drawY = stackLine(drawY, renderer,
+                    Text.translatable("hud.assassin.press_key_hint", getAbilityKeyName()), LINE_GAP);
+        } else if (comp.getCooldownTicks() > 0) {
+            drawY = stackLine(drawY, renderer, Text.translatable("hud.assassin.on_cooldown"), LINE_GAP);
+        } else if (comp.getGuessesRemaining() <= 0) {
+            drawY = stackLine(drawY, renderer, Text.translatable("hud.assassin.no_guesses"), LINE_GAP);
         }
 
         return drawY;
     }
 
-    private static int noellesroles$getCommanderHudTopY(DrawContext context, TextRenderer renderer, ClientPlayerEntity player) {
+    private static int getCommanderHudTopY(TextRenderer renderer, ClientPlayerEntity player, int bottom) {
         CommanderPlayerComponent commanderComp = CommanderPlayerComponent.KEY.get(player);
         AbilityPlayerComponent abilityComp = AbilityPlayerComponent.KEY.get(player);
+        int drawY = bottom;
 
-        int drawY = context.getScaledWindowHeight();
         if (!commanderComp.getThreatTargetNames().isEmpty()) {
-            Text line2 = Text.translatable("tip.commander.marked", String.join(", ", commanderComp.getThreatTargetNames()));
-            drawY -= renderer.getWrappedLinesHeight(line2, 999999);
+            drawY = stackLine(drawY, renderer,
+                    Text.translatable("tip.commander.marked", String.join(", ", commanderComp.getThreatTargetNames())),
+                    0);
         }
 
-        Text line1;
+        Text line;
         if (abilityComp.getCooldown() > 0) {
-            line1 = Text.translatable("tip.noellesroles.cooldown", abilityComp.getCooldown() / 20);
+            line = Text.translatable("tip.noellesroles.cooldown", abilityComp.getCooldown() / 20);
         } else if (commanderComp.canMarkMore()) {
-            line1 = Text.translatable(
-                    "tip.commander.ready",
-                    noellesroles$getAbilityKeyText(),
-                    commanderComp.getRemainingMarks()
-            );
+            line = Text.translatable("tip.commander.ready", getAbilityKeyText(), commanderComp.getRemainingMarks());
         } else {
-            line1 = Text.translatable("tip.commander.no_marks");
+            line = Text.translatable("tip.commander.no_marks");
         }
-
-        return drawY - renderer.getWrappedLinesHeight(line1, 999999);
+        return stackLine(drawY, renderer, line, 0);
     }
 
-    private static int noellesroles$getCorruptCopHudTopY(DrawContext context, TextRenderer renderer, ClientPlayerEntity player) {
-        CorruptCopPlayerComponent corruptCopComponent = CorruptCopPlayerComponent.KEY.get(player);
-        if (!corruptCopComponent.isCorruptCopMomentActive()) {
-            return context.getScaledWindowHeight();
-        }
+    private static int getCorruptCopHudTopY(TextRenderer renderer, ClientPlayerEntity player, int bottom) {
+        CorruptCopPlayerComponent comp = CorruptCopPlayerComponent.KEY.get(player);
+        if (!comp.isCorruptCopMomentActive()) return bottom;
 
-        int visionCycleTimer = corruptCopComponent.getVisionCycleTimer();
-        boolean canSeeThrough = corruptCopComponent.canSeePlayersThroughWalls();
-        Text line = canSeeThrough
+        int visionCycleTimer = comp.getVisionCycleTimer();
+        Text line = comp.canSeePlayersThroughWalls()
                 ? Text.translatable("tip.corrupt_cop.vision_active", (30 * 20 - visionCycleTimer) / 20)
                 : Text.translatable("tip.corrupt_cop.vision_inactive", (20 * 20 - visionCycleTimer) / 20);
-
-        return context.getScaledWindowHeight() - renderer.getWrappedLinesHeight(line, 999999);
+        return stackLine(bottom, renderer, line, 0);
     }
 
-    private static int noellesroles$getMorphlingHudTopY(DrawContext context, TextRenderer renderer, ClientPlayerEntity player) {
-        MorphlingPlayerComponent morphlingComp = MorphlingPlayerComponent.KEY.get(player);
-        int drawY = context.getScaledWindowHeight();
+    private static int getMorphlingHudTopY(TextRenderer renderer, ClientPlayerEntity player, int bottom) {
+        MorphlingPlayerComponent comp = MorphlingPlayerComponent.KEY.get(player);
 
-        int morphTicks = morphlingComp.getMorphTicks();
-        Text line;
+        int morphTicks = comp.getMorphTicks();
+        Text statusLine;
         if (morphTicks > 0) {
-            line = Text.translatable("tip.morphling.active", morphTicks / 20);
+            statusLine = Text.translatable("tip.morphling.active", morphTicks / 20);
         } else if (morphTicks < 0) {
-            line = Text.translatable("tip.noellesroles.cooldown", (-morphTicks) / 20);
+            statusLine = Text.translatable("tip.noellesroles.cooldown", (-morphTicks) / 20);
         } else {
-            line = Text.translatable("tip.morphling");
+            statusLine = Text.translatable("tip.morphling");
         }
-        drawY -= renderer.getWrappedLinesHeight(line, 999999);
+        int drawY = stackLine(bottom, renderer, statusLine, 0);
 
         Text corpseHint = Text.translatable(
-                morphlingComp.corpseMode ? "tip.morphling.corpse_active" : "tip.morphling.corpse_hint",
-                noellesroles$getAbilityKeyText()
-        );
-        return drawY - renderer.getWrappedLinesHeight(corpseHint, 999999);
+                comp.corpseMode ? "tip.morphling.corpse_active" : "tip.morphling.corpse_hint",
+                getAbilityKeyText());
+        return stackLine(drawY, renderer, corpseHint, 0);
     }
 
-    private static int noellesroles$getPathogenHudTopY(DrawContext context, TextRenderer renderer, ClientPlayerEntity player) {
+    private static int getPathogenHudTopY(TextRenderer renderer, ClientPlayerEntity player, int bottom) {
         AbilityPlayerComponent abilityComp = AbilityPlayerComponent.KEY.get(player);
         Text line = null;
 
@@ -188,19 +174,17 @@ public final class HudRenderHelper {
             if (canInfect && abilityComp.getCooldown() <= 0) {
                 line = Text.translatable(
                         "tip.pathogen.infect",
-                        noellesroles$getAbilityKeyName(),
-                        NoellesrolesClient.pathogenNearestTarget.getName().getString()
-                );
+                        getAbilityKeyName(),
+                        NoellesrolesClient.pathogenNearestTarget.getName().getString());
             }
         }
 
-        if (line == null) {
-            return context.getScaledWindowHeight();
-        }
-        return context.getScaledWindowHeight() - renderer.getWrappedLinesHeight(line, 999999);
+        return line == null ? bottom : stackLine(bottom, renderer, line, 0);
     }
 
-    private static int noellesroles$getSilencerHudTopY(DrawContext context, TextRenderer renderer, ClientPlayerEntity player) {
+    private static int getSilencerHudTopY(TextRenderer renderer, ClientPlayerEntity player, int bottom) {
+        if (SwallowedPlayerComponent.isPlayerSwallowed(player)) return bottom;
+
         AbilityPlayerComponent abilityComp = AbilityPlayerComponent.KEY.get(player);
         SilencerPlayerComponent silencerComp = SilencerPlayerComponent.KEY.get(player);
         Text line;
@@ -210,67 +194,57 @@ public final class HudRenderHelper {
         } else if (silencerComp.hasMarkedTarget()) {
             line = Text.translatable(
                     "tip.silencer.confirm",
-                    noellesroles$getAbilityKeyName(),
+                    getAbilityKeyName(),
                     silencerComp.getMarkedTargetName(),
-                    silencerComp.getMarkTicksRemaining() / 20
-            );
+                    silencerComp.getMarkTicksRemaining() / 20);
         } else if (NoellesrolesClient.crosshairTarget != null && NoellesrolesClient.crosshairTargetDistance <= 3.0) {
             line = Text.translatable(
                     "tip.silencer.mark",
-                    noellesroles$getAbilityKeyName(),
-                    NoellesrolesClient.crosshairTarget.getName().getString()
-            );
+                    getAbilityKeyName(),
+                    NoellesrolesClient.crosshairTarget.getName().getString());
         } else {
-            line = Text.translatable("tip.silencer.ready", noellesroles$getAbilityKeyName());
+            line = Text.translatable("tip.silencer.ready", getAbilityKeyName());
         }
-
-        return context.getScaledWindowHeight() - renderer.getWrappedLinesHeight(line, 999999);
+        return stackLine(bottom, renderer, line, 0);
     }
 
-    private static int noellesroles$getTaotieHudTopY(DrawContext context, TextRenderer renderer, ClientPlayerEntity player) {
-        TaotiePlayerComponent taotieComp = TaotiePlayerComponent.KEY.get(player);
-        int drawY = context.getScaledWindowHeight();
+    private static int getTaotieHudTopY(TextRenderer renderer, ClientPlayerEntity player, int bottom) {
+        TaotiePlayerComponent comp = TaotiePlayerComponent.KEY.get(player);
+        int drawY = bottom;
 
-        if (taotieComp.isTaotieMomentActive()) {
-            Text momentText = Text.translatable("tip.taotie.moment_active", taotieComp.getTaotieMomentTicks() / 20);
-            drawY -= renderer.getWrappedLinesHeight(momentText, 999999);
-            drawY -= 2;
+        if (comp.isTaotieMomentActive()) {
+            drawY = stackLine(drawY, renderer,
+                    Text.translatable("tip.taotie.moment_active", comp.getTaotieMomentTicks() / 20), LINE_GAP);
         }
-
-        if (taotieComp.getSwallowedCount() > 0) {
-            Text swallowedText = Text.translatable("tip.taotie.swallowed_count", taotieComp.getSwallowedCount());
-            drawY -= renderer.getWrappedLinesHeight(swallowedText, 999999);
-            drawY -= 2;
+        if (comp.getSwallowedCount() > 0) {
+            drawY = stackLine(drawY, renderer,
+                    Text.translatable("tip.taotie.swallowed_count", comp.getSwallowedCount()), LINE_GAP);
         }
-
-        if (taotieComp.getSwallowCooldown() > 0) {
-            Text cooldownText = Text.translatable("tip.noellesroles.cooldown", taotieComp.getSwallowCooldown() / 20);
-            drawY -= renderer.getWrappedLinesHeight(cooldownText, 999999);
-            drawY -= 2;
+        if (comp.getSwallowCooldown() > 0) {
+            drawY = stackLine(drawY, renderer,
+                    Text.translatable("tip.noellesroles.cooldown", comp.getSwallowCooldown() / 20), LINE_GAP);
         }
 
         if (NoellesrolesClient.crosshairTarget != null && NoellesrolesClient.crosshairTargetDistance <= 3.0) {
             SwallowedPlayerComponent swallowed = SwallowedPlayerComponent.KEY.get(NoellesrolesClient.crosshairTarget);
-            if (!swallowed.isSwallowed() && taotieComp.getSwallowCooldown() <= 0) {
-                Text swallowHint = Text.translatable(
-                        "tip.taotie.swallow",
-                        noellesroles$getAbilityKeyName(),
-                        NoellesrolesClient.crosshairTarget.getName().getString()
-                );
-                drawY -= renderer.getWrappedLinesHeight(swallowHint, 999999);
+            if (!swallowed.isSwallowed() && comp.getSwallowCooldown() <= 0) {
+                drawY = stackLine(drawY, renderer,
+                        Text.translatable("tip.taotie.swallow",
+                                getAbilityKeyName(),
+                                NoellesrolesClient.crosshairTarget.getName().getString()),
+                        0);
             }
         }
-
         return drawY;
     }
 
-    private static String noellesroles$getAbilityKeyName() {
+    private static String getAbilityKeyName() {
         return NoellesrolesClient.abilityBind == null
                 ? ""
                 : NoellesrolesClient.abilityBind.getBoundKeyLocalizedText().getString();
     }
 
-    private static Text noellesroles$getAbilityKeyText() {
+    private static Text getAbilityKeyText() {
         return NoellesrolesClient.abilityBind == null
                 ? Text.empty()
                 : NoellesrolesClient.abilityBind.getBoundKeyLocalizedText();

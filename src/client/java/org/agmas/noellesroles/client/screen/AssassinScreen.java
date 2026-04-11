@@ -89,14 +89,11 @@ public class AssassinScreen extends Screen {
             List<UUID> targets = new ArrayList<>(WatheClient.PLAYER_ENTRIES_CACHE.keySet());
             targets.removeIf(uuid -> uuid.equals(player.getUuid()) || !alivePlayers.contains(uuid));
 
-            // 动态网格布局：每行最多 6 个人
-            int columns = 6;
-            int spacingX = 36; // 水平间距，与 SwapperScreenMixin 一致
-            int spacingY = 45; // 垂直间距（稍大以留出名字空间）
+            // 动态网格布局：每行最多 TARGET_COLUMNS 个人
             int rows = Math.max(1, (targets.size() + TARGET_COLUMNS - 1) / TARGET_COLUMNS);
             int contentHeight = rows * TARGET_SPACING_Y + RoleScreenHelper.MENU_CONTENT_SHIFT_Y;
-            int viewTop = getTargetViewTop();
-            int viewBottom = getTargetViewBottom();
+            int viewTop = RoleScreenHelper.getMenuViewTop(this.height);
+            int viewBottom = RoleScreenHelper.getMenuViewBottom(this.height);
             int viewHeight = Math.max(1, viewBottom - viewTop);
             targetMaxScroll = Math.max(0, contentHeight - viewHeight);
             targetScrollOffset = Math.max(0, Math.min(targetScrollOffset, targetMaxScroll));
@@ -275,11 +272,4 @@ public class AssassinScreen extends Screen {
         return Math.max(0, roleContentHeight - (roleViewportBottom - roleViewportTop));
     }
 
-    private int getTargetViewTop() {
-        return RoleScreenHelper.getMenuViewTop(this.height);
-    }
-
-    private int getTargetViewBottom() {
-        return RoleScreenHelper.getMenuViewBottom(this.height);
-    }
 }

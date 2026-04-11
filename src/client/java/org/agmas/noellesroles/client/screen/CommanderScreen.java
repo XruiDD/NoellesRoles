@@ -63,11 +63,10 @@ public class CommanderScreen extends Screen {
                 || commanderComp.isThreatTarget(uuid));
 
         int centerX = this.width / 2;
-        int centerY = this.height / 2;
-        int rows = Math.max(1, getRowCount(targets.size(), COLUMNS));
+        int rows = Math.max(1, (targets.size() + COLUMNS - 1) / COLUMNS);
         int contentHeight = rows * SPACING_Y + RoleScreenHelper.MENU_CONTENT_SHIFT_Y;
-        int viewTop = getViewTop();
-        int viewBottom = getViewBottom();
+        int viewTop = RoleScreenHelper.getMenuViewTop(this.height);
+        int viewBottom = RoleScreenHelper.getMenuViewBottom(this.height);
         int viewHeight = Math.max(1, viewBottom - viewTop);
         maxScroll = Math.max(0, contentHeight - viewHeight);
         scrollOffset = Math.max(0, Math.min(scrollOffset, maxScroll));
@@ -78,17 +77,16 @@ public class CommanderScreen extends Screen {
             UUID targetUuid = targets.get(i);
             int row = i / COLUMNS;
             int col = i % COLUMNS;
-            addDrawableChild(new CommanderTargetWidget(
+            CommanderTargetWidget widget = new CommanderTargetWidget(
                     startX + col * SPACING_X,
                     startY + row * SPACING_Y,
                     targetUuid,
                     selectedUuid -> {
                         ClientPlayNetworking.send(new CommanderMarkC2SPacket(selectedUuid));
                         this.close();
-                    }
-            ) {{
-                this.visible = this.getY() + 16 > viewTop && this.getY() < viewBottom;
-            }});
+                    });
+            widget.visible = widget.getY() + 16 > viewTop && widget.getY() < viewBottom;
+            addDrawableChild(widget);
         }
 
         addDrawableChild(ButtonWidget.builder(Text.translatable("screen.commander.button.close"), button -> this.close())
@@ -158,15 +156,4 @@ public class CommanderScreen extends Screen {
         }
     }
 
-    private int getRowCount(int itemCount, int columns) {
-        return (itemCount + columns - 1) / columns;
-    }
-
-    private int getViewTop() {
-        return RoleScreenHelper.getMenuViewTop(this.height);
-    }
-
-    private int getViewBottom() {
-        return RoleScreenHelper.getMenuViewBottom(this.height);
-    }
 }
