@@ -27,20 +27,19 @@ public class CriminalReasonerScreen extends Screen {
     private static final int TOP_BAR_HEIGHT = 20;
     private static final int BOTTOM_BAR_HEIGHT = 20;
     private static final int BACKGROUND_OVERLAY_COLOR = 0xB0000000;
-    private static final int SUSPECT_TITLE_SHIFT_Y = 5;
     private static final int SUSPECT_COLUMNS = 6;
     private static final int SUSPECT_SPACING_X = 36;
     private static final int SUSPECT_SPACING_Y = 45;
     private static final int SUSPECT_SECTION_HEADER_HEIGHT = 20;
     private static final int SUSPECT_SECTION_GAP = 28;
-    private static final int SUSPECT_VIEW_TOP_OFFSET = 72;
-    private static final int SUSPECT_VIEW_BOTTOM_GAP = 4;
-    private static final int SUSPECT_CONTENT_SHIFT_Y = 10;
     private static final double SUSPECT_SCROLL_STEP = 24.0;
+    private static final double VICTIM_SCROLL_STEP = 24.0;
 
     private final ClientPlayerEntity player;
     private UUID selectedVictim;
     private UUID selectedSuspect;
+    private int victimScrollOffset;
+    private int victimMaxScroll;
     private int suspectScrollOffset;
     private int suspectMaxScroll;
 
@@ -72,24 +71,32 @@ public class CriminalReasonerScreen extends Screen {
     private void initVictimSelection(GameWorldComponent gameWorld) {
         List<UUID> victims = getDeadPlayers(gameWorld);
         int centerX = this.width / 2;
-        int centerY = this.height / 2;
 
-        addBackButton(centerX, this.height - 45);
+        addBackButton(centerX, RoleScreenHelper.getMenuButtonY(this.height));
 
         if (victims.isEmpty()) {
+            victimScrollOffset = 0;
+            victimMaxScroll = 0;
             return;
         }
 
         // 第一阶段用死者列表驱动网格，让界面风格与刺客菜单保持一致。
         int startX = RoleScreenHelper.getGridStartX(victims.size(), SUSPECT_COLUMNS, SUSPECT_SPACING_X, centerX);
-        int startY = RoleScreenHelper.getGridStartY(victims.size(), SUSPECT_COLUMNS, SUSPECT_SPACING_Y, centerY);
+        int rows = Math.max(1, getRowCount(victims.size(), SUSPECT_COLUMNS));
+        int contentHeight = rows * SUSPECT_SPACING_Y + RoleScreenHelper.MENU_CONTENT_SHIFT_Y;
+        int viewTop = getVictimViewTop();
+        int viewBottom = getVictimViewBottom();
+        int viewHeight = Math.max(1, viewBottom - viewTop);
+        victimMaxScroll = Math.max(0, contentHeight - viewHeight);
+        victimScrollOffset = Math.max(0, Math.min(victimScrollOffset, victimMaxScroll));
+        int startY = viewTop + RoleScreenHelper.MENU_CONTENT_SHIFT_Y - victimScrollOffset;
 
         for (int i = 0; i < victims.size(); i++) {
             UUID victimUuid = victims.get(i);
             int row = i / SUSPECT_COLUMNS;
             int col = i % SUSPECT_COLUMNS;
 
-            addDrawableChild(new CriminalReasonerPlayerWidget(
+            CriminalReasonerPlayerWidget widget = new CriminalReasonerPlayerWidget(
                     startX + col * SUSPECT_SPACING_X,
                     startY + row * SUSPECT_SPACING_Y,
                     victimUuid,
@@ -98,7 +105,9 @@ public class CriminalReasonerScreen extends Screen {
                         selectedSuspect = null;
                         this.clearAndInit();
                     }
-            ));
+            );
+            widget.visible = widget.getY() + 16 > viewTop && widget.getY() < viewBottom;
+            addDrawableChild(widget);
         }
     }
 
@@ -110,7 +119,7 @@ public class CriminalReasonerScreen extends Screen {
         int aliveRows = Math.max(1, getRowCount(aliveSuspects.size(), SUSPECT_COLUMNS));
         int deadRows = Math.max(1, getRowCount(deadSuspects.size(), SUSPECT_COLUMNS));
         int totalContentRows = aliveRows + deadRows;
-        int contentHeight = totalContentRows * SUSPECT_SPACING_Y + SUSPECT_SECTION_GAP + SUSPECT_SECTION_HEADER_HEIGHT * 2 + SUSPECT_CONTENT_SHIFT_Y;
+        int contentHeight = totalContentRows * SUSPECT_SPACING_Y + SUSPECT_SECTION_GAP + SUSPECT_SECTION_HEADER_HEIGHT * 2 + RoleScreenHelper.MENU_CONTENT_SHIFT_Y;
         int viewTop = getSuspectViewTop();
         int viewBottom = getSuspectViewBottom();
         int viewHeight = Math.max(1, viewBottom - viewTop);
@@ -118,7 +127,7 @@ public class CriminalReasonerScreen extends Screen {
         // 第二步将活人与死人拆成上下两块，并在内容过长时整体滚动，避免顶到标题和按钮。
         suspectMaxScroll = Math.max(0, contentHeight - viewHeight);
         suspectScrollOffset = Math.max(0, Math.min(suspectScrollOffset, suspectMaxScroll));
-        int startY = viewTop + SUSPECT_CONTENT_SHIFT_Y - suspectScrollOffset;
+        int startY = viewTop + RoleScreenHelper.MENU_CONTENT_SHIFT_Y - suspectScrollOffset;
 
         int aliveHeaderY = startY;
         int aliveGridY = aliveHeaderY + SUSPECT_SECTION_HEADER_HEIGHT;
@@ -128,7 +137,7 @@ public class CriminalReasonerScreen extends Screen {
         int deadGridY = deadHeaderY + SUSPECT_SECTION_HEADER_HEIGHT;
         addSuspectSection(deadSuspects, Text.translatable("screen.criminal_reasoner.section.dead"), centerX, deadHeaderY, deadGridY);
 
-        int buttonY = this.height - 42;
+        int buttonY = RoleScreenHelper.getMenuButtonY(this.height);
 
         addDrawableChild(ButtonWidget.builder(Text.translatable("screen.criminal_reasoner.button.back"), button -> {
                     selectedVictim = null;
@@ -239,8 +248,8 @@ public class CriminalReasonerScreen extends Screen {
         TextRenderer font = MinecraftClient.getInstance().textRenderer;
 
         if (selectedVictim == null) {
-            RoleScreenHelper.drawCenteredTitle(context, font, Text.translatable("screen.criminal_reasoner.title.select_victim"), centerX, centerY - 80);
-            RoleScreenHelper.drawCenteredSubTitle(context, font, Text.translatable("screen.criminal_reasoner.subtitle.select_victim"), centerX, centerY - 65);
+            RoleScreenHelper.drawCenteredTitle(context, font, Text.translatable("screen.criminal_reasoner.title.select_victim"), centerX, RoleScreenHelper.getMenuTitleY(centerY));
+            RoleScreenHelper.drawCenteredSubTitle(context, font, Text.translatable("screen.criminal_reasoner.subtitle.select_victim"), centerX, RoleScreenHelper.getMenuSubtitleY(centerY));
 
             if (children().size() <= 1) {
                 RoleScreenHelper.drawCenteredSubTitle(context, font, Text.translatable("screen.criminal_reasoner.empty_victims"), centerX, centerY);
@@ -251,12 +260,12 @@ public class CriminalReasonerScreen extends Screen {
         }
 
         Text victimName = getPlayerName(selectedVictim);
-        RoleScreenHelper.drawCenteredTitle(context, font, Text.translatable("screen.criminal_reasoner.title.select_suspect", victimName), centerX, centerY - 115 - SUSPECT_TITLE_SHIFT_Y);
-        RoleScreenHelper.drawCenteredSubTitle(context, font, Text.translatable("screen.criminal_reasoner.subtitle.select_suspect"), centerX, centerY - 100 - SUSPECT_TITLE_SHIFT_Y);
+        RoleScreenHelper.drawCenteredTitle(context, font, Text.translatable("screen.criminal_reasoner.title.select_suspect", victimName), centerX, RoleScreenHelper.getMenuTitleY(centerY));
+        RoleScreenHelper.drawCenteredSubTitle(context, font, Text.translatable("screen.criminal_reasoner.subtitle.select_suspect"), centerX, RoleScreenHelper.getMenuSubtitleY(centerY));
 
         if (selectedSuspect != null) {
             Text suspectName = getPlayerName(selectedSuspect);
-            RoleScreenHelper.drawCenteredSubTitle(context, font, Text.translatable("screen.criminal_reasoner.subtitle.current_pair", victimName, suspectName), centerX, centerY - 85 - SUSPECT_TITLE_SHIFT_Y);
+            RoleScreenHelper.drawCenteredSubTitle(context, font, Text.translatable("screen.criminal_reasoner.subtitle.current_pair", victimName, suspectName), centerX, RoleScreenHelper.getMenuStatusY(centerY));
         }
         context.fill(0, 0, this.width, TOP_BAR_HEIGHT, accentColor);
         context.fill(0, this.height - BOTTOM_BAR_HEIGHT, this.width, this.height, accentColor);
@@ -276,6 +285,15 @@ public class CriminalReasonerScreen extends Screen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+        if (selectedVictim == null && victimMaxScroll > 0) {
+            int nextOffset = victimScrollOffset - (int) Math.round(verticalAmount * VICTIM_SCROLL_STEP);
+            nextOffset = Math.max(0, Math.min(nextOffset, victimMaxScroll));
+            if (nextOffset != victimScrollOffset) {
+                victimScrollOffset = nextOffset;
+                this.clearAndInit();
+                return true;
+            }
+        }
         if (selectedVictim != null && suspectMaxScroll > 0) {
             // 鼠标滚轮控制第二步内容区整体滚动，标题和底部按钮保持固定。
             int nextOffset = suspectScrollOffset - (int) Math.round(verticalAmount * SUSPECT_SCROLL_STEP);
@@ -300,11 +318,19 @@ public class CriminalReasonerScreen extends Screen {
     }
 
     private int getSuspectViewTop() {
-        return this.height / 2 - SUSPECT_VIEW_TOP_OFFSET - SUSPECT_TITLE_SHIFT_Y;
+        return RoleScreenHelper.getMenuViewTop(this.height);
     }
 
     private int getSuspectViewBottom() {
-        return this.height - 42 - SUSPECT_VIEW_BOTTOM_GAP;
+        return RoleScreenHelper.getMenuViewBottom(this.height);
+    }
+
+    private int getVictimViewTop() {
+        return RoleScreenHelper.getMenuViewTop(this.height);
+    }
+
+    private int getVictimViewBottom() {
+        return RoleScreenHelper.getMenuViewBottom(this.height);
     }
 
     private record SectionLabel(int x, int y, Text text, int clipTop, int clipRight, int clipBottom) implements net.minecraft.client.gui.Drawable {
