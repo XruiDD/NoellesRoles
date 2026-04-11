@@ -85,7 +85,7 @@ public class CommanderScreen extends Screen {
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         context.fill(0, 0, this.width, this.height, 0xF0000000);
-        int accentColor = 0xFF1B2C58;
+        int accentColor = 0xFF2E006B;
         context.fill(0, 0, this.width, 20, accentColor);
         context.fill(0, this.height - 20, this.width, this.height, accentColor);
 
@@ -133,6 +133,6 @@ public class CommanderScreen extends Screen {
     }
 
     private void drawCenteredSubTitle(DrawContext context, TextRenderer font, Text text, int x, int y) {
-        context.drawCenteredTextWithShadow(font, text, x, y, 0xC8D2EA);
+        context.drawCenteredTextWithShadow(font, text, x, y, 0xCAA1FF);
     }
 }

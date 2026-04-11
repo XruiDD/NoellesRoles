@@ -209,7 +209,7 @@ public class Noellesroles implements ModInitializer {
     // 强盗角色 - 杀手阵营，使用投掷斧远程贯穿击杀
     public static Role BANDIT = WatheRoles.registerRole(new Role(BANDIT_ID, new Color(90, 100, 40).getRGB(), false, true, Role.MoodType.FAKE, Integer.MAX_VALUE, true));
     public static Role HUNTER = WatheRoles.registerRole(new Role(HUNTER_ID, new Color(92, 76, 52).getRGB(), false, true, Role.MoodType.FAKE, Integer.MAX_VALUE, true));
-    public static Role COMMANDER = WatheRoles.registerRole(new Role(COMMANDER_ID, new Color(27, 44, 88).getRGB(), false, true, Role.MoodType.FAKE, Integer.MAX_VALUE, true, RoleAppearanceCondition.minKillers(3)));
+    public static Role COMMANDER = WatheRoles.registerRole(new Role(COMMANDER_ID, new Color(46, 0, 107).getRGB(), false, true, Role.MoodType.FAKE, Integer.MAX_VALUE, true, RoleAppearanceCondition.minKillers(3)));
 
 
     public static HashMap<Role, RoleAnnouncementTexts.RoleAnnouncementText> roleRoleAnnouncementTextHashMap = new HashMap<>();
