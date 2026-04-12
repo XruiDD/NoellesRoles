@@ -102,6 +102,10 @@
   "announcement.role.reporter": "Reporter",
   "announcement.win.reporter": "Passengers Win!",
 
+  "announcement.goals.detective": "Your trained eye can read the guilt on their faces. Get close, investigate — blood doesn't lie.",
+  "announcement.role.detective": "Detective",
+  "announcement.win.detective": "Passengers Win!",
+
   "announcement.goals.serial_killer": "Hunt and kill your target! Target automatically changes on death. Extra money for kills on your target!",
   "announcement.role.serial_killer": "Serial Killer",
   "announcement.win.serial_killer": "Killers Win!",
@@ -219,6 +223,10 @@
   "tip.reporter.target": "Target: %s [%s]",
   "tip.reporter.no_target": "No target in crosshair",
   "tip.reporter.marked": "Marked: %s",
+  "tip.detective.target": "Investigate %s [%s]",
+  "tip.detective.no_target": "No suspect in range",
+  "detective.result.killer": "%s — blood on their hands!",
+  "detective.result.innocent": "%s — clean, for now.",
   "tip.serial_killer.target": "Target: %s",
   "tip.serial_killer.no_target": "No target",
   "tip.taotie.swallow": "Press %s to swallow %s",
@@ -323,6 +331,8 @@
   "replay.skill.noellesroles.serial_killer.target": "%s §clocked on§r to %s as target",
   "replay.skill.noellesroles.serial_killer": "%s's §ctargets§r are all dead",
   "replay.skill.noellesroles.reporter.target": "%s §bmarked§r %s",
+  "replay.skill.noellesroles.detective.killer": "%s investigated %s — §cBLOODY§r",
+  "replay.skill.noellesroles.detective.innocent": "%s investigated %s — §aCLEAN§r",
 
   "replay.death.noellesroles.bodyguard_sacrifice.killed": "%s sacrificed themselves to protect against %s",
   "replay.death.noellesroles.bodyguard_sacrifice.died": "%s sacrificed themselves as a bodyguard",

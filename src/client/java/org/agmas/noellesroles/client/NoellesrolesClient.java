@@ -5,6 +5,7 @@ import dev.doctor4t.wathe.api.event.*;
 import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.cca.PlayerMoodComponent;
 import dev.doctor4t.wathe.cca.PlayerPoisonComponent;
+import dev.doctor4t.wathe.cca.PlayerPsychoComponent;
 import dev.doctor4t.wathe.client.WatheClient;
 import dev.doctor4t.wathe.entity.PlayerBodyEntity;
 import dev.doctor4t.wathe.game.GameFunctions;
@@ -51,6 +52,8 @@ import org.agmas.noellesroles.packet.EngineerDoorHighlightS2CPacket;
 import org.agmas.noellesroles.packet.MorphCorpseToggleC2SPacket;
 import org.agmas.noellesroles.packet.VultureEatC2SPacket;
 import org.agmas.noellesroles.vulture.VulturePlayerComponent;
+import org.agmas.noellesroles.detective.DetectivePlayerComponent;
+import org.agmas.noellesroles.packet.DetectiveInvestigateC2SPacket;
 import org.agmas.noellesroles.packet.ReporterMarkC2SPacket;
 import org.agmas.noellesroles.pathogen.InfectedPlayerComponent;
 import org.agmas.noellesroles.professor.IronManPlayerComponent;
@@ -91,6 +94,27 @@ public class NoellesrolesClient implements ClientModInitializer {
     public static double crosshairTargetDistance;
 
     public static Map<UUID, UUID> SHUFFLED_PLAYER_ENTRIES_CACHE = Maps.newHashMap();
+
+    /**
+     * 获取目标玩家的显示名称，处理以下乱码效果：
+     * 1. 目标处于 Psycho 模式（与 RoleNameRenderer 逻辑一致）
+     * 2. 自身心情低于 50%（isLowerThanMid）时所有人名字乱码
+     */
+    public static Text getDisplaySafeName(PlayerEntity target) {
+        // 自身心情过低，所有人名字乱码
+        if (WatheClient.moodComponent != null && WatheClient.moodComponent.isLowerThanMid()
+                && WatheClient.isPlayerAliveAndInSurvival()) {
+            return Text.literal("??!?!").formatted(net.minecraft.util.Formatting.OBFUSCATED);
+        }
+        // 目标处于 Psycho 模式
+        if (PlayerPsychoComponent.KEY.get(target).getPsychoTicks() > 0) {
+            return Text.literal("urscrewed" + "X".repeat(target.getRandom().nextInt(8)))
+                    .styled(style -> style.withFormatting(
+                            net.minecraft.util.Formatting.OBFUSCATED,
+                            net.minecraft.util.Formatting.DARK_RED));
+        }
+        return target.getName();
+    }
 
     // 不可见物品提示：切换到不可见物品时提示
     private static boolean wasHoldingInvisible = false;
@@ -230,6 +254,16 @@ public class NoellesrolesClient implements ClientModInitializer {
                 if (infected.isInfected() && localPlayer.canSee(player)) {
                     // Already infected - green
                     return GetInstinctHighlight.HighlightResult.always(Noellesroles.PATHOGEN.color());
+                }
+            }
+
+            // DETECTIVE: 查验结果高亮显示（5秒）
+            if (gameWorldComponent.isRole(localPlayer, Noellesroles.DETECTIVE)) {
+                DetectivePlayerComponent detectiveComp = DetectivePlayerComponent.KEY.get(localPlayer);
+                if (detectiveComp.getHighlightRemainingTicks() > 0
+                        && detectiveComp.getHighlightTargetUuid() != null
+                        && detectiveComp.getHighlightTargetUuid().equals(player.getUuid())) {
+                    return GetInstinctHighlight.HighlightResult.always(detectiveComp.getHighlightColor());
                 }
             }
 
@@ -488,6 +522,14 @@ public class NoellesrolesClient implements ClientModInitializer {
                         if (!GameFunctions.isPlayerPlayingAndAlive(MinecraftClient.getInstance().player) || SwallowedPlayerComponent.isPlayerSwallowed(MinecraftClient.getInstance().player)) return;
                         if (targetBody == null) return;
                         ClientPlayNetworking.send(new VultureEatC2SPacket(targetBody.getUuid()));
+                        return;
+                    }
+
+                    // 侦探角色按G查验目标
+                    if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.DETECTIVE)) {
+                        if (crosshairTarget != null && crosshairTargetDistance <= 3.0) {
+                            ClientPlayNetworking.send(new DetectiveInvestigateC2SPacket(crosshairTarget.getUuid()));
+                        }
                         return;
                     }
 

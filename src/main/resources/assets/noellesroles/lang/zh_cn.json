@@ -213,6 +213,14 @@
   "tip.reporter.no_target": "你需要指向一个目标以标记他",
   "tip.reporter.marked": "已标记: %s",
 
+  "announcement.goals.detective": "你那双锐利的眼睛能洞察一切。靠近嫌疑人，查验他们——鲜血不会说谎。",
+  "announcement.role.detective": "侦探",
+  "announcement.win.detective": "乘客胜利！",
+  "tip.detective.target": "查验 %s [%s]",
+  "tip.detective.no_target": "附近没有嫌疑人",
+  "detective.result.killer": "%s —— 手上沾着血！",
+  "detective.result.innocent": "%s —— 暂时是清白的。",
+
   "announcement.goals.serial_killer": "追踪并击杀你的目标！可获得额外金钱奖励！",
   "announcement.role.serial_killer": "连环杀手",
   "announcement.win.serial_killer": "杀手胜利！",
@@ -296,6 +304,8 @@
   "replay.skill.noellesroles.serial_killer.target": "%s 将§c目标§r锁定为 %s",
   "replay.skill.noellesroles.serial_killer": "%s 的§c目标§r已全部死亡",
   "replay.skill.noellesroles.reporter.target": "%s §b标记§r了 %s",
+  "replay.skill.noellesroles.detective.killer": "%s 查验了 %s —— §c染血§r",
+  "replay.skill.noellesroles.detective.innocent": "%s 查验了 %s —— §a清白§r",
 
   "replay.death.noellesroles.assassinated.killed": "%s 被 %s §c识破身份§r击杀",
   "replay.death.noellesroles.assassinated.died": "%s 被§c识破身份§r击杀",

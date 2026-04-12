@@ -40,7 +40,7 @@ public abstract class ReporterHudMixin {
             if (reporterPlayerComponent.hasMarkedTarget()) {
                 PlayerEntity markedTarget = MinecraftClient.getInstance().player.getWorld().getPlayerByUuid(reporterPlayerComponent.getMarkedTarget());
                 if (markedTarget != null) {
-                    Text line2 = Text.translatable("tip.reporter.marked", markedTarget.getName());
+                    Text line2 = Text.translatable("tip.reporter.marked", NoellesrolesClient.getDisplaySafeName(markedTarget));
                     drawY -= getTextRenderer().getWrappedLinesHeight(line2, 999999);
                     context.drawTextWithShadow(getTextRenderer(), line2, context.getScaledWindowWidth() - getTextRenderer().getWidth(line2), drawY, Noellesroles.REPORTER.color());
                 }
@@ -55,7 +55,7 @@ public abstract class ReporterHudMixin {
                 // 未冷却，显示准心目标和按键（3格内）
                 PlayerEntity target = NoellesrolesClient.crosshairTarget;
                 if (target != null && NoellesrolesClient.crosshairTargetDistance <= 3.0) {
-                    line1 = Text.translatable("tip.reporter.target", target.getName(), NoellesrolesClient.abilityBind.getBoundKeyLocalizedText());
+                    line1 = Text.translatable("tip.reporter.target", NoellesrolesClient.getDisplaySafeName(target), NoellesrolesClient.abilityBind.getBoundKeyLocalizedText());
                 } else {
                     line1 = Text.translatable("tip.reporter.no_target");
                 }

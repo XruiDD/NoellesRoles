@@ -25,6 +25,8 @@ import org.agmas.noellesroles.engineer.EngineerPlayerComponent;
 import org.agmas.noellesroles.noisemaker.NoisemakerPlayerComponent;
 import org.agmas.noellesroles.spiritualist.SpiritPlayerComponent;
 import org.agmas.noellesroles.survivalmaster.SurvivalMasterPlayerComponent;
+import org.agmas.noellesroles.detective.DetectivePlayerComponent;
+import org.agmas.noellesroles.detective.KillHistoryWorldComponent;
 import org.agmas.noellesroles.music.WorldMusicComponent;
 import org.agmas.noellesroles.scavenger.HiddenBodiesWorldComponent;
 import org.jetbrains.annotations.NotNull;
@@ -63,6 +65,7 @@ public class NoellesRolesComponents implements EntityComponentInitializer, World
         registry.beginRegistration(PlayerEntity.class, SurvivalMasterPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(SurvivalMasterPlayerComponent::new);
         registry.beginRegistration(PlayerEntity.class, EngineerPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(EngineerPlayerComponent::new);
         registry.beginRegistration(PlayerEntity.class, SpiritPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(SpiritPlayerComponent::new);
+        registry.beginRegistration(PlayerEntity.class, DetectivePlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(DetectivePlayerComponent::new);
     }
 
     @Override
@@ -70,5 +73,6 @@ public class NoellesRolesComponents implements EntityComponentInitializer, World
         worldComponentFactoryRegistry.register(ConfigWorldComponent.KEY, ConfigWorldComponent::new);
         worldComponentFactoryRegistry.register(WorldMusicComponent.KEY, WorldMusicComponent::new);
         worldComponentFactoryRegistry.register(HiddenBodiesWorldComponent.KEY, HiddenBodiesWorldComponent::new);
+        worldComponentFactoryRegistry.register(KillHistoryWorldComponent.KEY, KillHistoryWorldComponent::new);
     }
 }

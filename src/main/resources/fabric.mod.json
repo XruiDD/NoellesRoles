@@ -56,7 +56,9 @@
       "noellesroles:survival_master",
       "noellesroles:engineer",
       "noellesroles:spirit",
-      "noellesroles:world_music"
+      "noellesroles:world_music",
+      "noellesroles:detective",
+      "noellesroles:kill_history"
     ]
   },
   "mixins": [

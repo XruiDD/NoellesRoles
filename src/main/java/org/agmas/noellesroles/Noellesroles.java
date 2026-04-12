@@ -87,6 +87,9 @@ import org.agmas.noellesroles.bodyguard.BodyguardPlayerComponent;
 import org.agmas.noellesroles.engineer.EngineerPlayerComponent;
 import org.agmas.noellesroles.item.RepairToolItem;
 import org.agmas.noellesroles.music.WorldMusicComponent;
+import org.agmas.noellesroles.detective.DetectivePlayerComponent;
+import org.agmas.noellesroles.detective.KillHistoryWorldComponent;
+import org.agmas.noellesroles.packet.DetectiveInvestigateC2SPacket;
 import org.agmas.noellesroles.poisoner.PoisonerShopHandler;
 import org.agmas.noellesroles.bandit.BanditShopHandler;
 import org.agmas.noellesroles.survivalmaster.SurvivalMasterPlayerComponent;
@@ -141,6 +144,7 @@ public class Noellesroles implements ModInitializer {
     public static Identifier SURVIVAL_MASTER_ID = Identifier.of(MOD_ID, "survival_master");
     public static Identifier ENGINEER_ID = Identifier.of(MOD_ID, "engineer");
     public static Identifier SPIRIT_WALKER_ID = Identifier.of(MOD_ID, "spiritualist");
+    public static Identifier DETECTIVE_ID = Identifier.of(MOD_ID, "detective");
 
     // 炸弹死亡原因
     public static Identifier DEATH_REASON_BOMB = Identifier.of(MOD_ID, "bomb");
@@ -205,6 +209,8 @@ public class Noellesroles implements ModInitializer {
     public static Role ENGINEER = WatheRoles.registerRole(new Role(ENGINEER_ID, new Color(200, 160, 60).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
     // 通灵者角色 - 乘客阵营，灵魂出窍侦察，看到的人都是Steve
     public static Role SPIRIT_WALKER = WatheRoles.registerRole(new Role(SPIRIT_WALKER_ID, new Color(160, 100, 220).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
+    // 侦探角色 - 乘客阵营，查验玩家是否在2分钟内杀过人
+    public static Role DETECTIVE = WatheRoles.registerRole(new Role(DETECTIVE_ID, new Color(100, 149, 237).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
 
 
     // 小丑角色 - 中立阵营，被无辜者杀死时获胜
@@ -223,6 +229,7 @@ public class Noellesroles implements ModInitializer {
     public static final CustomPayload.Id<VultureEatC2SPacket> VULTURE_PACKET = VultureEatC2SPacket.ID;
     public static final CustomPayload.Id<AssassinGuessRoleC2SPacket> ASSASSIN_GUESS_ROLE_PACKET = AssassinGuessRoleC2SPacket.ID;
     public static final CustomPayload.Id<ReporterMarkC2SPacket> REPORTER_MARK_PACKET = ReporterMarkC2SPacket.ID;
+    public static final CustomPayload.Id<DetectiveInvestigateC2SPacket> DETECTIVE_INVESTIGATE_PACKET = DetectiveInvestigateC2SPacket.ID;
     public static final CustomPayload.Id<TaotieSwallowC2SPacket> TAOTIE_SWALLOW_PACKET = TaotieSwallowC2SPacket.ID;
     public static final CustomPayload.Id<SilencerSilenceC2SPacket> SILENCER_SILENCE_PACKET = SilencerSilenceC2SPacket.ID;
     public static final CustomPayload.Id<SpiritProjectC2SPacket> SPIRIT_PROJECT_PACKET = SpiritProjectC2SPacket.ID;
@@ -315,6 +322,7 @@ public class Noellesroles implements ModInitializer {
         PayloadTypeRegistry.playC2S().register(VultureEatC2SPacket.ID, VultureEatC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(AssassinGuessRoleC2SPacket.ID, AssassinGuessRoleC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(ReporterMarkC2SPacket.ID, ReporterMarkC2SPacket.CODEC);
+        PayloadTypeRegistry.playC2S().register(DetectiveInvestigateC2SPacket.ID, DetectiveInvestigateC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(TaotieSwallowC2SPacket.ID, TaotieSwallowC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(SilencerSilenceC2SPacket.ID, SilencerSilenceC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(SpiritProjectC2SPacket.ID, SpiritProjectC2SPacket.CODEC);
@@ -930,6 +938,14 @@ public class Noellesroles implements ModInitializer {
             }
 
             return null;
+        });
+
+        // 侦探：记录击杀历史
+        KillPlayer.AFTER.register((victim, killer, deathReason) -> {
+            if (killer != null && victim.getWorld() instanceof net.minecraft.server.world.ServerWorld) {
+                KillHistoryWorldComponent killHistory = KillHistoryWorldComponent.KEY.get(victim.getWorld());
+                killHistory.recordKill(killer.getUuid(), victim.getUuid(), deathReason);
+            }
         });
 
         // Jester kill detection - when jester is killed by an innocent, mark as won
@@ -1720,6 +1736,63 @@ public class Noellesroles implements ModInitializer {
             GameRecordManager.recordSkillUse(reporter, REPORTER_ID, target instanceof ServerPlayerEntity serverTarget ? serverTarget : null, extra);
         });
 
+        // 侦探查验目标
+        ServerPlayNetworking.registerGlobalReceiver(Noellesroles.DETECTIVE_INVESTIGATE_PACKET, (payload, context) -> {
+            ServerPlayerEntity detective = context.player();
+            GameWorldComponent gameWorld = GameWorldComponent.KEY.get(detective.getWorld());
+            AbilityPlayerComponent abilityComp = AbilityPlayerComponent.KEY.get(detective);
+
+            // 基础验证
+            if (!gameWorld.isRole(detective, DETECTIVE)) return;
+            if (!GameFunctions.isPlayerPlayingAndAlive(detective)) return;
+            if (SwallowedPlayerComponent.isPlayerSwallowed(detective)) return;
+            if (abilityComp.cooldown > 0) return;
+
+            // 目标验证
+            PlayerEntity target = detective.getWorld().getPlayerByUuid(payload.targetPlayer());
+            if (target == null) return;
+            if (target.equals(detective)) return;
+            if (!GameFunctions.isPlayerPlayingAndAlive(target)) return;
+            if (detective.squaredDistanceTo(target) > 9.0) return;
+            if (!detective.canSee(target)) return;
+
+            // 查验逻辑
+            KillHistoryWorldComponent killHistory = KillHistoryWorldComponent.KEY.get(detective.getWorld());
+            boolean killedRecently = killHistory.hasRecentNonImmuneKill(
+                    target.getUuid(),
+                    GameConstants.getInTicks(2, 0),
+                    detective.getWorld().getTime()
+            );
+
+            // 设置高亮结果
+            DetectivePlayerComponent detectiveComp = DetectivePlayerComponent.KEY.get(detective);
+            int color = killedRecently ? 0xFF4444 : 0x44FF44;
+            detectiveComp.setHighlight(target.getUuid(), color, GameConstants.getInTicks(0, 5));
+
+            // 设置冷却 90秒
+            abilityComp.setCooldown(GameConstants.getInTicks(1, 30));
+
+            // 发送 actionbar 提示
+            if (killedRecently) {
+                detective.sendMessage(
+                        Text.translatable("detective.result.killer", target.getDisplayName())
+                                .formatted(net.minecraft.util.Formatting.RED),
+                        true
+                );
+            } else {
+                detective.sendMessage(
+                        Text.translatable("detective.result.innocent", target.getDisplayName())
+                                .formatted(net.minecraft.util.Formatting.GREEN),
+                        true
+                );
+            }
+
+            // 记录技能使用（含查验结果，用于回放）
+            NbtCompound extra = new NbtCompound();
+            extra.putString("result", killedRecently ? "killer" : "innocent");
+            GameRecordManager.recordSkillUse(detective, DETECTIVE_ID, target instanceof ServerPlayerEntity serverTarget ? serverTarget : null, extra);
+        });
+
         // 饕餮吞噬目标
         ServerPlayNetworking.registerGlobalReceiver(Noellesroles.TAOTIE_SWALLOW_PACKET, (payload, context) -> {
             ServerPlayerEntity taotie = context.player();
@@ -2007,6 +2080,25 @@ public class Noellesroles implements ModInitializer {
                 return Text.translatable(key, actorText);
             } else {
                 return Text.translatable("replay.skill.noellesroles.spiritualist.project", actorText);
+            }
+        });
+
+        // 侦探查验技能格式化器（显示查验结果）
+        ReplayRegistry.registerSkillFormatter(DETECTIVE_ID, (event, match, world) -> {
+            var playerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
+            NbtCompound data = event.data();
+            UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+            UUID targetUuid = data.containsUuid("target") ? data.getUuid("target") : null;
+            if (actorUuid == null || targetUuid == null) return null;
+
+            Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
+            Text targetText = ReplayGenerator.formatPlayerName(targetUuid, playerInfoCache);
+            String result = data.getString("result");
+
+            if ("killer".equals(result)) {
+                return Text.translatable("replay.skill.noellesroles.detective.killer", actorText, targetText);
+            } else {
+                return Text.translatable("replay.skill.noellesroles.detective.innocent", actorText, targetText);
             }
         });
 
