@@ -148,6 +148,14 @@ public class NoellesrolesClient implements ClientModInitializer {
         EntityRendererRegistry.register(NoellesRolesEntities.POISON_GAS_CLOUD_ENTITY, EmptyEntityRenderer::new);
         EntityRendererRegistry.register(NoellesRolesEntities.THROWING_AXE_ENTITY, ThrowingAxeEntityRenderer::new);
 
+        // 灵界使者灵魂状态时放行跳跃键，允许灵魂飞行
+        ShouldAllowSuppressedKey.EVENT.register(keyBinding -> {
+            if (SpiritCameraHandler.isActive()) {
+                return keyBinding.equals(MinecraftClient.getInstance().options.jumpKey);
+            }
+            return false;
+        });
+
         CanSeeMoney.EVENT.register(player -> {
             if (!GameFunctions.isPlayerPlayingAndAlive(player)) return null;
             GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(
