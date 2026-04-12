@@ -11,8 +11,9 @@ public class RumItem extends IngredientItem {
     }
 
     @Override
-    public void applyEffect(ServerPlayerEntity player) {
-        player.addStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, 7 * 20, 1, false, false, true));
+    public void applyEffect(ServerPlayerEntity player, float durationMultiplier) {
+        int duration = (int)(7 * 20 * durationMultiplier);
+        player.addStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, duration, 1, false, false, true));
         addMoodBonus(player, 0.2f);
     }
 

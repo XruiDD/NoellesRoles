@@ -113,14 +113,18 @@ public class BaseSpiritItem extends CocktailItem {
             }
             GameRecordManager.recordItemUse(player, Registries.ITEM.getId(this), null, extra);
 
+            float durationMultiplier = computeDurationMultiplier(ingredients);
+
             if (hasIce) {
                 addBaseMoodBonus(player);
-                applyIngredientEffectsStatic(player, ingredients);
+                applyIngredientEffectsStatic(player, ingredients, durationMultiplier);
             } else {
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, DEBUFF_DURATION, 1, false, false, true));
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, DEBUFF_DURATION, 0, false, false, true));
+                int debuffDuration = (int)(DEBUFF_DURATION * durationMultiplier);
+                player.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, debuffDuration, 1, false, false, true));
+                player.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, debuffDuration, 0, false, false, true));
                 List<String> capturedIngredients = List.copyOf(ingredients);
-                Scheduler.schedule(() -> applyDelayedEffects(player, capturedIngredients), DEBUFF_DURATION);
+                float capturedMultiplier = durationMultiplier;
+                Scheduler.schedule(() -> applyDelayedEffects(player, capturedIngredients, capturedMultiplier), debuffDuration);
             }
 
             if (!player.isCreative()) {
@@ -137,17 +141,26 @@ public class BaseSpiritItem extends CocktailItem {
         moodComponent.setMood(Math.min(1.0f, moodComponent.getMood() + 0.2f));
     }
 
-    public static void applyIngredientEffectsStatic(ServerPlayerEntity player, List<String> ingredients) {
+    public static void applyIngredientEffectsStatic(ServerPlayerEntity player, List<String> ingredients, float durationMultiplier) {
         for (String id : ingredients) {
             IngredientItem item = IngredientItem.fromId(id);
-            if (item != null) item.applyEffect(player);
+            if (item != null) item.applyEffect(player, durationMultiplier);
         }
     }
 
-    public static void applyDelayedEffects(ServerPlayerEntity player, List<String> ingredients) {
+    public static void applyDelayedEffects(ServerPlayerEntity player, List<String> ingredients, float durationMultiplier) {
         if (!GameFunctions.isPlayerPlayingAndAlive(player)) return;
         addBaseMoodBonus(player);
-        applyIngredientEffectsStatic(player, ingredients);
+        applyIngredientEffectsStatic(player, ingredients, durationMultiplier);
+    }
+
+    private static float computeDurationMultiplier(List<String> ingredients) {
+        float multiplier = 1.0f;
+        for (String id : ingredients) {
+            IngredientItem item = IngredientItem.fromId(id);
+            if (item != null) multiplier *= item.getDurationMultiplier();
+        }
+        return multiplier;
     }
 
     private static boolean hasAnyRemovesDebuff(List<String> ingredients) {

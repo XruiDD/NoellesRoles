@@ -39,7 +39,7 @@ public class StimulationEffect extends StatusEffect {
         // 最后一 tick：清理修饰符 + 施加惩罚
         StatusEffectInstance instance = player.getStatusEffect(ModEffects.STIMULATION);
         if (instance != null && instance.getDuration() <= 1) {
-            removeStimulation(player);
+            removeStimulation(player, instance.getAmplifier());
             return true;
         }
 
@@ -67,8 +67,9 @@ public class StimulationEffect extends StatusEffect {
 
     /**
      * 移除体力修饰符 + 施加惩罚。
+     * @param amplifier 0=正常，>=1=特调利口酒（惩罚持续时间翻倍）
      */
-    private static void removeStimulation(ServerPlayerEntity player) {
+    private static void removeStimulation(ServerPlayerEntity player, int amplifier) {
         // 移除体力修饰符
         EntityAttributeInstance attr = player.getAttributeInstance(WatheAttributes.MAX_SPRINT_TIME);
         if (attr != null) {
@@ -79,8 +80,9 @@ public class StimulationEffect extends StatusEffect {
         stamina.setSprintingTicks(0);
         stamina.setExhausted(true);
         stamina.sync();
-        // 3 秒缓慢 II
+        // 缓慢 II：正常 3 秒，利口酒 6 秒
+        int slownessDuration = amplifier >= 1 ? 6 * 20 : 3 * 20;
         player.addStatusEffect(new StatusEffectInstance(
-                StatusEffects.SLOWNESS, 3 * 20, 1, false, false, true));
+                StatusEffects.SLOWNESS, slownessDuration, 1, false, false, true));
     }
 }

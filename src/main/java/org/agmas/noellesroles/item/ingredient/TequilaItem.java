@@ -11,8 +11,9 @@ public class TequilaItem extends IngredientItem {
     }
 
     @Override
-    public void applyEffect(ServerPlayerEntity player) {
-        player.addStatusEffect(new StatusEffectInstance(ModEffects.NO_COLLISION, 12 * 20, 0, false, false, true));
+    public void applyEffect(ServerPlayerEntity player, float durationMultiplier) {
+        int duration = (int)(7 * 20 * durationMultiplier);
+        player.addStatusEffect(new StatusEffectInstance(ModEffects.NO_COLLISION, duration, 0, false, false, true));
         addMoodBonus(player, 0.2f);
     }
 
@@ -23,6 +24,6 @@ public class TequilaItem extends IngredientItem {
 
     @Override
     public int getShopPrice() {
-        return 75;
+        return 50;
     }
 }

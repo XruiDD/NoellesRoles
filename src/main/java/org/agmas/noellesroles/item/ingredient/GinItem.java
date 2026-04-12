@@ -11,13 +11,14 @@ public class GinItem extends IngredientItem {
         super(settings, "gin");
     }
 
-    private static final int DURATION = 10 * 20;
+    private static final int BASE_DURATION = 10 * 20;
 
     @Override
-    public void applyEffect(ServerPlayerEntity player) {
+    public void applyEffect(ServerPlayerEntity player, float durationMultiplier) {
+        int duration = (int)(BASE_DURATION * durationMultiplier);
         player.removeStatusEffect(StatusEffects.BLINDNESS);
-        player.addStatusEffect(new StatusEffectInstance(StatusEffects.NIGHT_VISION, DURATION, 0, false, false, true));
-        player.addStatusEffect(new StatusEffectInstance(ModEffects.GIN_IMMUNITY, DURATION, 0, false, false, true));
+        player.addStatusEffect(new StatusEffectInstance(StatusEffects.NIGHT_VISION, duration, 0, false, false, true));
+        player.addStatusEffect(new StatusEffectInstance(ModEffects.GIN_IMMUNITY, duration, 0, false, false, true));
         addMoodBonus(player, 0.2f);
     }
 

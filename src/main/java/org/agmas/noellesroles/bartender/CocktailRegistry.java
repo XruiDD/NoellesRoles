@@ -5,6 +5,8 @@ import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.Nullable;
 
+import org.agmas.noellesroles.item.IngredientItem;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -60,7 +62,10 @@ public class CocktailRegistry {
      */
     public static @Nullable CocktailEntry getEntry(List<String> ingredients) {
         Set<String> set = ingredients.stream()
-                .filter(id -> !"ice_cube".equals(id))
+                .filter(id -> {
+                    IngredientItem item = IngredientItem.fromId(id);
+                    return item != null && !item.isModifier();
+                })
                 .collect(Collectors.toSet());
         if (set.isEmpty()) return null;
         return COCKTAILS.get(set);
@@ -93,9 +98,15 @@ public class CocktailRegistry {
         if (entry == null) return null;
         MutableText name = Text.translatable(entry.translationKey())
                 .setStyle(Style.EMPTY.withColor(entry.color()));
-        if (ingredients.contains("ice_cube")) {
-            name.append(Text.translatable("cocktail.noellesroles.iced_suffix")
-                    .setStyle(Style.EMPTY.withColor(entry.color())));
+        for (String id : ingredients) {
+            IngredientItem item = IngredientItem.fromId(id);
+            if (item != null) {
+                String suffix = item.getSuffixTranslationKey();
+                if (suffix != null) {
+                    name.append(Text.translatable(suffix)
+                            .setStyle(Style.EMPTY.withColor(entry.color())));
+                }
+            }
         }
         return name;
     }

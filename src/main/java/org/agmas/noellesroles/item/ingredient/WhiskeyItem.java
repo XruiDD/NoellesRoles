@@ -11,8 +11,9 @@ public class WhiskeyItem extends IngredientItem {
     }
 
     @Override
-    public void applyEffect(ServerPlayerEntity player) {
-        WhiskeyShieldEffect.addShieldLayer(player, 25 * 20);
+    public void applyEffect(ServerPlayerEntity player, float durationMultiplier) {
+        int duration = (int)(20 * 20 * durationMultiplier);
+        WhiskeyShieldEffect.addShieldLayer(player, duration);
         addMoodBonus(player, 0.2f);
     }
 
@@ -23,6 +24,6 @@ public class WhiskeyItem extends IngredientItem {
 
     @Override
     public int getShopPrice() {
-        return 275;
+        return 172;
     }
 }

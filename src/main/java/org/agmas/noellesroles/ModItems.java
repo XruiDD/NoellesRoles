@@ -26,6 +26,8 @@ public class ModItems {
         IngredientItem.register((IngredientItem) TEQUILA);
         IngredientItem.register((IngredientItem) WHISKEY);
         IngredientItem.register((IngredientItem) ICE_CUBE);
+        IngredientItem.register((IngredientItem) SPECIAL_LIQUEUR);
+        IngredientItem.register((IngredientItem) SPECIAL_SPICE);
     }
 
     public static final Item MASTER_KEY = register(
@@ -111,6 +113,14 @@ public class ModItems {
     public static final Item ICE_CUBE = register(
             new IceCubeItem(new Item.Settings().maxCount(1)),
             "ice_cube"
+    );
+    public static final Item SPECIAL_LIQUEUR = register(
+            new SpecialLiqueurItem(new Item.Settings().maxCount(1)),
+            "special_liqueur"
+    );
+    public static final Item SPECIAL_SPICE = register(
+            new SpecialSpiceItem(new Item.Settings().maxCount(1)),
+            "special_spice"
     );
 
     public static Item register(Item item, String id) {

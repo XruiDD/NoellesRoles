@@ -19,10 +19,12 @@ public class VodkaItem extends IngredientItem {
     }
 
     @Override
-    public void applyEffect(ServerPlayerEntity player) {
-        // 15 秒亢奋效果
+    public void applyEffect(ServerPlayerEntity player, float durationMultiplier) {
+        int duration = (int)(15 * 20 * durationMultiplier);
+        // amplifier 编码利口酒状态：0=正常，1=利口酒（负面效果也翻倍）
+        int amplifier = durationMultiplier > 1.0f ? 1 : 0;
         player.addStatusEffect(new StatusEffectInstance(
-                ModEffects.STIMULATION, 15 * 20, 0, false, false, true));
+                ModEffects.STIMULATION, duration, amplifier, false, false, true));
         // 无限体力（属性修饰符）
         StimulationEffect.applyStaminaModifier(player);
         // 生效瞬间减少所有冷却 20%

@@ -30,8 +30,16 @@ public abstract class IngredientItem extends Item {
 
     // --- 子类必须实现 ---
 
-    /** 应用调剂效果到玩家（药水效果 + 心情恢复等） */
-    public abstract void applyEffect(ServerPlayerEntity player);
+    /**
+     * 应用调剂效果（带持续时间倍率）。
+     * 倍率由同杯中所有调剂的 getDurationMultiplier() 相乘决定。
+     */
+    public abstract void applyEffect(ServerPlayerEntity player, float durationMultiplier);
+
+    /** 无倍率版本，委托到 applyEffect(player, 1.0f) */
+    public void applyEffect(ServerPlayerEntity player) {
+        applyEffect(player, 1.0f);
+    }
 
     /** 调剂在 tooltip 中的显示颜色（RGB） */
     public abstract int getDisplayColorRgb();
@@ -44,6 +52,21 @@ public abstract class IngredientItem extends Item {
     /** 是否消除基酒 debuff（默认 false，冰块 override 为 true） */
     public boolean removesDebuff() {
         return false;
+    }
+
+    /** 是否为修饰剂（不参与鸡尾酒命名，如冰块、特调利口酒、特调香料） */
+    public boolean isModifier() {
+        return false;
+    }
+
+    /** 持续时间倍率贡献（默认 1.0，特调利口酒 override 为 2.0） */
+    public float getDurationMultiplier() {
+        return 1.0f;
+    }
+
+    /** 鸡尾酒名称后缀翻译 key（默认 null 无后缀，修饰剂按需 override） */
+    public @Nullable String getSuffixTranslationKey() {
+        return null;
     }
 
     // --- 通用方法 ---
