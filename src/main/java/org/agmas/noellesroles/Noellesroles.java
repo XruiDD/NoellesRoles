@@ -682,47 +682,8 @@ public class Noellesroles implements ModInitializer {
                 List<RawFilteredPair<Text>> pages = new ArrayList<>();
                 HashMap<Integer, GameWorldComponent.RoomData> rooms = gameWorldComponent.getRooms();
                 HashMap<UUID, com.mojang.authlib.GameProfile> profiles = gameWorldComponent.getGameProfiles();
-                HashMap<UUID, Role> allRoles = gameWorldComponent.getRoles();
 
-                // === 第一页：本局职业配置 ===
-                Map<Role, Integer> roleCounts = new LinkedHashMap<>();
-                for (Role r : allRoles.values()) {
-                    roleCounts.merge(r, 1, Integer::sum);
-                }
-                List<Map.Entry<Role, Integer>> sortedRoleEntries = new ArrayList<>(roleCounts.entrySet());
-                sortedRoleEntries.sort((a, b) -> {
-                    int fa = a.getKey().isInnocent() ? 0 : (a.getKey().canUseKiller() ? 1 : 2);
-                    int fb = b.getKey().isInnocent() ? 0 : (b.getKey().canUseKiller() ? 1 : 2);
-                    return Integer.compare(fa, fb);
-                });
-
-                int rolesPerPage = 10;
-                for (int pageStart = 0; pageStart < sortedRoleEntries.size(); pageStart += rolesPerPage) {
-                    MutableText rolePage = Text.empty();
-                    if (pageStart == 0) {
-                        rolePage.append(Text.literal("§l§0本局职业一览§r\n\n"));
-                    } else {
-                        rolePage.append(Text.literal("§l§0职业一览（续）§r\n\n"));
-                    }
-
-                    int pageEnd = Math.min(pageStart + rolesPerPage, sortedRoleEntries.size());
-                    for (int i = pageStart; i < pageEnd; i++) {
-                        Map.Entry<Role, Integer> entry = sortedRoleEntries.get(i);
-                        Role r = entry.getKey();
-                        int count = entry.getValue();
-                        rolePage.append(Text.literal("• "));
-                        rolePage.append(Text.translatable("announcement.role." + r.identifier().getPath()).withColor(r.color()));
-                        rolePage.append(Text.literal(" §0×" + count + "§r\n"));
-                    }
-
-                    if (pageStart == 0) {
-                        rolePage.append(Text.literal("\n§8共 " + allRoles.size() + " 名乘客§r"));
-                    }
-
-                    pages.add(RawFilteredPair.of(rolePage));
-                }
-
-                // === 后续页：房间分配 ===
+                // === 房间分配 ===
                 if (!rooms.isEmpty()) {
                     List<GameWorldComponent.RoomData> sortedRooms = new ArrayList<>(rooms.values());
                     sortedRooms.sort((a, b) -> Integer.compare(a.getIndex(), b.getIndex()));
