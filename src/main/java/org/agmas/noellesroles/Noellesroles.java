@@ -80,6 +80,7 @@ import org.agmas.noellesroles.packet.TaotieSwallowC2SPacket;
 import org.agmas.noellesroles.packet.SilencerSilenceC2SPacket;
 import org.agmas.noellesroles.silencer.SilencedPlayerComponent;
 import org.agmas.noellesroles.silencer.SilencerPlayerComponent;
+import org.agmas.noellesroles.silencer.SilencerShopHandler;
 import org.agmas.noellesroles.bodyguard.BodyguardPlayerComponent;
 import org.agmas.noellesroles.engineer.EngineerPlayerComponent;
 import org.agmas.noellesroles.item.RepairToolItem;
@@ -320,6 +321,7 @@ public class Noellesroles implements ModInitializer {
         PoisonerShopHandler.register();
         BanditShopHandler.register();
         ReporterShopHandler.register();
+        SilencerShopHandler.register();
 
         // 毒师手持毒针时允许攻击玩家
         AllowPlayerPunching.EVENT.register((attacker, victim) ->
