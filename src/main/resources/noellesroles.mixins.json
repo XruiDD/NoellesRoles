@@ -29,7 +29,9 @@
     "accessor.ItemCooldownEntryAccessor",
     "accessor.ServerItemCooldownManagerAccessor",
     "bartender.StimulationCooldownMixin",
-    "spiritualist.SpiritSoundMixin"
+    "spiritualist.SpiritSoundMixin",
+    "waiter.WaiterFeedingMixin",
+    "waiter.WaiterPlatterMixin"
   ],
   "injectors": {
     "defaultRequire": 1

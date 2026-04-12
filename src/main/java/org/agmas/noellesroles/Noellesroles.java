@@ -93,6 +93,8 @@ import org.agmas.noellesroles.packet.DetectiveInvestigateC2SPacket;
 import org.agmas.noellesroles.poisoner.PoisonerShopHandler;
 import org.agmas.noellesroles.bandit.BanditShopHandler;
 import org.agmas.noellesroles.survivalmaster.SurvivalMasterPlayerComponent;
+import org.agmas.noellesroles.waiter.WaiterPlayerComponent;
+import org.agmas.noellesroles.waiter.WaiterShopHandler;
 import dev.doctor4t.wathe.compat.TrainVoicePlugin;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.WrittenBookContentComponent;
@@ -145,6 +147,7 @@ public class Noellesroles implements ModInitializer {
     public static Identifier ENGINEER_ID = Identifier.of(MOD_ID, "engineer");
     public static Identifier SPIRIT_WALKER_ID = Identifier.of(MOD_ID, "spiritualist");
     public static Identifier DETECTIVE_ID = Identifier.of(MOD_ID, "detective");
+    public static Identifier WAITER_ID = Identifier.of(MOD_ID, "waiter");
 
     // 炸弹死亡原因
     public static Identifier DEATH_REASON_BOMB = Identifier.of(MOD_ID, "bomb");
@@ -211,6 +214,8 @@ public class Noellesroles implements ModInitializer {
     public static Role SPIRIT_WALKER = WatheRoles.registerRole(new Role(SPIRIT_WALKER_ID, new Color(160, 100, 220).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
     // 侦探角色 - 乘客阵营，查验玩家是否在2分钟内杀过人
     public static Role DETECTIVE = WatheRoles.registerRole(new Role(DETECTIVE_ID, new Color(100, 149, 237).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
+    // 服务员角色 - 乘客阵营，携带2倍食物/饮品，可喂食其他玩家帮助完成任务，做任务赚金币购买食物/饮品
+    public static Role WAITER = WatheRoles.registerRole(new Role(WAITER_ID, new Color(255, 165, 80).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
 
 
     // 小丑角色 - 中立阵营，被无辜者杀死时获胜
@@ -338,6 +343,7 @@ public class Noellesroles implements ModInitializer {
         BanditShopHandler.register();
         ReporterShopHandler.register();
         SilencerShopHandler.register();
+        WaiterShopHandler.register();
 
         // 通灵者灵魂出窍时阻止本体被高亮
         dev.doctor4t.wathe.api.event.GetInstinctHighlight.EVENT.register(target -> {
@@ -780,6 +786,10 @@ public class Noellesroles implements ModInitializer {
             if (role.equals(POISONER)) {
                 player.getItemCooldownManager().set(ModItems.POISON_NEEDLE, GameConstants.getInTicks(1, 0)); // 1分钟初始冷却
             }
+            if (role.equals(WAITER)) {
+                WaiterPlayerComponent waiterComp = WaiterPlayerComponent.KEY.get(player);
+                waiterComp.reset();
+            }
         });
         ResetPlayer.EVENT.register(player -> {
             BartenderPlayerComponent.KEY.get(player).reset();
@@ -803,13 +813,14 @@ public class Noellesroles implements ModInitializer {
             BodyguardPlayerComponent.KEY.get(player).reset();
             NoisemakerPlayerComponent.KEY.get(player).reset();
             SurvivalMasterPlayerComponent.KEY.get(player).reset();
+            WaiterPlayerComponent.KEY.get(player).reset();
         });
 
         // Bartender and Recaller get +50 coins when completing tasks
         TaskComplete.EVENT.register((player, taskType) -> {
             GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(player.getWorld());
             Role role = gameWorldComponent.getRole(player);
-            if (role != null && (role.equals(BARTENDER) || role.equals(RECALLER) || role.equals(TIMEKEEPER) || role.equals(REPORTER))) {
+            if (role != null && (role.equals(BARTENDER) || role.equals(RECALLER) || role.equals(TIMEKEEPER) || role.equals(REPORTER) || role.equals(WAITER))) {
                 PlayerShopComponent playerShopComponent = PlayerShopComponent.KEY.get(player);
                 playerShopComponent.addToBalance(50);
             }
@@ -1192,7 +1203,7 @@ public class Noellesroles implements ModInitializer {
                 // 修复被撬的门
                 entity.setBlasted(false);
                 if (entity.isOpen()) {
-                    entity.toggle(false);
+                    entity.toggle(false, true);
                 }
                 entity.sync();
                 // 处理邻居双开门
@@ -1201,7 +1212,7 @@ public class Noellesroles implements ModInitializer {
                     if (neighbor != null && neighbor.isBlasted()) {
                         neighbor.setBlasted(false);
                         if (neighbor.isOpen()) {
-                            neighbor.toggle(false);
+                            neighbor.toggle(false, true);
                         }
                         neighbor.sync();
                     }
@@ -1245,7 +1256,7 @@ public class Noellesroles implements ModInitializer {
                 // 上锁门（无论开关状态）
                 entity.setJammed(GameConstants.JAMMED_DOOR_TIME);
                 if (entity.isOpen()) {
-                    entity.toggle(false);
+                    entity.toggle(false, true);
                 }
                 entity.sync();
                 if (entity instanceof SmallDoorBlockEntity) {
@@ -1253,7 +1264,7 @@ public class Noellesroles implements ModInitializer {
                     if (neighbor != null) {
                         neighbor.setJammed(GameConstants.JAMMED_DOOR_TIME);
                         if (neighbor.isOpen()) {
-                            neighbor.toggle(false);
+                            neighbor.toggle(false, true);
                         }
                         neighbor.sync();
                     }
@@ -2142,6 +2153,21 @@ public class Noellesroles implements ModInitializer {
 
         // silencer skill 格式化器（通过 skillUse 系统自动处理，这里只需要注册翻译键）
         // 翻译键 replay.skill.noellesroles.silencer.target 在语言文件中定义
+
+        // 服务员喂食技能格式化器（显示喂食物品名称）
+        ReplayRegistry.registerSkillFormatter(WAITER_ID, (event, match, world) -> {
+            var playerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
+            NbtCompound data = event.data();
+            UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+            UUID targetUuid = data.containsUuid("target") ? data.getUuid("target") : null;
+            if (actorUuid == null || targetUuid == null) return null;
+
+            Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
+            Text targetText = ReplayGenerator.formatPlayerName(targetUuid, playerInfoCache);
+            Text itemName = ReplayGenerator.formatItemName(data, world);
+
+            return Text.translatable("replay.skill.noellesroles.waiter.target", actorText, targetText, itemName);
+        });
 
         // ===== 物品使用格式化器 =====
 

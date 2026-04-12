@@ -411,5 +411,16 @@
   "replay.skill.noellesroles.spiritualist.forced_return.swallowed": "%s 的肉身§6被饕餮吞噬§r，靈魂被迫回歸",
   "replay.skill.noellesroles.spiritualist.forced_return.teleported": "%s 的肉身§b被傳送§r，靈魂被迫回歸",
   "replay.skill.noellesroles.spiritualist.forced_return.game_end": "%s 的靈魂因§7遊戲結束§r被迫回歸",
-  "replay.skill.noellesroles.spiritualist.forced_return.unknown": "%s 的靈魂§7被迫回歸§r"
+  "replay.skill.noellesroles.spiritualist.forced_return.unknown": "%s 的靈魂§7被迫回歸§r",
+
+  "announcement.goals.waiter": "你可以攜帶兩倍的食物和飲料，手持食物或飲品§b右鍵§r其他乘客即可餵食！",
+  "announcement.role.waiter": "服務員",
+  "announcement.win.waiter": "乘客勝利！",
+  "tip.letter.waiter.tooltip2": "附言: 完成任務可以賺取§6金幣§r, 在商店購買§b食物/飲品§r後右鍵其他乘客餵食, 幫助他們完成需求",
+  "item.noellesroles.waiter_service": "隨機食物/飲品",
+  "tip.waiter.target_not_hungry": "§7%s 現在不餓",
+  "tip.waiter.target_not_thirsty": "§7%s 現在不渴",
+  "tip.waiter.feed_complete": "§a你將 %2$s 遞給了 %1$s",
+  "tip.waiter.fed_by": "§a%1$s 遞給你一份 %2$s，需求已滿足！",
+  "replay.skill.noellesroles.waiter.target": "%1$s 將§e%3$s§r遞給了 %2$s"
 }

@@ -58,7 +58,8 @@
       "noellesroles:spirit",
       "noellesroles:world_music",
       "noellesroles:detective",
-      "noellesroles:kill_history"
+      "noellesroles:kill_history",
+      "noellesroles:waiter"
     ]
   },
   "mixins": [

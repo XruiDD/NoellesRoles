@@ -455,5 +455,16 @@
   "replay.skill.noellesroles.spiritualist.forced_return.swallowed": "%s's body was §6swallowed§r, soul forced back",
   "replay.skill.noellesroles.spiritualist.forced_return.teleported": "%s's body was §bteleported§r, soul forced back",
   "replay.skill.noellesroles.spiritualist.forced_return.game_end": "%s's soul was §7recalled§r as the game ended",
-  "replay.skill.noellesroles.spiritualist.forced_return.unknown": "%s's soul was §7forced back§r"
+  "replay.skill.noellesroles.spiritualist.forced_return.unknown": "%s's soul was §7forced back§r",
+
+  "announcement.goals.waiter": "You can carry twice the food and drinks. §bRight-click§r passengers while holding food or drinks to serve them!",
+  "announcement.role.waiter": "Waiter",
+  "announcement.win.waiter": "Passengers Win!",
+  "tip.letter.waiter.tooltip2": "P.S.: Complete tasks to earn §6Gold§r. Buy §bfood/drinks§r from the shop and right-click passengers to help them fulfill their needs.",
+  "item.noellesroles.waiter_service": "Random Food/Drink",
+  "tip.waiter.target_not_hungry": "§7%s isn't hungry",
+  "tip.waiter.target_not_thirsty": "§7%s isn't thirsty",
+  "tip.waiter.feed_complete": "§aYou served %2$s to %1$s",
+  "tip.waiter.fed_by": "§a%1$s served you %2$s — need fulfilled!",
+  "replay.skill.noellesroles.waiter.target": "%1$s served §e%3$s§r to %2$s"
 }
