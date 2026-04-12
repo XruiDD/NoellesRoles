@@ -458,5 +458,13 @@
   "tip.engineer.unlocked": "门已解锁！",
   "replay.item_use.noellesroles.repair_tool.repair": "%s 使用§b维修工具§r修复了一扇门",
   "replay.item_use.noellesroles.repair_tool.lock": "%s 使用§b维修工具§r锁上了一扇门",
-  "replay.item_use.noellesroles.repair_tool.unlock": "%s 使用§b维修工具§r解锁了一扇门"
+  "replay.item_use.noellesroles.repair_tool.unlock": "%s 使用§b维修工具§r解锁了一扇门",
+
+  "announcement.goals.spiritualist": "你可以灵魂出窍侦察周围的乘客！但你看到的人全是史蒂夫，且本体可被杀害。",
+  "announcement.role.spiritualist": "通灵者",
+  "announcement.win.spiritualist": "乘客胜利！",
+  "tip.spiritualist": "使用 %s 灵魂出窍！",
+  "tip.spiritualist.active": "使用 %s 回归本体",
+  "replay.skill.noellesroles.spiritualist.project": "%s 进入§d灵魂出窍§r状态",
+  "replay.skill.noellesroles.spiritualist.return": "%s §d回归§r了本体"
 }

@@ -58,6 +58,9 @@ import org.agmas.noellesroles.taotie.SwallowedPlayerComponent;
 import org.agmas.noellesroles.taotie.TaotiePlayerComponent;
 import org.agmas.noellesroles.packet.TaotieSwallowC2SPacket;
 import org.agmas.noellesroles.packet.SilencerSilenceC2SPacket;
+import org.agmas.noellesroles.packet.SpiritProjectC2SPacket;
+import org.agmas.noellesroles.spiritualist.SpiritPlayerComponent;
+import org.agmas.noellesroles.client.spiritualist.SpiritCameraHandler;
 import org.agmas.noellesroles.silencer.SilencerPlayerComponent;
 import org.agmas.noellesroles.client.music.WorldMusicManager;
 import org.agmas.noellesroles.reporter.ReporterPlayerComponent;
@@ -349,6 +352,9 @@ public class NoellesrolesClient implements ClientModInitializer {
                 }
             }
 
+            // 更新通灵者灵魂相机（状态检测+输入冻结）
+            SpiritCameraHandler.tick();
+
             // 更新病原体最近目标
             if (MinecraftClient.getInstance().player != null) {
                 float range = GameFunctions.isPlayerSpectatingOrCreative(MinecraftClient.getInstance().player) ? 8.0F : 2.0F;
@@ -523,6 +529,16 @@ public class NoellesrolesClient implements ClientModInitializer {
                                 // 没有标记 → 发送标记请求
                                 ClientPlayNetworking.send(new SilencerSilenceC2SPacket(crosshairTarget.getUuid()));
                             }
+                        }
+                        return;
+                    }
+
+                    // 通灵者角色按G：切换灵魂出窍
+                    if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.SPIRITUALIST)) {
+                        SpiritPlayerComponent spiritComp = SpiritPlayerComponent.KEY.get(MinecraftClient.getInstance().player);
+                        AbilityPlayerComponent abilityComp = AbilityPlayerComponent.KEY.get(MinecraftClient.getInstance().player);
+                        if (spiritComp.isProjecting() || abilityComp.getCooldown() <= 0) {
+                            ClientPlayNetworking.send(new SpiritProjectC2SPacket());
                         }
                         return;
                     }

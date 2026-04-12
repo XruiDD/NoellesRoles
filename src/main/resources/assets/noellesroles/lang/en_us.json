@@ -432,5 +432,13 @@
   "tip.engineer.unlocked": "Door unlocked!",
   "replay.item_use.noellesroles.repair_tool.repair": "%s §brepaired§r a door",
   "replay.item_use.noellesroles.repair_tool.lock": "%s §blocked§r a door",
-  "replay.item_use.noellesroles.repair_tool.unlock": "%s §bunlocked§r a door"
+  "replay.item_use.noellesroles.repair_tool.unlock": "%s §bunlocked§r a door",
+
+  "announcement.goals.spiritualist": "You can project your soul to scout nearby passengers! But everyone looks like Steve, and your body can be killed.",
+  "announcement.role.spiritualist": "Spiritualist",
+  "announcement.win.spiritualist": "Passengers Win!",
+  "tip.spiritualist": "Use %s to project your soul!",
+  "tip.spiritualist.active": "Use %s to return to your body",
+  "replay.skill.noellesroles.spiritualist.project": "%s entered §dsoul projection§r",
+  "replay.skill.noellesroles.spiritualist.return": "%s §dreturned§r to their body"
 }

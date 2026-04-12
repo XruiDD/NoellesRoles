@@ -78,6 +78,8 @@ import org.agmas.noellesroles.taotie.TaotiePlayerComponent;
 import org.agmas.noellesroles.taotie.SwallowedPlayerComponent;
 import org.agmas.noellesroles.packet.TaotieSwallowC2SPacket;
 import org.agmas.noellesroles.packet.SilencerSilenceC2SPacket;
+import org.agmas.noellesroles.packet.SpiritProjectC2SPacket;
+import org.agmas.noellesroles.spiritualist.SpiritPlayerComponent;
 import org.agmas.noellesroles.silencer.SilencedPlayerComponent;
 import org.agmas.noellesroles.silencer.SilencerPlayerComponent;
 import org.agmas.noellesroles.silencer.SilencerShopHandler;
@@ -92,6 +94,7 @@ import dev.doctor4t.wathe.compat.TrainVoicePlugin;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.WrittenBookContentComponent;
 import net.minecraft.item.Items;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.RawFilteredPair;
 import net.minecraft.text.Text;
 
@@ -137,6 +140,7 @@ public class Noellesroles implements ModInitializer {
     public static Identifier BANDIT_ID = Identifier.of(MOD_ID, "bandit");
     public static Identifier SURVIVAL_MASTER_ID = Identifier.of(MOD_ID, "survival_master");
     public static Identifier ENGINEER_ID = Identifier.of(MOD_ID, "engineer");
+    public static Identifier SPIRITUALIST_ID = Identifier.of(MOD_ID, "spiritualist");
 
     // 炸弹死亡原因
     public static Identifier DEATH_REASON_BOMB = Identifier.of(MOD_ID, "bomb");
@@ -199,6 +203,8 @@ public class Noellesroles implements ModInitializer {
     public static Role SURVIVAL_MASTER = WatheRoles.registerRole(new Role(SURVIVAL_MASTER_ID, new Color(50, 180, 160).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
     // 工程师角色 - 无辜者阵营，感知被撬/被锁的门，维修工具修复/上锁/解锁
     public static Role ENGINEER = WatheRoles.registerRole(new Role(ENGINEER_ID, new Color(200, 160, 60).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
+    // 通灵者角色 - 乘客阵营，灵魂出窍侦察，看到的人都是Steve
+    public static Role SPIRITUALIST = WatheRoles.registerRole(new Role(SPIRITUALIST_ID, new Color(160, 100, 220).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
 
 
     // 小丑角色 - 中立阵营，被无辜者杀死时获胜
@@ -219,6 +225,7 @@ public class Noellesroles implements ModInitializer {
     public static final CustomPayload.Id<ReporterMarkC2SPacket> REPORTER_MARK_PACKET = ReporterMarkC2SPacket.ID;
     public static final CustomPayload.Id<TaotieSwallowC2SPacket> TAOTIE_SWALLOW_PACKET = TaotieSwallowC2SPacket.ID;
     public static final CustomPayload.Id<SilencerSilenceC2SPacket> SILENCER_SILENCE_PACKET = SilencerSilenceC2SPacket.ID;
+    public static final CustomPayload.Id<SpiritProjectC2SPacket> SPIRIT_PROJECT_PACKET = SpiritProjectC2SPacket.ID;
     public static final ArrayList<Role> VANNILA_ROLES = new ArrayList<>();
     public static final ArrayList<Identifier> VANNILA_ROLE_IDS = new ArrayList<>();
     // 中立万能钥匙可用角色集合
@@ -310,6 +317,7 @@ public class Noellesroles implements ModInitializer {
         PayloadTypeRegistry.playC2S().register(ReporterMarkC2SPacket.ID, ReporterMarkC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(TaotieSwallowC2SPacket.ID, TaotieSwallowC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(SilencerSilenceC2SPacket.ID, SilencerSilenceC2SPacket.CODEC);
+        PayloadTypeRegistry.playC2S().register(SpiritProjectC2SPacket.ID, SpiritProjectC2SPacket.CODEC);
         PayloadTypeRegistry.playS2C().register(EngineerDoorHighlightS2CPacket.ID, EngineerDoorHighlightS2CPacket.CODEC);
 
         registerEvents();
@@ -322,6 +330,20 @@ public class Noellesroles implements ModInitializer {
         BanditShopHandler.register();
         ReporterShopHandler.register();
         SilencerShopHandler.register();
+
+        // 通灵者灵魂出窍时阻止本体被高亮
+        dev.doctor4t.wathe.api.event.GetInstinctHighlight.EVENT.register(target -> {
+            if (target instanceof ServerPlayerEntity player) {
+                GameWorldComponent gameComp = GameWorldComponent.KEY.get(player.getWorld());
+                if (gameComp.isRole(player, SPIRITUALIST)) {
+                    SpiritPlayerComponent spiritComp = SpiritPlayerComponent.KEY.get(player);
+                    if (spiritComp.isProjecting()) {
+                        return dev.doctor4t.wathe.api.event.GetInstinctHighlight.HighlightResult.skip();
+                    }
+                }
+            }
+            return null;
+        });
 
         // 毒师手持毒针时允许攻击玩家
         AllowPlayerPunching.EVENT.register((attacker, victim) ->
@@ -626,6 +648,10 @@ public class Noellesroles implements ModInitializer {
                 player.giveItemStack(ModItems.IRON_MAN_VIAL.getDefaultStack());
                 player.getItemCooldownManager().set(ModItems.IRON_MAN_VIAL, 20 * 60 * 3);
             }
+            if (role.equals(SPIRITUALIST)) {
+                SpiritPlayerComponent spiritComp = SpiritPlayerComponent.KEY.get(player);
+                spiritComp.reset();
+            }
             if (role.equals(ENGINEER)) {
                 // 工程师开局获得维修工具，60秒开局冷却
                 EngineerPlayerComponent engineerComp = EngineerPlayerComponent.KEY.get(player);
@@ -923,6 +949,14 @@ public class Noellesroles implements ModInitializer {
                     event.putUuid("killer_uuid", killer.getUuid());
                 }
                 event.record();
+            }
+
+            // 通灵者死亡时强制结束灵魂出窍
+            if (gameComponent.isRole(victim, SPIRITUALIST)) {
+                SpiritPlayerComponent spiritComp = SpiritPlayerComponent.KEY.get(victim);
+                if (spiritComp.isProjecting()) {
+                    spiritComp.stopProjecting();
+                }
             }
 
             // 连环杀手处理：击杀目标奖励和目标更换
@@ -1807,6 +1841,35 @@ public class Noellesroles implements ModInitializer {
                 true
             );
         });
+
+        // 通灵者灵魂出窍切换
+        ServerPlayNetworking.registerGlobalReceiver(Noellesroles.SPIRIT_PROJECT_PACKET, (payload, context) -> {
+            ServerPlayerEntity player = context.player();
+            GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(player.getWorld());
+            if (!gameWorldComponent.isRole(player, SPIRITUALIST)) return;
+            if (!GameFunctions.isPlayerPlayingAndAlive(player)) return;
+            if (SwallowedPlayerComponent.isPlayerSwallowed(player)) return;
+
+            SpiritPlayerComponent spiritComp = SpiritPlayerComponent.KEY.get(player);
+            AbilityPlayerComponent abilityComp = AbilityPlayerComponent.KEY.get(player);
+
+            if (spiritComp.isProjecting()) {
+                // 回归本体
+                spiritComp.stopProjecting();
+                abilityComp.setCooldown(GameConstants.getInTicks(1, 0)); // 60秒冷却
+
+                NbtCompound extra = new NbtCompound();
+                extra.putString("action", "return");
+                GameRecordManager.recordSkillUse(player, SPIRITUALIST_ID, null, extra);
+            } else if (abilityComp.cooldown <= 0) {
+                // 开始灵魂出窍
+                spiritComp.startProjecting();
+
+                NbtCompound extra = new NbtCompound();
+                extra.putString("action", "project");
+                GameRecordManager.recordSkillUse(player, SPIRITUALIST_ID, null, extra);
+            }
+        });
     }
 
     /**
@@ -1925,6 +1988,23 @@ public class Noellesroles implements ModInitializer {
             Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
 
             return Text.translatable("replay.death_in_stomach", actorText);
+        });
+
+        // 通灵者技能格式化器（灵魂出窍 / 回归本体）
+        ReplayRegistry.registerSkillFormatter(SPIRITUALIST_ID, (event, match, world) -> {
+            var playerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
+            NbtCompound data = event.data();
+            UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+            if (actorUuid == null) return null;
+
+            Text actorText = ReplayGenerator.formatPlayerName(actorUuid, playerInfoCache);
+            String action = data.getString("action");
+
+            if ("return".equals(action)) {
+                return Text.translatable("replay.skill.noellesroles.spiritualist.return", actorText);
+            } else {
+                return Text.translatable("replay.skill.noellesroles.spiritualist.project", actorText);
+            }
         });
 
         // 交换者技能格式化器（显示交换的两个玩家）

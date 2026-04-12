@@ -388,5 +388,13 @@
   "tip.engineer.door_jammed": "一扇門被堵住了！",
   "tip.engineer.repaired": "門已修復！",
   "tip.engineer.locked": "門已上鎖！",
-  "tip.engineer.unlocked": "門已解鎖！"
+  "tip.engineer.unlocked": "門已解鎖！",
+
+  "announcement.goals.spiritualist": "你可以靈魂出竅偵察周圍的乘客！但你看到的人全是史蒂夫，且本體可被殺害。",
+  "announcement.role.spiritualist": "通靈者",
+  "announcement.win.spiritualist": "乘客勝利！",
+  "tip.spiritualist": "使用 %s 靈魂出竅！",
+  "tip.spiritualist.active": "使用 %s 回歸本體",
+  "replay.skill.noellesroles.spiritualist.project": "%s 進入§d靈魂出竅§r狀態",
+  "replay.skill.noellesroles.spiritualist.return": "%s §d回歸§r了本體"
 }

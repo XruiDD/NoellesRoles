@@ -20,6 +20,7 @@ import net.minecraft.world.GameMode;
 import org.agmas.noellesroles.Noellesroles;
 import org.agmas.noellesroles.noisemaker.NoisemakerPlayerComponent;
 import org.agmas.noellesroles.silencer.SilencedPlayerComponent;
+import org.agmas.noellesroles.spiritualist.SpiritPlayerComponent;
 import org.agmas.noellesroles.taotie.SwallowedPlayerComponent;
 import org.agmas.noellesroles.taotie.TaotiePlayerComponent;
 
@@ -393,6 +394,42 @@ public class NoellesrolesVoiceChatPlugin implements VoicechatPlugin {
         }
     }
 
+    /**
+     * 通灵者灵魂出窍时：阻止接收他人语音（听不到别人说话）
+     */
+    public <T extends Packet> void blockVoiceToProjectingSpiritualist(SoundPacketEvent<T> event) {
+        if (event.getReceiverConnection() == null
+                || event.getReceiverConnection().getPlayer() == null
+                || event.getReceiverConnection().getPlayer().getPlayer() == null) return;
+
+        ServerPlayerEntity recipient = (ServerPlayerEntity) event.getReceiverConnection().getPlayer().getPlayer();
+        GameWorldComponent gameComp = GameWorldComponent.KEY.get(recipient.getWorld());
+        if (gameComp.isRole(recipient, Noellesroles.SPIRITUALIST)) {
+            SpiritPlayerComponent spiritComp = SpiritPlayerComponent.KEY.get(recipient);
+            if (spiritComp.isProjecting()) {
+                event.cancel();
+            }
+        }
+    }
+
+    /**
+     * 通灵者灵魂出窍时：阻止发送语音（别人也听不到通灵者说话）
+     */
+    public void blockSpiritVoice(MicrophonePacketEvent event) {
+        if (event.getSenderConnection() == null
+                || event.getSenderConnection().getPlayer() == null
+                || event.getSenderConnection().getPlayer().getPlayer() == null) return;
+
+        ServerPlayerEntity speaker = (ServerPlayerEntity) event.getSenderConnection().getPlayer().getPlayer();
+        GameWorldComponent gameComp = GameWorldComponent.KEY.get(speaker.getWorld());
+        if (gameComp.isRole(speaker, Noellesroles.SPIRITUALIST)) {
+            SpiritPlayerComponent spiritComp = SpiritPlayerComponent.KEY.get(speaker);
+            if (spiritComp.isProjecting()) {
+                event.cancel();
+            }
+        }
+    }
+
     @Override
     public void registerEvents(EventRegistration registration) {
         registration.registerEvent(MicrophonePacketEvent.class, this::paranoidEvent);
@@ -407,6 +444,10 @@ public class NoellesrolesVoiceChatPlugin implements VoicechatPlugin {
 
         registration.registerEvent(EntitySoundPacketEvent.class, this::blockVoiceToSilencedPlayers);
         registration.registerEvent(LocationalSoundPacketEvent.class, this::blockVoiceToSilencedPlayers);
+
+        registration.registerEvent(EntitySoundPacketEvent.class, this::blockVoiceToProjectingSpiritualist);
+        registration.registerEvent(LocationalSoundPacketEvent.class, this::blockVoiceToProjectingSpiritualist);
+        registration.registerEvent(MicrophonePacketEvent.class, this::blockSpiritVoice);
 
         VoicechatPlugin.super.registerEvents(registration);
     }
