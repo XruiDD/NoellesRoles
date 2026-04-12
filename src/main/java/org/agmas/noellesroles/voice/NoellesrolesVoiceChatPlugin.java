@@ -8,16 +8,23 @@ import de.maxhenkel.voicechat.api.VoicechatServerApi;
 import de.maxhenkel.voicechat.api.events.*;
 import de.maxhenkel.voicechat.api.packets.Packet;
 import dev.doctor4t.wathe.cca.GameWorldComponent;
+import dev.doctor4t.wathe.compat.TrainVoicePlugin;
 import dev.doctor4t.wathe.game.GameFunctions;
+import dev.doctor4t.wathe.index.WatheDataComponentTypes;
+import dev.doctor4t.wathe.item.WalkieTalkieItem;
+import dev.doctor4t.wathe.item.component.WalkieTalkieComponent;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.world.GameMode;
 import org.agmas.noellesroles.Noellesroles;
 import org.agmas.noellesroles.noisemaker.NoisemakerPlayerComponent;
 import org.agmas.noellesroles.silencer.SilencedPlayerComponent;
 import org.agmas.noellesroles.taotie.SwallowedPlayerComponent;
+import org.agmas.noellesroles.taotie.TaotiePlayerComponent;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -299,12 +306,100 @@ public class NoellesrolesVoiceChatPlugin implements VoicechatPlugin {
             }
         }
     }
+    /**
+     * 饕餮胃部对讲机共享：
+     * 当有人通过对讲机说话时，如果某个饕餮的胃里有人持有同频道的对讲机，
+     * 则胃里所有人（包括饕餮自己）都能听到。
+     * 已经通过 TrainVoicePlugin 正常路径收到的玩家会被跳过，避免重复收听。
+     */
+    public void walkieTalkieStomachShareEvent(MicrophonePacketEvent event) {
+        VoicechatServerApi api = event.getVoicechat();
+        VoicechatConnection connection = event.getSenderConnection();
+        if (connection == null) return;
+        if (connection.getPlayer() == null || connection.getPlayer().getPlayer() == null) return;
+
+        ServerPlayerEntity speaker = (ServerPlayerEntity) connection.getPlayer().getPlayer();
+        if (speaker == null || speaker.isSpectator()) return;
+
+        // 检查说话者是否手持对讲机（主手或副手）
+        ItemStack mainHand = speaker.getMainHandStack();
+        ItemStack offHand = speaker.getOffHandStack();
+        ItemStack heldWalkieTalkie = null;
+        if (mainHand.getItem() instanceof WalkieTalkieItem) {
+            heldWalkieTalkie = mainHand;
+        } else if (offHand.getItem() instanceof WalkieTalkieItem) {
+            heldWalkieTalkie = offHand;
+        }
+        if (heldWalkieTalkie == null) return;
+
+        WalkieTalkieComponent comp = heldWalkieTalkie.getOrDefault(
+                WatheDataComponentTypes.WALKIE_TALKIE, WalkieTalkieComponent.DEFAULT);
+        int senderChannel = comp.channel();
+        byte[] encodedData = event.getPacket().getOpusEncodedData();
+
+        // 遍历所有玩家，检查是否有饕餮的胃里存在同频对讲机
+        for (ServerPlayerEntity potentialTaotie : speaker.getServer().getPlayerManager().getPlayerList()) {
+            TaotiePlayerComponent taotieComp = TaotiePlayerComponent.KEY.get(potentialTaotie);
+            List<UUID> stomachPlayers = taotieComp.getSwallowedPlayers();
+            if (stomachPlayers.isEmpty()) continue;
+
+            // 检查胃里是否有人持有同频道的对讲机
+            boolean stomachHasChannel = false;
+            for (UUID swallowedUuid : stomachPlayers) {
+                PlayerEntity swallowed = potentialTaotie.getWorld().getPlayerByUuid(swallowedUuid);
+                if (swallowed != null && TrainVoicePlugin.isReceivingChannel(swallowed, senderChannel)) {
+                    stomachHasChannel = true;
+                    break;
+                }
+            }
+            if (!stomachHasChannel) continue;
+
+            // 转发给饕餮本人（如果不是说话者、存活、且自己没有同频对讲机）
+            if (potentialTaotie != speaker
+                    && GameFunctions.isPlayerPlayingAndAlive(potentialTaotie)
+                    && !TrainVoicePlugin.isReceivingChannel(potentialTaotie, senderChannel)) {
+                VoicechatConnection taotieCon = api.getConnectionOf(potentialTaotie.getUuid());
+                if (taotieCon != null) {
+                    api.sendLocationalSoundPacketTo(taotieCon,
+                            event.getPacket().locationalSoundPacketBuilder()
+                                    .opusEncodedData(encodedData)
+                                    .position(api.createPosition(
+                                            potentialTaotie.getX(), potentialTaotie.getY(), potentialTaotie.getZ()))
+                                    .distance(8f)
+                                    .category(TrainVoicePlugin.WALKIE_TALKIE_CATEGORY)
+                                    .build());
+                }
+            }
+
+            // 转发给胃里没有同频对讲机的被吞玩家
+            for (UUID swallowedUuid : stomachPlayers) {
+                if (swallowedUuid.equals(speaker.getUuid())) continue;
+                PlayerEntity swallowed = potentialTaotie.getWorld().getPlayerByUuid(swallowedUuid);
+                if (swallowed == null) continue;
+                if (TrainVoicePlugin.isReceivingChannel(swallowed, senderChannel)) continue; // 已通过正常路径收到
+
+                VoicechatConnection swallowedCon = api.getConnectionOf(swallowedUuid);
+                if (swallowedCon != null) {
+                    api.sendLocationalSoundPacketTo(swallowedCon,
+                            event.getPacket().locationalSoundPacketBuilder()
+                                    .opusEncodedData(encodedData)
+                                    .position(api.createPosition(
+                                            swallowed.getX(), swallowed.getY(), swallowed.getZ()))
+                                    .distance(8f)
+                                    .category(TrainVoicePlugin.WALKIE_TALKIE_CATEGORY)
+                                    .build());
+                }
+            }
+        }
+    }
+
     @Override
     public void registerEvents(EventRegistration registration) {
         registration.registerEvent(MicrophonePacketEvent.class, this::paranoidEvent);
         registration.registerEvent(MicrophonePacketEvent.class, this::taotieVoiceEvent);
         registration.registerEvent(MicrophonePacketEvent.class, this::silencerVoiceEvent);
         registration.registerEvent(MicrophonePacketEvent.class, this::noisemakerBroadcastEvent);
+        registration.registerEvent(MicrophonePacketEvent.class, this::walkieTalkieStomachShareEvent);
         registration.registerEvent(RemoveGroupEvent.class, this::onGroupRemoved);
 
         registration.registerEvent(EntitySoundPacketEvent.class, this::blockVoiceToSwallowedPlayers);
