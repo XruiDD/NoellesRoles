@@ -390,11 +390,11 @@
   "tip.engineer.locked": "門已上鎖！",
   "tip.engineer.unlocked": "門已解鎖！",
 
-  "announcement.goals.spiritualist": "你可以靈魂出竅偵察周圍的乘客！但你看到的人全是史蒂夫，且本體可被殺害。",
-  "announcement.role.spiritualist": "通靈者",
+  "announcement.goals.spiritualist": "你的靈魂可以脫離肉身，化為無形的幽影穿行於車廂之間。在靈界中，所有乘客的面容都模糊不清——你無法辨認任何人的身份。而你脆弱的肉身將毫無防備地留在原地……",
+  "announcement.role.spiritualist": "靈界行者",
   "announcement.win.spiritualist": "乘客勝利！",
-  "tip.spiritualist": "使用 %s 靈魂出竅！",
-  "tip.spiritualist.active": "使用 %s 回歸本體",
-  "replay.skill.noellesroles.spiritualist.project": "%s 進入§d靈魂出竅§r狀態",
-  "replay.skill.noellesroles.spiritualist.return": "%s §d回歸§r了本體"
+  "tip.spiritualist": "按下 %s 步入靈界",
+  "tip.spiritualist.active": "按下 %s 返回現世",
+  "replay.skill.noellesroles.spiritualist.project": "%s 的靈魂§d脫離了肉身§r",
+  "replay.skill.noellesroles.spiritualist.return": "%s 的靈魂§d返回了現世§r"
 }

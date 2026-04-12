@@ -460,11 +460,11 @@
   "replay.item_use.noellesroles.repair_tool.lock": "%s 使用§b维修工具§r锁上了一扇门",
   "replay.item_use.noellesroles.repair_tool.unlock": "%s 使用§b维修工具§r解锁了一扇门",
 
-  "announcement.goals.spiritualist": "你可以灵魂出窍侦察周围的乘客！但你看到的人全是史蒂夫，且本体可被杀害。",
-  "announcement.role.spiritualist": "通灵者",
+  "announcement.goals.spiritualist": "你的灵魂可以脱离肉身，化为无形的幽影穿行于车厢之间。在灵界中，所有乘客的面容都模糊不清——你无法辨认任何人的身份。而你脆弱的肉身将毫无防备地留在原地……",
+  "announcement.role.spiritualist": "灵界行者",
   "announcement.win.spiritualist": "乘客胜利！",
-  "tip.spiritualist": "使用 %s 灵魂出窍！",
-  "tip.spiritualist.active": "使用 %s 回归本体",
-  "replay.skill.noellesroles.spiritualist.project": "%s 进入§d灵魂出窍§r状态",
-  "replay.skill.noellesroles.spiritualist.return": "%s §d回归§r了本体"
+  "tip.spiritualist": "按下 %s 步入灵界",
+  "tip.spiritualist.active": "按下 %s 返回现世",
+  "replay.skill.noellesroles.spiritualist.project": "%s 的灵魂§d脱离了肉身§r",
+  "replay.skill.noellesroles.spiritualist.return": "%s 的灵魂§d返回了现世§r"
 }

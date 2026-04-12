@@ -434,11 +434,11 @@
   "replay.item_use.noellesroles.repair_tool.lock": "%s §blocked§r a door",
   "replay.item_use.noellesroles.repair_tool.unlock": "%s §bunlocked§r a door",
 
-  "announcement.goals.spiritualist": "You can project your soul to scout nearby passengers! But everyone looks like Steve, and your body can be killed.",
-  "announcement.role.spiritualist": "Spiritualist",
+  "announcement.goals.spiritualist": "Your soul can slip free from your body, drifting unseen through the carriages. In the spirit realm, every face blurs into anonymity — you cannot identify anyone. Meanwhile, your defenseless body remains where you left it...",
+  "announcement.role.spiritualist": "Spirit Walker",
   "announcement.win.spiritualist": "Passengers Win!",
-  "tip.spiritualist": "Use %s to project your soul!",
-  "tip.spiritualist.active": "Use %s to return to your body",
-  "replay.skill.noellesroles.spiritualist.project": "%s entered §dsoul projection§r",
-  "replay.skill.noellesroles.spiritualist.return": "%s §dreturned§r to their body"
+  "tip.spiritualist": "Press %s to enter the spirit realm",
+  "tip.spiritualist.active": "Press %s to return to your body",
+  "replay.skill.noellesroles.spiritualist.project": "%s's soul §dleft their body§r",
+  "replay.skill.noellesroles.spiritualist.return": "%s's soul §dreturned to the living world§r"
 }

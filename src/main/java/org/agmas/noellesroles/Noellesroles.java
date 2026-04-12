@@ -140,7 +140,7 @@ public class Noellesroles implements ModInitializer {
     public static Identifier BANDIT_ID = Identifier.of(MOD_ID, "bandit");
     public static Identifier SURVIVAL_MASTER_ID = Identifier.of(MOD_ID, "survival_master");
     public static Identifier ENGINEER_ID = Identifier.of(MOD_ID, "engineer");
-    public static Identifier SPIRITUALIST_ID = Identifier.of(MOD_ID, "spiritualist");
+    public static Identifier SPIRIT_WALKER_ID = Identifier.of(MOD_ID, "spiritualist");
 
     // 炸弹死亡原因
     public static Identifier DEATH_REASON_BOMB = Identifier.of(MOD_ID, "bomb");
@@ -204,7 +204,7 @@ public class Noellesroles implements ModInitializer {
     // 工程师角色 - 无辜者阵营，感知被撬/被锁的门，维修工具修复/上锁/解锁
     public static Role ENGINEER = WatheRoles.registerRole(new Role(ENGINEER_ID, new Color(200, 160, 60).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
     // 通灵者角色 - 乘客阵营，灵魂出窍侦察，看到的人都是Steve
-    public static Role SPIRITUALIST = WatheRoles.registerRole(new Role(SPIRITUALIST_ID, new Color(160, 100, 220).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
+    public static Role SPIRIT_WALKER = WatheRoles.registerRole(new Role(SPIRIT_WALKER_ID, new Color(160, 100, 220).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
 
 
     // 小丑角色 - 中立阵营，被无辜者杀死时获胜
@@ -335,7 +335,7 @@ public class Noellesroles implements ModInitializer {
         dev.doctor4t.wathe.api.event.GetInstinctHighlight.EVENT.register(target -> {
             if (target instanceof ServerPlayerEntity player) {
                 GameWorldComponent gameComp = GameWorldComponent.KEY.get(player.getWorld());
-                if (gameComp.isRole(player, SPIRITUALIST)) {
+                if (gameComp.isRole(player, SPIRIT_WALKER)) {
                     SpiritPlayerComponent spiritComp = SpiritPlayerComponent.KEY.get(player);
                     if (spiritComp.isProjecting()) {
                         return dev.doctor4t.wathe.api.event.GetInstinctHighlight.HighlightResult.skip();
@@ -648,9 +648,10 @@ public class Noellesroles implements ModInitializer {
                 player.giveItemStack(ModItems.IRON_MAN_VIAL.getDefaultStack());
                 player.getItemCooldownManager().set(ModItems.IRON_MAN_VIAL, 20 * 60 * 3);
             }
-            if (role.equals(SPIRITUALIST)) {
+            if (role.equals(SPIRIT_WALKER)) {
                 SpiritPlayerComponent spiritComp = SpiritPlayerComponent.KEY.get(player);
                 spiritComp.reset();
+                abilityPlayerComponent.cooldown = GameConstants.getInTicks(1, 0); // 开局60秒冷却
             }
             if (role.equals(ENGINEER)) {
                 // 工程师开局获得维修工具，60秒开局冷却
@@ -951,12 +952,10 @@ public class Noellesroles implements ModInitializer {
                 event.record();
             }
 
-            // 通灵者死亡时强制结束灵魂出窍
-            if (gameComponent.isRole(victim, SPIRITUALIST)) {
+            // 灵界行者死亡时强制结束灵魂出窍（tick 也会检测，但死亡需要立即响应）
+            if (gameComponent.isRole(victim, SPIRIT_WALKER)) {
                 SpiritPlayerComponent spiritComp = SpiritPlayerComponent.KEY.get(victim);
-                if (spiritComp.isProjecting()) {
-                    spiritComp.stopProjecting();
-                }
+                spiritComp.cancelProjection();
             }
 
             // 连环杀手处理：击杀目标奖励和目标更换
@@ -1846,7 +1845,7 @@ public class Noellesroles implements ModInitializer {
         ServerPlayNetworking.registerGlobalReceiver(Noellesroles.SPIRIT_PROJECT_PACKET, (payload, context) -> {
             ServerPlayerEntity player = context.player();
             GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(player.getWorld());
-            if (!gameWorldComponent.isRole(player, SPIRITUALIST)) return;
+            if (!gameWorldComponent.isRole(player, SPIRIT_WALKER)) return;
             if (!GameFunctions.isPlayerPlayingAndAlive(player)) return;
             if (SwallowedPlayerComponent.isPlayerSwallowed(player)) return;
 
@@ -1860,14 +1859,14 @@ public class Noellesroles implements ModInitializer {
 
                 NbtCompound extra = new NbtCompound();
                 extra.putString("action", "return");
-                GameRecordManager.recordSkillUse(player, SPIRITUALIST_ID, null, extra);
+                GameRecordManager.recordSkillUse(player, SPIRIT_WALKER_ID, null, extra);
             } else if (abilityComp.cooldown <= 0) {
                 // 开始灵魂出窍
                 spiritComp.startProjecting();
 
                 NbtCompound extra = new NbtCompound();
                 extra.putString("action", "project");
-                GameRecordManager.recordSkillUse(player, SPIRITUALIST_ID, null, extra);
+                GameRecordManager.recordSkillUse(player, SPIRIT_WALKER_ID, null, extra);
             }
         });
     }
@@ -1991,7 +1990,7 @@ public class Noellesroles implements ModInitializer {
         });
 
         // 通灵者技能格式化器（灵魂出窍 / 回归本体）
-        ReplayRegistry.registerSkillFormatter(SPIRITUALIST_ID, (event, match, world) -> {
+        ReplayRegistry.registerSkillFormatter(SPIRIT_WALKER_ID, (event, match, world) -> {
             var playerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
             NbtCompound data = event.data();
             UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;

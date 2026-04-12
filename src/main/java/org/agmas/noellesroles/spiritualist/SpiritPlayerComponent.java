@@ -1,26 +1,37 @@
 package org.agmas.noellesroles.spiritualist;
 
+import dev.doctor4t.wathe.cca.GameWorldComponent;
+import dev.doctor4t.wathe.game.GameFunctions;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
+import org.agmas.noellesroles.AbilityPlayerComponent;
 import org.agmas.noellesroles.Noellesroles;
+import org.agmas.noellesroles.taotie.SwallowedPlayerComponent;
 import org.jetbrains.annotations.NotNull;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
 import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
+import org.ladysnake.cca.api.v3.component.tick.ServerTickingComponent;
+
+import dev.doctor4t.wathe.game.GameConstants;
 
 /**
- * 通灵者玩家组件
+ * 灵界行者玩家组件
  * 存储灵魂出窍状态和本体坐标，自动同步到客户端
+ * 服务端 tick 自动检测异常状态并强制取消出窍
  */
-public class SpiritPlayerComponent implements AutoSyncedComponent {
+public class SpiritPlayerComponent implements AutoSyncedComponent, ServerTickingComponent {
     public static final ComponentKey<SpiritPlayerComponent> KEY = ComponentRegistry.getOrCreate(
             Identifier.of(Noellesroles.MOD_ID, "spirit"),
             SpiritPlayerComponent.class
     );
+
+    /** 本体被移动超过此距离（格）视为被传送，强制取消出窍 */
+    private static final double TELEPORT_THRESHOLD_SQ = 4.0; // 2格
 
     private final PlayerEntity player;
     private boolean projecting = false;
@@ -64,16 +75,67 @@ public class SpiritPlayerComponent implements AutoSyncedComponent {
         this.sync();
     }
 
-    public double getBodyX() {
-        return bodyX;
+    /**
+     * 强制取消灵魂出窍并设冷却
+     */
+    public void cancelProjection() {
+        if (!this.projecting) return;
+        this.projecting = false;
+        AbilityPlayerComponent abilityComp = AbilityPlayerComponent.KEY.get(this.player);
+        abilityComp.setCooldown(GameConstants.getInTicks(1, 0));
+        this.sync();
     }
 
-    public double getBodyY() {
-        return bodyY;
-    }
+    public double getBodyX() { return bodyX; }
+    public double getBodyY() { return bodyY; }
+    public double getBodyZ() { return bodyZ; }
 
-    public double getBodyZ() {
-        return bodyZ;
+    /**
+     * 服务端每 tick 检测：灵魂出窍中本体是否发生异常
+     * - 本体被传送（位置偏移超过阈值）
+     * - 本体被饕餮吞噬
+     * - 本体死亡/不再存活
+     * - 游戏不再运行
+     * - 角色不再是灵界行者
+     */
+    @Override
+    public void serverTick() {
+        if (!projecting) return;
+        if (!(player instanceof ServerPlayerEntity serverPlayer)) return;
+
+        boolean shouldCancel = false;
+
+        // 玩家不再存活
+        if (!GameFunctions.isPlayerPlayingAndAlive(serverPlayer)) {
+            shouldCancel = true;
+        }
+
+        // 游戏不在运行
+        if (!shouldCancel) {
+            GameWorldComponent gameComp = GameWorldComponent.KEY.get(player.getWorld());
+            if (!gameComp.isRunning() || !gameComp.isRole(player, Noellesroles.SPIRIT_WALKER)) {
+                shouldCancel = true;
+            }
+        }
+
+        // 被饕餮吞噬
+        if (!shouldCancel && SwallowedPlayerComponent.isPlayerSwallowed(serverPlayer)) {
+            shouldCancel = true;
+        }
+
+        // 本体被传送（位置偏移超过阈值）
+        if (!shouldCancel) {
+            double dx = player.getX() - bodyX;
+            double dy = player.getY() - bodyY;
+            double dz = player.getZ() - bodyZ;
+            if (dx * dx + dy * dy + dz * dz > TELEPORT_THRESHOLD_SQ) {
+                shouldCancel = true;
+            }
+        }
+
+        if (shouldCancel) {
+            cancelProjection();
+        }
     }
 
     @Override

@@ -27,7 +27,7 @@ public abstract class SpiritHudMixin {
     public void spiritualistHud(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
         if (MinecraftClient.getInstance().player == null) return;
         GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(MinecraftClient.getInstance().player.getWorld());
-        if (!gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.SPIRITUALIST)) return;
+        if (!gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.SPIRIT_WALKER)) return;
         if (!GameFunctions.isPlayerPlayingAndAlive(MinecraftClient.getInstance().player)) return;
 
         AbilityPlayerComponent abilityComp = AbilityPlayerComponent.KEY.get(MinecraftClient.getInstance().player);
@@ -48,6 +48,6 @@ public abstract class SpiritHudMixin {
         }
 
         drawY -= getTextRenderer().getWrappedLinesHeight(line, 999999);
-        context.drawTextWithShadow(getTextRenderer(), line, context.getScaledWindowWidth() - getTextRenderer().getWidth(line), drawY, Noellesroles.SPIRITUALIST.color());
+        context.drawTextWithShadow(getTextRenderer(), line, context.getScaledWindowWidth() - getTextRenderer().getWidth(line), drawY, Noellesroles.SPIRIT_WALKER.color());
     }
 }

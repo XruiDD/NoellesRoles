@@ -404,7 +404,7 @@ public class NoellesrolesVoiceChatPlugin implements VoicechatPlugin {
 
         ServerPlayerEntity recipient = (ServerPlayerEntity) event.getReceiverConnection().getPlayer().getPlayer();
         GameWorldComponent gameComp = GameWorldComponent.KEY.get(recipient.getWorld());
-        if (gameComp.isRole(recipient, Noellesroles.SPIRITUALIST)) {
+        if (gameComp.isRole(recipient, Noellesroles.SPIRIT_WALKER)) {
             SpiritPlayerComponent spiritComp = SpiritPlayerComponent.KEY.get(recipient);
             if (spiritComp.isProjecting()) {
                 event.cancel();
@@ -422,7 +422,7 @@ public class NoellesrolesVoiceChatPlugin implements VoicechatPlugin {
 
         ServerPlayerEntity speaker = (ServerPlayerEntity) event.getSenderConnection().getPlayer().getPlayer();
         GameWorldComponent gameComp = GameWorldComponent.KEY.get(speaker.getWorld());
-        if (gameComp.isRole(speaker, Noellesroles.SPIRITUALIST)) {
+        if (gameComp.isRole(speaker, Noellesroles.SPIRIT_WALKER)) {
             SpiritPlayerComponent spiritComp = SpiritPlayerComponent.KEY.get(speaker);
             if (spiritComp.isProjecting()) {
                 event.cancel();

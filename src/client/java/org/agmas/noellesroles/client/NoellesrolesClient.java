@@ -534,7 +534,7 @@ public class NoellesrolesClient implements ClientModInitializer {
                     }
 
                     // 通灵者角色按G：切换灵魂出窍
-                    if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.SPIRITUALIST)) {
+                    if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.SPIRIT_WALKER)) {
                         SpiritPlayerComponent spiritComp = SpiritPlayerComponent.KEY.get(MinecraftClient.getInstance().player);
                         AbilityPlayerComponent abilityComp = AbilityPlayerComponent.KEY.get(MinecraftClient.getInstance().player);
                         if (spiritComp.isProjecting() || abilityComp.getCooldown() <= 0) {

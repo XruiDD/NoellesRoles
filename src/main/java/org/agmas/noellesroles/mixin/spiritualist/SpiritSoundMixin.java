@@ -27,7 +27,7 @@ public class SpiritSoundMixin {
         if ((Object) this instanceof ServerPlayNetworkHandler handler) {
             ServerPlayerEntity player = handler.player;
             GameWorldComponent gameComp = GameWorldComponent.KEY.get(player.getWorld());
-            if (gameComp.isRole(player, Noellesroles.SPIRITUALIST)) {
+            if (gameComp.isRole(player, Noellesroles.SPIRIT_WALKER)) {
                 SpiritPlayerComponent spiritComp = SpiritPlayerComponent.KEY.get(player);
                 if (spiritComp.isProjecting()) {
                     ci.cancel();

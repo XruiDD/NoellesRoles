@@ -131,6 +131,12 @@ public class SpiritCamera extends ClientPlayerEntity {
         return false;
     }
 
+    // 让碰撞系统彻底忽略此实体（EntityPredicates.EXCEPT_SPECTATOR 会过滤观察者）
+    @Override
+    public boolean isSpectator() {
+        return true;
+    }
+
     // 灵体不能疾跑
     @Override
     public void setSprinting(boolean sprinting) {
