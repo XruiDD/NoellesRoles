@@ -634,23 +634,55 @@ public class Noellesroles implements ModInitializer {
                 player.getItemCooldownManager().set(ModItems.REPAIR_TOOL, GameConstants.getInTicks(0, 60));
             }
             if (role.equals(ATTENDANT)) {
-                // 乘务员开局获得一本房间信息书
+                // 乘务员开局获得一本列车信息手册
                 ItemStack book = new ItemStack(Items.WRITTEN_BOOK);
 
                 // 构建书籍内容
                 List<RawFilteredPair<Text>> pages = new ArrayList<>();
                 HashMap<Integer, GameWorldComponent.RoomData> rooms = gameWorldComponent.getRooms();
                 HashMap<UUID, com.mojang.authlib.GameProfile> profiles = gameWorldComponent.getGameProfiles();
+                HashMap<UUID, Role> allRoles = gameWorldComponent.getRoles();
 
-                // 第一页：标题页
-                StringBuilder titlePage = new StringBuilder();
-                titlePage.append("§l§0乘客房间登记表§r\n\n");
-                titlePage.append("§8本登记表记录了\n所有乘客的房间分配§r\n\n");
-                titlePage.append("§8共 ").append(rooms.size()).append(" 个房间§r");
-                pages.add(RawFilteredPair.of(Text.literal(titlePage.toString())));
+                // === 第一页：本局职业配置 ===
+                Map<Role, Integer> roleCounts = new LinkedHashMap<>();
+                for (Role r : allRoles.values()) {
+                    roleCounts.merge(r, 1, Integer::sum);
+                }
+                List<Map.Entry<Role, Integer>> sortedRoleEntries = new ArrayList<>(roleCounts.entrySet());
+                sortedRoleEntries.sort((a, b) -> {
+                    int fa = a.getKey().isInnocent() ? 0 : (a.getKey().canUseKiller() ? 1 : 2);
+                    int fb = b.getKey().isInnocent() ? 0 : (b.getKey().canUseKiller() ? 1 : 2);
+                    return Integer.compare(fa, fb);
+                });
 
+                int rolesPerPage = 10;
+                for (int pageStart = 0; pageStart < sortedRoleEntries.size(); pageStart += rolesPerPage) {
+                    MutableText rolePage = Text.empty();
+                    if (pageStart == 0) {
+                        rolePage.append(Text.literal("§l§0本局职业一览§r\n\n"));
+                    } else {
+                        rolePage.append(Text.literal("§l§0职业一览（续）§r\n\n"));
+                    }
+
+                    int pageEnd = Math.min(pageStart + rolesPerPage, sortedRoleEntries.size());
+                    for (int i = pageStart; i < pageEnd; i++) {
+                        Map.Entry<Role, Integer> entry = sortedRoleEntries.get(i);
+                        Role r = entry.getKey();
+                        int count = entry.getValue();
+                        rolePage.append(Text.literal("• "));
+                        rolePage.append(Text.translatable("announcement.role." + r.identifier().getPath()).withColor(r.color()));
+                        rolePage.append(Text.literal(" §0×" + count + "§r\n"));
+                    }
+
+                    if (pageStart == 0) {
+                        rolePage.append(Text.literal("\n§8共 " + allRoles.size() + " 名乘客§r"));
+                    }
+
+                    pages.add(RawFilteredPair.of(rolePage));
+                }
+
+                // === 后续页：房间分配 ===
                 if (!rooms.isEmpty()) {
-                    // 按房间索引排序
                     List<GameWorldComponent.RoomData> sortedRooms = new ArrayList<>(rooms.values());
                     sortedRooms.sort((a, b) -> Integer.compare(a.getIndex(), b.getIndex()));
 
@@ -660,7 +692,7 @@ public class Noellesroles implements ModInitializer {
 
                         List<UUID> roomPlayers = room.getPlayers();
                         if (roomPlayers.isEmpty()) {
-                            pageContent.append("§8无乘客§r");
+                            pageContent.append("§8（空房间）§r");
                         } else {
                             for (UUID playerUuid : roomPlayers) {
                                 com.mojang.authlib.GameProfile profile = profiles.get(playerUuid);
@@ -675,7 +707,7 @@ public class Noellesroles implements ModInitializer {
 
                 // 设置书籍组件
                 WrittenBookContentComponent bookContent = new WrittenBookContentComponent(
-                    RawFilteredPair.of("乘客登记表"),
+                    RawFilteredPair.of("列车信息手册"),
                     "乘务员",
                     0,
                     pages,
