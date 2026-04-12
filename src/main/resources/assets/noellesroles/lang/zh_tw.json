@@ -396,5 +396,10 @@
   "tip.spiritualist": "按下 %s 步入靈界",
   "tip.spiritualist.active": "按下 %s 返回現世",
   "replay.skill.noellesroles.spiritualist.project": "%s 的靈魂§d脫離了肉身§r",
-  "replay.skill.noellesroles.spiritualist.return": "%s 的靈魂§d返回了現世§r"
+  "replay.skill.noellesroles.spiritualist.return": "%s 的靈魂§d返回了現世§r",
+  "replay.skill.noellesroles.spiritualist.forced_return.killed": "%s 的肉身§c遇害§r，靈魂被迫回歸",
+  "replay.skill.noellesroles.spiritualist.forced_return.swallowed": "%s 的肉身§6被饕餮吞噬§r，靈魂被迫回歸",
+  "replay.skill.noellesroles.spiritualist.forced_return.teleported": "%s 的肉身§b被傳送§r，靈魂被迫回歸",
+  "replay.skill.noellesroles.spiritualist.forced_return.game_end": "%s 的靈魂因§7遊戲結束§r被迫回歸",
+  "replay.skill.noellesroles.spiritualist.forced_return.unknown": "%s 的靈魂§7被迫回歸§r"
 }

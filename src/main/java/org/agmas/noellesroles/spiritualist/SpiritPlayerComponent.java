@@ -2,6 +2,8 @@ package org.agmas.noellesroles.spiritualist;
 
 import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.game.GameFunctions;
+import dev.doctor4t.wathe.record.GameRecordManager;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.RegistryByteBuf;
@@ -76,14 +78,28 @@ public class SpiritPlayerComponent implements AutoSyncedComponent, ServerTicking
     }
 
     /**
-     * 强制取消灵魂出窍并设冷却
+     * 强制取消灵魂出窍并设冷却，记录回放事件
+     * @param reason 取消原因，用于回放文本（"killed", "teleported", "swallowed", "game_end"）
      */
-    public void cancelProjection() {
+    public void cancelProjection(String reason) {
         if (!this.projecting) return;
         this.projecting = false;
         AbilityPlayerComponent abilityComp = AbilityPlayerComponent.KEY.get(this.player);
         abilityComp.setCooldown(GameConstants.getInTicks(1, 0));
+
+        if (player instanceof ServerPlayerEntity serverPlayer) {
+            NbtCompound extra = new NbtCompound();
+            extra.putString("action", "forced_return");
+            extra.putString("reason", reason);
+            GameRecordManager.recordSkillUse(serverPlayer, Noellesroles.SPIRIT_WALKER_ID, null, extra);
+        }
+
         this.sync();
+    }
+
+    /** 无原因的取消（向后兼容） */
+    public void cancelProjection() {
+        cancelProjection("unknown");
     }
 
     public double getBodyX() { return bodyX; }
@@ -103,38 +119,31 @@ public class SpiritPlayerComponent implements AutoSyncedComponent, ServerTicking
         if (!projecting) return;
         if (!(player instanceof ServerPlayerEntity serverPlayer)) return;
 
-        boolean shouldCancel = false;
-
         // 玩家不再存活
         if (!GameFunctions.isPlayerPlayingAndAlive(serverPlayer)) {
-            shouldCancel = true;
+            cancelProjection("killed");
+            return;
         }
 
-        // 游戏不在运行
-        if (!shouldCancel) {
-            GameWorldComponent gameComp = GameWorldComponent.KEY.get(player.getWorld());
-            if (!gameComp.isRunning() || !gameComp.isRole(player, Noellesroles.SPIRIT_WALKER)) {
-                shouldCancel = true;
-            }
+        // 游戏不在运行或角色变了
+        GameWorldComponent gameComp = GameWorldComponent.KEY.get(player.getWorld());
+        if (!gameComp.isRunning() || !gameComp.isRole(player, Noellesroles.SPIRIT_WALKER)) {
+            cancelProjection("game_end");
+            return;
         }
 
         // 被饕餮吞噬
-        if (!shouldCancel && SwallowedPlayerComponent.isPlayerSwallowed(serverPlayer)) {
-            shouldCancel = true;
+        if (SwallowedPlayerComponent.isPlayerSwallowed(serverPlayer)) {
+            cancelProjection("swallowed");
+            return;
         }
 
         // 本体被传送（位置偏移超过阈值）
-        if (!shouldCancel) {
-            double dx = player.getX() - bodyX;
-            double dy = player.getY() - bodyY;
-            double dz = player.getZ() - bodyZ;
-            if (dx * dx + dy * dy + dz * dz > TELEPORT_THRESHOLD_SQ) {
-                shouldCancel = true;
-            }
-        }
-
-        if (shouldCancel) {
-            cancelProjection();
+        double dx = player.getX() - bodyX;
+        double dy = player.getY() - bodyY;
+        double dz = player.getZ() - bodyZ;
+        if (dx * dx + dy * dy + dz * dz > TELEPORT_THRESHOLD_SQ) {
+            cancelProjection("teleported");
         }
     }
 

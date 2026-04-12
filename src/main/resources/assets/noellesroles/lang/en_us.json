@@ -440,5 +440,10 @@
   "tip.spiritualist": "Press %s to enter the spirit realm",
   "tip.spiritualist.active": "Press %s to return to your body",
   "replay.skill.noellesroles.spiritualist.project": "%s's soul §dleft their body§r",
-  "replay.skill.noellesroles.spiritualist.return": "%s's soul §dreturned to the living world§r"
+  "replay.skill.noellesroles.spiritualist.return": "%s's soul §dreturned to the living world§r",
+  "replay.skill.noellesroles.spiritualist.forced_return.killed": "%s's body was §cslain§r, soul forced back",
+  "replay.skill.noellesroles.spiritualist.forced_return.swallowed": "%s's body was §6swallowed§r, soul forced back",
+  "replay.skill.noellesroles.spiritualist.forced_return.teleported": "%s's body was §bteleported§r, soul forced back",
+  "replay.skill.noellesroles.spiritualist.forced_return.game_end": "%s's soul was §7recalled§r as the game ended",
+  "replay.skill.noellesroles.spiritualist.forced_return.unknown": "%s's soul was §7forced back§r"
 }

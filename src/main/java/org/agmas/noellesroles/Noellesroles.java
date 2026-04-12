@@ -955,7 +955,7 @@ public class Noellesroles implements ModInitializer {
             // 灵界行者死亡时强制结束灵魂出窍（tick 也会检测，但死亡需要立即响应）
             if (gameComponent.isRole(victim, SPIRIT_WALKER)) {
                 SpiritPlayerComponent spiritComp = SpiritPlayerComponent.KEY.get(victim);
-                spiritComp.cancelProjection();
+                spiritComp.cancelProjection("killed");
             }
 
             // 连环杀手处理：击杀目标奖励和目标更换
@@ -1989,7 +1989,7 @@ public class Noellesroles implements ModInitializer {
             return Text.translatable("replay.death_in_stomach", actorText);
         });
 
-        // 通灵者技能格式化器（灵魂出窍 / 回归本体）
+        // 灵界行者技能格式化器（灵魂出窍 / 主动回归 / 被迫回归）
         ReplayRegistry.registerSkillFormatter(SPIRIT_WALKER_ID, (event, match, world) -> {
             var playerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
             NbtCompound data = event.data();
@@ -2001,6 +2001,10 @@ public class Noellesroles implements ModInitializer {
 
             if ("return".equals(action)) {
                 return Text.translatable("replay.skill.noellesroles.spiritualist.return", actorText);
+            } else if ("forced_return".equals(action)) {
+                String reason = data.getString("reason");
+                String key = "replay.skill.noellesroles.spiritualist.forced_return." + reason;
+                return Text.translatable(key, actorText);
             } else {
                 return Text.translatable("replay.skill.noellesroles.spiritualist.project", actorText);
             }
