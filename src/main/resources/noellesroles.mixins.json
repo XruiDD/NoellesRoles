@@ -30,6 +30,7 @@
     "accessor.ServerItemCooldownManagerAccessor",
     "bartender.StimulationCooldownMixin",
     "spiritualist.SpiritSoundMixin",
+    "spiritualist.SpiritDamageMixin",
     "waiter.WaiterFeedingMixin",
     "waiter.WaiterPlatterMixin"
   ],

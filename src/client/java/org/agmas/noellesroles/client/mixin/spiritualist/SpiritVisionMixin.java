@@ -11,10 +11,12 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * 通灵者灵魂出窍黑白滤镜
- * 使用 MC 内置的后处理着色器系统，加载自定义灰度 shader
+ * 通灵者灵魂出窍：
+ * 1. 黑白滤镜（使用 MC 内置后处理着色器）
+ * 2. 隐藏方块高亮轮廓
  */
 @Mixin(GameRenderer.class)
 public abstract class SpiritVisionMixin {
@@ -44,6 +46,14 @@ public abstract class SpiritVisionMixin {
             this.postProcessor = null;
             this.postProcessorEnabled = false;
             spiritShaderActive = false;
+        }
+    }
+
+    // 灵魂出窍时隐藏方块高亮轮廓
+    @Inject(method = "shouldRenderBlockOutline", at = @At("HEAD"), cancellable = true)
+    private void spiritualist$hideBlockOutline(CallbackInfoReturnable<Boolean> cir) {
+        if (SpiritCameraHandler.isActive()) {
+            cir.setReturnValue(false);
         }
     }
 }

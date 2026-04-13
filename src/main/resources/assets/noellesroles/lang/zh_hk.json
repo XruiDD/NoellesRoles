@@ -387,6 +387,7 @@
   "replay.skill.noellesroles.spiritualist.forced_return.swallowed": "%s 嘅肉身§6被饕餮吞咗§r，靈魂被迫回歸",
   "replay.skill.noellesroles.spiritualist.forced_return.teleported": "%s 嘅肉身§b被傳送咗§r，靈魂被迫回歸",
   "replay.skill.noellesroles.spiritualist.forced_return.game_end": "%s 嘅靈魂因§7遊戲結束§r被迫回歸",
+  "replay.skill.noellesroles.spiritualist.forced_return.damaged": "%s 嘅肉身§c受到攻擊§r，靈魂被迫回歸",
   "replay.skill.noellesroles.spiritualist.forced_return.unknown": "%s 嘅靈魂§7被迫回歸§r",
 
   "announcement.goals.waiter": "你可以攜帶兩倍嘅食物同飲料，手持食物或飲品§b右鍵§r其他乘客即可餵食！",

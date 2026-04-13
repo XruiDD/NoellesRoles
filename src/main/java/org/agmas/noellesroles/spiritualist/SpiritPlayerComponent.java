@@ -33,7 +33,7 @@ public class SpiritPlayerComponent implements AutoSyncedComponent, ServerTicking
     );
 
     /** 本体被移动超过此距离（格）视为被传送，强制取消出窍 */
-    private static final double TELEPORT_THRESHOLD_SQ = 4.0; // 2格
+    private static final double TELEPORT_THRESHOLD_SQ = 2.0; // 1格
 
     private final PlayerEntity player;
     private boolean projecting = false;

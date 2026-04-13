@@ -484,6 +484,7 @@
   "replay.skill.noellesroles.spiritualist.forced_return.swallowed": "%s 的肉身§6被饕餮吞噬§r，灵魂被迫回归",
   "replay.skill.noellesroles.spiritualist.forced_return.teleported": "%s 的肉身§b被传送§r，灵魂被迫回归",
   "replay.skill.noellesroles.spiritualist.forced_return.game_end": "%s 的灵魂因§7游戏结束§r被迫回归",
+  "replay.skill.noellesroles.spiritualist.forced_return.damaged": "%s 的肉身§c受到攻击§r，灵魂被迫回归",
   "replay.skill.noellesroles.spiritualist.forced_return.unknown": "%s 的灵魂§7被迫回归§r",
 
   "announcement.goals.waiter": "你可以携带两倍的食物和饮料，手持食物或饮品§b右键§r其他乘客即可喂食！",
