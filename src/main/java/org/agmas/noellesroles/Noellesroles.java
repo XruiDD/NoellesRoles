@@ -1164,7 +1164,7 @@ public class Noellesroles implements ModInitializer {
                 // 修复被撬的门
                 entity.setBlasted(false);
                 if (entity.isOpen()) {
-                    entity.toggle(false, true);
+                    entity.toggle(false);
                 }
                 entity.sync();
                 // 处理邻居双开门
@@ -1173,7 +1173,7 @@ public class Noellesroles implements ModInitializer {
                     if (neighbor != null && neighbor.isBlasted()) {
                         neighbor.setBlasted(false);
                         if (neighbor.isOpen()) {
-                            neighbor.toggle(false, true);
+                            neighbor.toggle(false);
                         }
                         neighbor.sync();
                     }
@@ -1217,7 +1217,7 @@ public class Noellesroles implements ModInitializer {
                 // 上锁门（无论开关状态）
                 entity.setJammed(GameConstants.JAMMED_DOOR_TIME);
                 if (entity.isOpen()) {
-                    entity.toggle(false, true);
+                    entity.toggle(false);
                 }
                 entity.sync();
                 if (entity instanceof SmallDoorBlockEntity) {
@@ -1225,7 +1225,7 @@ public class Noellesroles implements ModInitializer {
                     if (neighbor != null) {
                         neighbor.setJammed(GameConstants.JAMMED_DOOR_TIME);
                         if (neighbor.isOpen()) {
-                            neighbor.toggle(false, true);
+                            neighbor.toggle(false);
                         }
                         neighbor.sync();
                     }
