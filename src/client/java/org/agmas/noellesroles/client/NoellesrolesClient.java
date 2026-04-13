@@ -34,9 +34,12 @@ import com.mojang.authlib.GameProfile;
 import net.minecraft.client.network.PlayerListEntry;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
+import dev.doctor4t.wathe.api.Faction;
+import dev.doctor4t.wathe.api.event.CanTargetBody;
 import org.agmas.noellesroles.AbilityPlayerComponent;
 import org.agmas.noellesroles.ModItems;
 import org.agmas.noellesroles.Noellesroles;
+import org.agmas.noellesroles.scavenger.HiddenBodiesWorldComponent;
 import org.agmas.noellesroles.assassin.AssassinPlayerComponent;
 import org.agmas.noellesroles.bartender.BartenderPlayerComponent;
 import org.agmas.noellesroles.client.gui.JesterTimeRenderer;
@@ -178,6 +181,16 @@ public class NoellesrolesClient implements ClientModInitializer {
                 }
             }
             return false;
+        });
+
+        // 注册 CanTargetBody 监听器：清道夫隐藏的尸体对平民不可选中
+        CanTargetBody.EVENT.register((player, body) -> {
+            if (!(player instanceof PlayerEntity pe)) return true;
+            if (WatheClient.canSeeSpectatorInformation()) return true;
+            HiddenBodiesWorldComponent hiddenBodies = HiddenBodiesWorldComponent.KEY.get(body.getWorld());
+            if (!hiddenBodies.isHidden(body.getPlayerUuid())) return true;
+            Faction faction = GameWorldComponent.KEY.get(pe.getWorld()).getRole(pe).getFaction();
+            return faction == Faction.KILLER || faction == Faction.NEUTRAL;
         });
 
         // 注册 GetInstinctHighlight 监听器：各角色的本能高亮逻辑
@@ -400,7 +413,8 @@ public class NoellesrolesClient implements ClientModInitializer {
             // 更新病原体最近目标
             if (MinecraftClient.getInstance().player != null) {
                 float range = GameFunctions.isPlayerSpectatingOrCreative(MinecraftClient.getInstance().player) ? 8.0F : 2.0F;
-                HitResult line = ProjectileUtil.getCollision(MinecraftClient.getInstance().player, (entity) -> entity instanceof PlayerBodyEntity, range);
+                ClientPlayerEntity localP = MinecraftClient.getInstance().player;
+                HitResult line = ProjectileUtil.getCollision(localP, entity -> entity instanceof PlayerBodyEntity b && CanTargetBody.EVENT.invoker().canTarget(localP, b), range);
                 NoellesrolesClient.targetBody = null;
                 if (line instanceof EntityHitResult ehr && ehr.getEntity() instanceof PlayerBodyEntity playerBodyEntity) {
                     NoellesrolesClient.targetBody = playerBodyEntity;
