@@ -5,6 +5,7 @@ import dev.doctor4t.wathe.cca.PlayerMoodComponent;
 import dev.doctor4t.wathe.game.GameFunctions;
 import dev.doctor4t.wathe.item.CocktailItem;
 import dev.doctor4t.wathe.record.GameRecordManager;
+import dev.doctor4t.wathe.util.PoisonUtils;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -71,6 +72,9 @@ public class WaiterFeedingMixin {
             user.getWorld().playSound(null, target.getBlockPos(),
                     SoundEvents.ENTITY_GENERIC_EAT, SoundCategory.PLAYERS, 1.0F, 1.0F);
         }
+
+        // 检查食物/饮品是否带毒，对被喂食者施加中毒
+        PoisonUtils.applyFoodPoison(target, stack);
 
         // 消耗物品
         if (!user.isCreative()) {
