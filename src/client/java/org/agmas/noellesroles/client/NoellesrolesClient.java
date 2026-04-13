@@ -74,6 +74,8 @@ import org.agmas.noellesroles.bodyguard.BodyguardPlayerComponent;
 import org.agmas.noellesroles.serialkiller.SerialKillerPlayerComponent;
 import org.agmas.noellesroles.bomber.BomberPlayerComponent;
 import org.agmas.noellesroles.survivalmaster.SurvivalMasterPlayerComponent;
+import org.agmas.noellesroles.demonhunter.DemonHunterPlayerComponent;
+import org.agmas.noellesroles.client.demonhunter.DemonHunterClientHelper;
 import org.agmas.noellesroles.NoellesRolesEntities;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.client.render.entity.FlyingItemEntityRenderer;
@@ -125,6 +127,7 @@ public class NoellesrolesClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
+        DemonHunterClientHelper.init();
         abilityBind = KeyBindingHelper.registerKeyBinding(new KeyBinding("key." + Noellesroles.MOD_ID + ".ability", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_G, "category.wathe.keybinds"));
 
         // 注册解毒剂冷却模型谓词
@@ -221,6 +224,20 @@ public class NoellesrolesClient implements ClientModInitializer {
                 if (comp.hasBomb()) {
                     return GetInstinctHighlight.HighlightResult.always(Noellesroles.BOMBER.color());
                 }
+            }
+
+            // DEMON_HUNTER: 高亮公开疯魔中的玩家（由服务端同步的 UUID 列表判断）
+            if (gameWorldComponent.isRole(localPlayer, Noellesroles.DEMON_HUNTER)) {
+                DemonHunterPlayerComponent hunterComp = DemonHunterPlayerComponent.KEY.get(localPlayer);
+                if (hunterComp.isPlayerFrenzied(player.getUuid())) {
+                    return GetInstinctHighlight.HighlightResult.always(Noellesroles.DEMON_HUNTER.color());
+                }
+            }
+
+            // 疯魔者透视猎魔人（本地玩家处于疯魔状态时，高亮所有猎魔人）
+            if (PlayerPsychoComponent.KEY.get(localPlayer).getPsychoTicks() > 0
+                    && gameWorldComponent.isRole(player, Noellesroles.DEMON_HUNTER)) {
+                return GetInstinctHighlight.HighlightResult.always(Noellesroles.DEMON_HUNTER.color());
             }
 
             if (gameWorldComponent.isRole(localPlayer, Noellesroles.JESTER)) {

@@ -31,6 +31,7 @@ import org.agmas.noellesroles.music.WorldMusicComponent;
 import org.agmas.noellesroles.scavenger.HiddenBodiesWorldComponent;
 import org.agmas.noellesroles.waiter.WaiterPlayerComponent;
 import org.agmas.noellesroles.mermaid.MermaidPlayerComponent;
+import org.agmas.noellesroles.demonhunter.DemonHunterPlayerComponent;
 import org.jetbrains.annotations.NotNull;
 import org.ladysnake.cca.api.v3.entity.EntityComponentFactoryRegistry;
 import org.ladysnake.cca.api.v3.entity.EntityComponentInitializer;
@@ -70,6 +71,7 @@ public class NoellesRolesComponents implements EntityComponentInitializer, World
         registry.beginRegistration(PlayerEntity.class, DetectivePlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(DetectivePlayerComponent::new);
         registry.beginRegistration(PlayerEntity.class, WaiterPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(WaiterPlayerComponent::new);
         registry.beginRegistration(PlayerEntity.class, MermaidPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(MermaidPlayerComponent::new);
+        registry.beginRegistration(PlayerEntity.class, DemonHunterPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(DemonHunterPlayerComponent::new);
     }
 
     @Override

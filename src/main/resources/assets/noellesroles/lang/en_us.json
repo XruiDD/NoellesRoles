@@ -471,5 +471,19 @@
 
   "announcement.goals.mermaid": "You thrive in water! ",
   "announcement.role.mermaid": "Mermaid",
-  "announcement.win.mermaid": "Passengers Win!"
+  "announcement.win.mermaid": "Passengers Win!",
+
+  "announcement.goals.demon_hunter": "You can smell the madness. When frenzy descends, an ancient pistol answers your call \u2014 it only responds to true threats. Pull the trigger on the Jester, and you can end the show before it begins.",
+  "announcement.role.demon_hunter": "Demon Hunter",
+  "announcement.win.demon_hunter": "Passengers Win!",
+  "item.noellesroles.demon_hunter_pistol": "Demon Hunter Pistol",
+  "tip.noellesroles.demon_hunter_pistol.usage": "\u00a78\u00a7oRight-click to fire \u00a7r\u00a77| \u00a78Range \u00a7f5 \u00a7r\u00a77| \u00a78CD \u00a7f10s",
+  "tip.noellesroles.demon_hunter_pistol.target": "\u00a77Effective against \u00a7c\u00a7lfrenzied \u00a7r\u00a77and the \u00a7d\u00a7lJester \u00a7r\u00a77only",
+  "tip.noellesroles.demon_hunter_pistol.jester": "\u00a77Hit the Jester \u00a7a\u2192 auto-reload 1 round",
+  "tip.noellesroles.demon_hunter_pistol.expire": "\u00a78Vanishes when all frenzies end",
+  "tip.noellesroles.demon_hunter_pistol.bullets": "\u00a77\u25cf Ammo \u00a76\u00a7l%d \u00a7r\u00a77round(s)",
+
+  "death_reason.noellesroles.demon_hunter_shot": "struck down by a Demon Hunter's silver bullet.",
+  "replay.death.noellesroles.demon_hunter_shot.killed": "%s was slain by %s's \u00a74Demon Hunter Pistol\u00a7r",
+  "replay.death.noellesroles.demon_hunter_shot.died": "%s was slain by a \u00a74Demon Hunter Pistol\u00a7r"
 }

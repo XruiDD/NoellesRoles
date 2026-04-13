@@ -96,6 +96,10 @@ import org.agmas.noellesroles.survivalmaster.SurvivalMasterPlayerComponent;
 import org.agmas.noellesroles.waiter.WaiterPlayerComponent;
 import org.agmas.noellesroles.waiter.WaiterShopHandler;
 import org.agmas.noellesroles.mermaid.MermaidPlayerComponent;
+import org.agmas.noellesroles.demonhunter.DemonHunterPlayerComponent;
+import org.agmas.noellesroles.demonhunter.DemonHunterPistolItem;
+import org.agmas.noellesroles.demonhunter.DemonHunterShootC2SPacket;
+import dev.doctor4t.wathe.api.event.PsychoModeEvents;
 import dev.doctor4t.wathe.compat.TrainVoicePlugin;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.WrittenBookContentComponent;
@@ -150,6 +154,7 @@ public class Noellesroles implements ModInitializer {
     public static Identifier DETECTIVE_ID = Identifier.of(MOD_ID, "detective");
     public static Identifier WAITER_ID = Identifier.of(MOD_ID, "waiter");
     public static Identifier MERMAID_ID = Identifier.of(MOD_ID, "mermaid");
+    public static Identifier DEMON_HUNTER_ID = Identifier.of(MOD_ID, "demon_hunter");
 
     // 炸弹死亡原因
     public static Identifier DEATH_REASON_BOMB = Identifier.of(MOD_ID, "bomb");
@@ -163,6 +168,8 @@ public class Noellesroles implements ModInitializer {
     public static Identifier DEATH_REASON_BODYGUARD_SACRIFICE = Identifier.of(MOD_ID, "bodyguard_sacrifice");
     // 投掷斧死亡原因
     public static Identifier DEATH_REASON_THROWING_AXE = Identifier.of(MOD_ID, "throwing_axe");
+    // 猎魔人手枪击杀
+    public static Identifier DEATH_REASON_DEMON_HUNTER = Identifier.of(MOD_ID, "demon_hunter_shot");
 
 
     // 下毒来源
@@ -221,6 +228,8 @@ public class Noellesroles implements ModInitializer {
     // 鲛人角色 - 乘客阵营，水中获得海豚恩惠和夜视，体力和氧气消耗减少75%
     // 地图专属角色：默认关闭，由地图配置 special_roles.enabled_roles 决定启用
     public static Role MERMAID = WatheRoles.registerRole(new Role(MERMAID_ID, new Color(0, 150, 180).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false).setMapSpecific(true));
+    // 猎魔人角色 - 乘客阵营，疯魔时获得猎魔枪，高亮疯魔玩家，可击杀小丑阻止小丑时刻
+    public static Role DEMON_HUNTER = WatheRoles.registerRole(new Role(DEMON_HUNTER_ID, new Color(140, 155, 180).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
 
 
     // 小丑角色 - 中立阵营，被无辜者杀死时获胜
@@ -243,6 +252,7 @@ public class Noellesroles implements ModInitializer {
     public static final CustomPayload.Id<TaotieSwallowC2SPacket> TAOTIE_SWALLOW_PACKET = TaotieSwallowC2SPacket.ID;
     public static final CustomPayload.Id<SilencerSilenceC2SPacket> SILENCER_SILENCE_PACKET = SilencerSilenceC2SPacket.ID;
     public static final CustomPayload.Id<SpiritProjectC2SPacket> SPIRIT_PROJECT_PACKET = SpiritProjectC2SPacket.ID;
+    public static final CustomPayload.Id<DemonHunterShootC2SPacket> DEMON_HUNTER_SHOOT_PACKET = DemonHunterShootC2SPacket.ID;
     public static final ArrayList<Role> VANNILA_ROLES = new ArrayList<>();
     public static final ArrayList<Identifier> VANNILA_ROLE_IDS = new ArrayList<>();
     // 中立万能钥匙可用角色集合
@@ -345,6 +355,7 @@ public class Noellesroles implements ModInitializer {
         PayloadTypeRegistry.playC2S().register(TaotieSwallowC2SPacket.ID, TaotieSwallowC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(SilencerSilenceC2SPacket.ID, SilencerSilenceC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(SpiritProjectC2SPacket.ID, SpiritProjectC2SPacket.CODEC);
+        PayloadTypeRegistry.playC2S().register(DemonHunterShootC2SPacket.ID, DemonHunterShootC2SPacket.CODEC);
         PayloadTypeRegistry.playS2C().register(EngineerDoorHighlightS2CPacket.ID, EngineerDoorHighlightS2CPacket.CODEC);
 
         registerEvents();
@@ -493,8 +504,12 @@ public class Noellesroles implements ModInitializer {
             if (deathReason == GameConstants.DeathReasons.FELL_OUT_OF_TRAIN) return null;
 
             if (gameWorldComponent.isRole(victim, JESTER) &&
-                deathReason == GameConstants.DeathReasons.GUN &&
+                (deathReason == GameConstants.DeathReasons.GUN || deathReason == DEATH_REASON_DEMON_HUNTER) &&
                 killer != null) {
+                // 猎魔人击杀小丑不触发小丑盛宴（无论用什么枪）
+                if (gameWorldComponent.isRole(killer, DEMON_HUNTER)) {
+                    return null; // 放行击杀，不进入 stasis
+                }
                 Role killerRole = gameWorldComponent.getRole(killer);
                 if (killerRole != null && killerRole.isInnocent()) {
                     JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(victim);
@@ -765,6 +780,10 @@ public class Noellesroles implements ModInitializer {
                 WaiterPlayerComponent waiterComp = WaiterPlayerComponent.KEY.get(player);
                 waiterComp.reset();
             }
+            if (role.equals(DEMON_HUNTER)) {
+                DemonHunterPlayerComponent comp = DemonHunterPlayerComponent.KEY.get(player);
+                comp.reset();
+            }
         });
         ResetPlayer.EVENT.register(player -> {
             BartenderPlayerComponent.KEY.get(player).reset();
@@ -790,6 +809,56 @@ public class Noellesroles implements ModInitializer {
             SurvivalMasterPlayerComponent.KEY.get(player).reset();
             WaiterPlayerComponent.KEY.get(player).reset();
             MermaidPlayerComponent.KEY.get(player).reset();
+            DemonHunterPlayerComponent.KEY.get(player).reset();
+            DemonHunterPistolItem.removePistol(player);
+        });
+
+        // ── 猎魔人：疯魔模式事件 ──
+
+        // 疯魔开始 → 给猎魔人发枪 / 加子弹，追踪疯魔玩家
+        PsychoModeEvents.ON_PSYCHO_START.register((frenziedPlayer, trackActive) -> {
+            if (!trackActive) return; // 静语者等静默疯魔不触发
+            GameWorldComponent game = GameWorldComponent.KEY.get(frenziedPlayer.getWorld());
+            for (UUID hunterUuid : game.getAllWithRole(DEMON_HUNTER)) {
+                PlayerEntity hunter = frenziedPlayer.getWorld().getPlayerByUuid(hunterUuid);
+                if (hunter == null || !GameFunctions.isPlayerPlayingAndAlive(hunter)) continue;
+
+                DemonHunterPlayerComponent comp = DemonHunterPlayerComponent.KEY.get(hunter);
+                comp.addFrenzyPlayer(frenziedPlayer.getUuid());
+
+                // 检查是否已有枪类物品（左轮、德加林等）或猎魔枪
+                boolean hasAnyGun = hunter.getInventory().contains(s -> s.isIn(dev.doctor4t.wathe.index.tag.WatheItemTags.GUNS));
+                ItemStack existingPistol = DemonHunterPistolItem.findPistol(hunter);
+
+                if (existingPistol != null) {
+                    // 已有猎魔枪 → 追加 2 子弹
+                    int bullets = existingPistol.getOrDefault(ModItems.BULLETS, 0);
+                    existingPistol.set(ModItems.BULLETS, bullets + 2);
+                } else if (!hasAnyGun) {
+                    // 没有任何枪 → 发一把带 2 子弹的猎魔枪
+                    ItemStack pistol = new ItemStack(ModItems.DEMON_HUNTER_PISTOL);
+                    pistol.set(ModItems.BULLETS, 2);
+                    dev.doctor4t.wathe.util.ShopEntry.insertStackInFreeSlot(hunter, pistol);
+                }
+            }
+        });
+
+        // 疯魔结束 → 移除追踪，全部结束时回收猎魔枪
+        PsychoModeEvents.ON_PSYCHO_END.register((frenziedPlayer, trackActive) -> {
+            if (!trackActive) return;
+            GameWorldComponent game = GameWorldComponent.KEY.get(frenziedPlayer.getWorld());
+            for (UUID hunterUuid : game.getAllWithRole(DEMON_HUNTER)) {
+                PlayerEntity hunter = frenziedPlayer.getWorld().getPlayerByUuid(hunterUuid);
+                if (hunter == null) continue;
+
+                DemonHunterPlayerComponent comp = DemonHunterPlayerComponent.KEY.get(hunter);
+                comp.removeFrenzyPlayer(frenziedPlayer.getUuid());
+
+                // 所有公开疯魔结束 → 回收猎魔枪
+                if (!game.isPsychoActive()) {
+                    DemonHunterPistolItem.removePistol(hunter);
+                }
+            }
         });
 
         // Bartender and Recaller get +50 coins when completing tasks
@@ -1929,6 +1998,9 @@ public class Noellesroles implements ModInitializer {
                 GameRecordManager.recordSkillUse(player, SPIRIT_WALKER_ID, null, extra);
             }
         });
+
+        // 猎魔人射击
+        ServerPlayNetworking.registerGlobalReceiver(DemonHunterShootC2SPacket.ID, new DemonHunterShootC2SPacket.Receiver());
     }
 
     /**

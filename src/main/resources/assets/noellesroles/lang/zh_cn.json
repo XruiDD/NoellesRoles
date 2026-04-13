@@ -500,5 +500,19 @@
 
   "announcement.goals.mermaid": "你在水中如鱼得水！",
   "announcement.role.mermaid": "鲛人",
-  "announcement.win.mermaid": "乘客胜利！"
+  "announcement.win.mermaid": "乘客胜利！",
+
+  "announcement.goals.demon_hunter": "你能嗅到疯魔的气息。当黑暗降临时，一把古老的手枪将应召而来——它只会回应真正的威胁。",
+  "announcement.role.demon_hunter": "猎魔人",
+  "announcement.win.demon_hunter": "乘客胜利！",
+  "item.noellesroles.demon_hunter_pistol": "猎魔枪",
+  "tip.noellesroles.demon_hunter_pistol.usage": "\u00a78\u00a7o右键射击 \u00a7r\u00a77| \u00a78射程 \u00a7f5格 \u00a7r\u00a77| \u00a78冷却 \u00a7f10秒",
+  "tip.noellesroles.demon_hunter_pistol.target": "\u00a77仅对 \u00a7c\u00a7l疯魔者 \u00a7r\u00a77和 \u00a7d\u00a7l小丑 \u00a7r\u00a77有效",
+  "tip.noellesroles.demon_hunter_pistol.jester": "\u00a77命中小丑 \u00a7a\u2192 自动装填一发",
+  "tip.noellesroles.demon_hunter_pistol.expire": "\u00a78疯魔结束后此枪将自行消散",
+  "tip.noellesroles.demon_hunter_pistol.bullets": "\u00a77\u25cf 弹药 \u00a76\u00a7l%d \u00a7r\u00a77发",
+
+  "death_reason.noellesroles.demon_hunter_shot": "被猎魔人的银弹终结",
+  "replay.death.noellesroles.demon_hunter_shot.killed": "%s 被 %s 的\u00a74猎魔枪\u00a7r击杀",
+  "replay.death.noellesroles.demon_hunter_shot.died": "%s 被\u00a74猎魔枪\u00a7r击杀"
 }

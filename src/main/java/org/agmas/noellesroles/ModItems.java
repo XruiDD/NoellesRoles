@@ -1,6 +1,10 @@
 package org.agmas.noellesroles;
 
+import com.mojang.serialization.Codec;
+import net.minecraft.component.ComponentType;
 import net.minecraft.item.Item;
+import net.minecraft.network.codec.PacketCodecs;
+import org.agmas.noellesroles.demonhunter.DemonHunterPistolItem;
 import org.agmas.noellesroles.item.AntidoteItem;
 import org.agmas.noellesroles.item.FineDrinkItem;
 import org.agmas.noellesroles.item.TimedBombItem;
@@ -77,6 +81,17 @@ public class ModItems {
     public static final Item CATALYST = register(
             new CatalystItem(new Item.Settings().maxCount(1)),
             "catalyst"
+    );
+
+    // ---- 猎魔人系统 ----
+    public static final ComponentType<Integer> BULLETS = Registry.register(
+            Registries.DATA_COMPONENT_TYPE,
+            Identifier.of(Noellesroles.MOD_ID, "bullets"),
+            ComponentType.<Integer>builder().codec(Codec.INT).packetCodec(PacketCodecs.INTEGER).build()
+    );
+    public static final Item DEMON_HUNTER_PISTOL = register(
+            new DemonHunterPistolItem(new Item.Settings().maxCount(1).component(BULLETS, 0)),
+            "demon_hunter_pistol"
     );
 
     // ---- 工程师系统 ----

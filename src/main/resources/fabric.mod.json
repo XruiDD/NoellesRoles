@@ -60,7 +60,8 @@
       "noellesroles:detective",
       "noellesroles:kill_history",
       "noellesroles:waiter",
-      "noellesroles:mermaid"
+      "noellesroles:mermaid",
+      "noellesroles:demon_hunter"
     ]
   },
   "mixins": [
