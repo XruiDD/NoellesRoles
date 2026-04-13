@@ -422,5 +422,9 @@
   "tip.waiter.target_not_thirsty": "§7%s 現在不渴",
   "tip.waiter.feed_complete": "§a你將 %2$s 遞給了 %1$s",
   "tip.waiter.fed_by": "§a%1$s 遞給你一份 %2$s，需求已滿足！",
-  "replay.skill.noellesroles.waiter.target": "%1$s 將§e%3$s§r遞給了 %2$s"
+  "replay.skill.noellesroles.waiter.target": "%1$s 將§e%3$s§r遞給了 %2$s",
+
+  "announcement.goals.mermaid": "你在水中如魚得水！",
+  "announcement.role.mermaid": "鮫人",
+  "announcement.win.mermaid": "乘客勝利！"
 }

@@ -466,5 +466,9 @@
   "tip.waiter.target_not_thirsty": "§7%s isn't thirsty",
   "tip.waiter.feed_complete": "§aYou served %2$s to %1$s",
   "tip.waiter.fed_by": "§a%1$s served you %2$s — need fulfilled!",
-  "replay.skill.noellesroles.waiter.target": "%1$s served §e%3$s§r to %2$s"
+  "replay.skill.noellesroles.waiter.target": "%1$s served §e%3$s§r to %2$s",
+
+  "announcement.goals.mermaid": "You thrive in water! ",
+  "announcement.role.mermaid": "Mermaid",
+  "announcement.win.mermaid": "Passengers Win!"
 }

@@ -95,6 +95,7 @@ import org.agmas.noellesroles.bandit.BanditShopHandler;
 import org.agmas.noellesroles.survivalmaster.SurvivalMasterPlayerComponent;
 import org.agmas.noellesroles.waiter.WaiterPlayerComponent;
 import org.agmas.noellesroles.waiter.WaiterShopHandler;
+import org.agmas.noellesroles.mermaid.MermaidPlayerComponent;
 import dev.doctor4t.wathe.compat.TrainVoicePlugin;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.WrittenBookContentComponent;
@@ -148,6 +149,7 @@ public class Noellesroles implements ModInitializer {
     public static Identifier SPIRIT_WALKER_ID = Identifier.of(MOD_ID, "spiritualist");
     public static Identifier DETECTIVE_ID = Identifier.of(MOD_ID, "detective");
     public static Identifier WAITER_ID = Identifier.of(MOD_ID, "waiter");
+    public static Identifier MERMAID_ID = Identifier.of(MOD_ID, "mermaid");
 
     // 炸弹死亡原因
     public static Identifier DEATH_REASON_BOMB = Identifier.of(MOD_ID, "bomb");
@@ -216,6 +218,9 @@ public class Noellesroles implements ModInitializer {
     public static Role DETECTIVE = WatheRoles.registerRole(new Role(DETECTIVE_ID, new Color(100, 149, 237).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
     // 服务员角色 - 乘客阵营，携带2倍食物/饮品，可喂食其他玩家帮助完成任务，做任务赚金币购买食物/饮品
     public static Role WAITER = WatheRoles.registerRole(new Role(WAITER_ID, new Color(255, 165, 80).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
+    // 鲛人角色 - 乘客阵营，水中获得海豚恩惠和夜视，体力和氧气消耗减少75%
+    // 地图专属角色：默认关闭，由地图配置 special_roles.enabled_roles 决定启用
+    public static Role MERMAID = WatheRoles.registerRole(new Role(MERMAID_ID, new Color(0, 150, 180).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false).setMapSpecific(true));
 
 
     // 小丑角色 - 中立阵营，被无辜者杀死时获胜
@@ -313,10 +318,19 @@ public class Noellesroles implements ModInitializer {
         ModSounds.init();
         ModEffects.init();
 
+        // 鲛人水中氧气消耗减少75%：maxAir × 4
+        MaxAir.EVENT.register((player, maxAir) -> {
+            MermaidPlayerComponent comp = MermaidPlayerComponent.KEY.getNullable(player);
+            if (comp != null && comp.shouldModifyAir()) {
+                return maxAir * 4;
+            }
+            return maxAir;
+        });
+
         // 金酒免疫关灯：有 GIN_IMMUNITY 效果时取消关灯失明
-        dev.doctor4t.wathe.api.event.BlackoutEffect.BEFORE.register((player, durationTicks) -> {
+        BlackoutEffect.BEFORE.register((player, durationTicks) -> {
             if (player.hasStatusEffect(ModEffects.GIN_IMMUNITY)) {
-                return dev.doctor4t.wathe.api.event.BlackoutEffect.BlackoutResult.cancel();
+                return BlackoutEffect.BlackoutResult.cancel();
             }
             return null;
         });
@@ -346,13 +360,13 @@ public class Noellesroles implements ModInitializer {
         WaiterShopHandler.register();
 
         // 通灵者灵魂出窍时阻止本体被高亮
-        dev.doctor4t.wathe.api.event.GetInstinctHighlight.EVENT.register(target -> {
+        GetInstinctHighlight.EVENT.register(target -> {
             if (target instanceof ServerPlayerEntity player) {
                 GameWorldComponent gameComp = GameWorldComponent.KEY.get(player.getWorld());
                 if (gameComp.isRole(player, SPIRIT_WALKER)) {
                     SpiritPlayerComponent spiritComp = SpiritPlayerComponent.KEY.get(player);
                     if (spiritComp.isProjecting()) {
-                        return dev.doctor4t.wathe.api.event.GetInstinctHighlight.HighlightResult.skip();
+                        return GetInstinctHighlight.HighlightResult.skip();
                     }
                 }
             }
@@ -775,6 +789,7 @@ public class Noellesroles implements ModInitializer {
             NoisemakerPlayerComponent.KEY.get(player).reset();
             SurvivalMasterPlayerComponent.KEY.get(player).reset();
             WaiterPlayerComponent.KEY.get(player).reset();
+            MermaidPlayerComponent.KEY.get(player).reset();
         });
 
         // Bartender and Recaller get +50 coins when completing tasks
