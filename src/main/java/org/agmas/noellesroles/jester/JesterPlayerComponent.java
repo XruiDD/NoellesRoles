@@ -5,6 +5,7 @@ import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.cca.MapEnhancementsWorldComponent;
 import dev.doctor4t.wathe.cca.PlayerPsychoComponent;
 import dev.doctor4t.wathe.cca.PlayerStaminaComponent;
+import dev.doctor4t.wathe.api.event.PsychoType;
 import dev.doctor4t.wathe.game.GameFunctions;
 import dev.doctor4t.wathe.index.WatheAttributes;
 import dev.doctor4t.wathe.record.GameRecordManager;
@@ -102,7 +103,7 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
             }
             this.inPsychoMode = false;
             PlayerPsychoComponent psychoComponent = PlayerPsychoComponent.KEY.get(this.player);
-            psychoComponent.stopPsycho(false);
+            psychoComponent.stopPsycho();
         }
         this.psychoModeTicks = 0;
         this.sync();
@@ -159,7 +160,7 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
         if (this.psychoArmour <= 0) return;
 
         PlayerPsychoComponent psychoComponent = PlayerPsychoComponent.KEY.get(this.player);
-        if (psychoComponent.startPsycho(false)) {
+        if (psychoComponent.startPsycho(PsychoType.VISIBLE_QUIET)) {
             // 设置疯魔模式持续3分钟（3 * 60 * 20 = 3600 ticks）
             this.psychoModeTicks = 3600;
             psychoComponent.setPsychoTicks(Integer.MAX_VALUE);

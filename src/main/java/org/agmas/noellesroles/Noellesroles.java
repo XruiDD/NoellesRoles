@@ -817,8 +817,8 @@ public class Noellesroles implements ModInitializer {
         // ── 猎魔人：疯魔模式事件 ──
 
         // 疯魔开始 → 给猎魔人发枪 / 加子弹，追踪疯魔玩家
-        PsychoModeEvents.ON_PSYCHO_START.register((frenziedPlayer, trackActive) -> {
-            if (!trackActive) return; // 静语者等静默疯魔不触发
+        PsychoModeEvents.ON_PSYCHO_START.register((frenziedPlayer, type) -> {
+            if (type == PsychoType.SILENT) return; // 静语者等隐身疯魔：猎魔者无感知
             GameWorldComponent game = GameWorldComponent.KEY.get(frenziedPlayer.getWorld());
             for (UUID hunterUuid : game.getAllWithRole(DEMON_HUNTER)) {
                 PlayerEntity hunter = frenziedPlayer.getWorld().getPlayerByUuid(hunterUuid);
@@ -845,8 +845,8 @@ public class Noellesroles implements ModInitializer {
         });
 
         // 疯魔结束 → 移除追踪，全部结束时回收猎魔枪
-        PsychoModeEvents.ON_PSYCHO_END.register((frenziedPlayer, trackActive) -> {
-            if (!trackActive) return;
+        PsychoModeEvents.ON_PSYCHO_END.register((frenziedPlayer, type) -> {
+            if (type == PsychoType.SILENT) return;
             GameWorldComponent game = GameWorldComponent.KEY.get(frenziedPlayer.getWorld());
             for (UUID hunterUuid : game.getAllWithRole(DEMON_HUNTER)) {
                 PlayerEntity hunter = frenziedPlayer.getWorld().getPlayerByUuid(hunterUuid);

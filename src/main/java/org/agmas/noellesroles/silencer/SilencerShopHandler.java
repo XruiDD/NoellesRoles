@@ -3,6 +3,7 @@ package org.agmas.noellesroles.silencer;
 import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.cca.PlayerPsychoComponent;
 import dev.doctor4t.wathe.api.event.BuildShopEntries;
+import dev.doctor4t.wathe.api.event.PsychoType;
 import dev.doctor4t.wathe.index.WatheItems;
 import dev.doctor4t.wathe.util.ShopEntry;
 import org.agmas.noellesroles.Noellesroles;
@@ -31,11 +32,11 @@ public class SilencerShopHandler {
                 }
                 if (psychoIndex < 0) psychoIndex = 0;
 
-                // 原位替换为静默疯魔模式（startPsycho(false) 不追踪计数器，不触发BGM）
+                // 原位替换为静默疯魔模式（SILENT：不计数器、不派发事件，也不触发猎魔者）
                 entries.remove(psychoIndex);
                 context.addEntry(psychoIndex, new ShopEntry.Builder("psycho_mode", WatheItems.PSYCHO_MODE.getDefaultStack(), 350, ShopEntry.Type.WEAPON)
                     .cooldown(getInTicks(5, 0))
-                    .onBuy(p -> PlayerPsychoComponent.KEY.get(p).startPsycho(false))
+                    .onBuy(p -> PlayerPsychoComponent.KEY.get(p).startPsycho(PsychoType.SILENT))
                     .build());
             }
         });

@@ -30,7 +30,7 @@ public class DemonHunterPlayerComponent implements AutoSyncedComponent, ServerTi
 
     private final PlayerEntity player;
 
-    /** 当前处于公开疯魔状态的玩家 UUID 列表（仅 trackActive=true 的） */
+    /** 当前处于可见疯魔状态的玩家 UUID 列表（PsychoType.PUBLIC 或 VISIBLE_QUIET） */
     private final List<UUID> frenzyPlayerUuids = new ArrayList<>();
 
     public DemonHunterPlayerComponent(PlayerEntity player) {
