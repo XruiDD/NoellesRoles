@@ -42,6 +42,7 @@ public record DemonHunterShootC2SPacket(int target) implements CustomPayload {
         @Override
         public void receive(@NotNull DemonHunterShootC2SPacket payload, ServerPlayNetworking.@NotNull Context context) {
             ServerPlayerEntity player = context.player();
+            if (player.isSpectator()) return;
             ItemStack mainHandStack = player.getMainHandStack();
 
             // 必须手持猎魔手枪
@@ -60,6 +61,7 @@ public record DemonHunterShootC2SPacket(int target) implements CustomPayload {
             // 解析目标
             ServerPlayerEntity target = null;
             if (player.getServerWorld().getEntityById(payload.target()) instanceof ServerPlayerEntity candidate
+                    && !candidate.isSpectator()
                     && candidate.distanceTo(player) < 65.0) {
                 target = candidate;
             }

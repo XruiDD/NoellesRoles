@@ -1812,6 +1812,7 @@ public class Noellesroles implements ModInitializer {
             if (target == null) return;
             if (target.equals(detective)) return;
             if (!GameFunctions.isPlayerPlayingAndAlive(target)) return;
+            if (SwallowedPlayerComponent.isPlayerSwallowed(target)) return;
             if (detective.squaredDistanceTo(target) > 9.0) return;
             if (!detective.canSee(target)) return;
 
