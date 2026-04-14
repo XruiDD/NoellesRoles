@@ -7,8 +7,8 @@ import dev.doctor4t.wathe.util.ShopEntry;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.text.Text;
+import org.agmas.noellesroles.ModItems;
 import org.agmas.noellesroles.Noellesroles;
 
 /**
@@ -26,7 +26,7 @@ public class TimekeeperShopHandler {
             GameWorldComponent gameWorld = GameWorldComponent.KEY.get(player.getWorld());
             if (gameWorld.isRole(player, Noellesroles.TIMEKEEPER)) {
                 // 创建减少时间的商店物品
-                ItemStack reduceTimeItem = new ItemStack(Items.CLOCK);
+                ItemStack reduceTimeItem = new ItemStack(ModItems.TIMEKEEPER_REDUCE_TIME);
                 reduceTimeItem.set(DataComponentTypes.CUSTOM_NAME,
                         Text.translatable("item.noellesroles.timekeeper_reduce_time"));
 

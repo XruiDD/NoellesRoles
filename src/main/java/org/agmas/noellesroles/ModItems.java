@@ -138,6 +138,18 @@ public class ModItems {
             "special_spice"
     );
 
+    // ---- 清道夫系统 ----
+    public static final Item SCAVENGER_RESET_KNIFE_CD = register(
+            new Item(new Item.Settings().maxCount(1)),
+            "scavenger_reset_knife_cd"
+    );
+
+    // ---- 计时员系统 ----
+    public static final Item TIMEKEEPER_REDUCE_TIME = register(
+            new Item(new Item.Settings().maxCount(1)),
+            "timekeeper_reduce_time"
+    );
+
     public static Item register(Item item, String id) {
         // Create the identifier for the item.
         Identifier itemID = Identifier.of(Noellesroles.MOD_ID, id);

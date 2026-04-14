@@ -7,8 +7,8 @@ import dev.doctor4t.wathe.index.WatheItems;
 import dev.doctor4t.wathe.util.ShopEntry;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.text.Text;
+import org.agmas.noellesroles.ModItems;
 import org.agmas.noellesroles.Noellesroles;
 
 /**
@@ -30,7 +30,7 @@ public class ScavengerShopHandler {
                     entry.stack().isOf(WatheItems.PSYCHO_MODE) ||    // 移除疯魔模式
                     entry.stack().isOf(WatheItems.GRENADE)           // 移除手雷
                 );
-                ItemStack resetCDItem = new ItemStack(Items.CLOCK);
+                ItemStack resetCDItem = new ItemStack(ModItems.SCAVENGER_RESET_KNIFE_CD);
                 resetCDItem.set(net.minecraft.component.DataComponentTypes.CUSTOM_NAME,
                         Text.translatable("item.noellesroles.scavenger_reset_knife_cd"));
                 context.addEntry(1, new ShopEntry(resetCDItem, 150, ShopEntry.Type.WEAPON) {
