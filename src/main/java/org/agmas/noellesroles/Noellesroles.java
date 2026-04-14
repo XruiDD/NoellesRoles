@@ -811,6 +811,7 @@ public class Noellesroles implements ModInitializer {
             MermaidPlayerComponent.KEY.get(player).reset();
             DemonHunterPlayerComponent.KEY.get(player).reset();
             DemonHunterPistolItem.removePistol(player);
+            DetectivePlayerComponent.KEY.get(player).reset();
         });
 
         // ── 猎魔人：疯魔模式事件 ──
@@ -1369,6 +1370,8 @@ public class Noellesroles implements ModInitializer {
             // 重置BGM组件，确保对局结束后不会继续播放
             WorldMusicComponent worldMusic = WorldMusicComponent.KEY.get(world);
             worldMusic.stopMusic();
+
+            KillHistoryWorldComponent.KEY.get(world).reset();
         });
 
         // 每 tick 检查时刻触发条件（tick 循环驱动，替代事件驱动）
