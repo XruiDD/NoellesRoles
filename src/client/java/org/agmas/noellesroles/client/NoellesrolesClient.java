@@ -64,6 +64,9 @@ import org.agmas.noellesroles.taotie.SwallowedPlayerComponent;
 import org.agmas.noellesroles.taotie.TaotiePlayerComponent;
 import org.agmas.noellesroles.packet.TaotieSwallowC2SPacket;
 import org.agmas.noellesroles.packet.SilencerSilenceC2SPacket;
+import org.agmas.noellesroles.packet.PartyAnimalBuzzC2SPacket;
+import org.agmas.noellesroles.partyanimal.PartyAnimalPlayerComponent;
+import org.agmas.noellesroles.voice.HeliumBuzzPlayerComponent;
 import org.agmas.noellesroles.packet.SpiritProjectC2SPacket;
 import org.agmas.noellesroles.spiritualist.SpiritPlayerComponent;
 import org.agmas.noellesroles.client.spiritualist.SpiritCameraHandler;
@@ -223,6 +226,20 @@ public class NoellesrolesClient implements ClientModInitializer {
                 BomberPlayerComponent comp = BomberPlayerComponent.KEY.get(player);
                 if (comp.hasBomb()) {
                     return GetInstinctHighlight.HighlightResult.always(Noellesroles.BOMBER.color());
+                }
+            }
+
+            // PARTY_ANIMAL: 按变声等级持久高亮已变声玩家（1=粉，2=品红，3=深紫红）
+            if (gameWorldComponent.isRole(localPlayer, Noellesroles.PARTY_ANIMAL)) {
+                HeliumBuzzPlayerComponent buzz = HeliumBuzzPlayerComponent.KEY.get(player);
+                if (buzz.isActive()) {
+                    int level = buzz.getAmplifier() + 1;
+                    int color = switch (level) {
+                        case 1 -> 0xFFB3D9; // 浅粉
+                        case 2 -> 0xFF3FBF; // 品红
+                        default -> 0x8B0050; // 深紫红
+                    };
+                    return GetInstinctHighlight.HighlightResult.always(color);
                 }
             }
 
@@ -609,6 +626,23 @@ public class NoellesrolesClient implements ClientModInitializer {
                             } else if (crosshairTarget != null && crosshairTargetDistance <= 3.0) {
                                 // 没有标记 → 发送标记请求
                                 ClientPlayNetworking.send(new SilencerSilenceC2SPacket(crosshairTarget.getUuid()));
+                            }
+                        }
+                        return;
+                    }
+
+                    // 派对狂角色按G：标记/释放/对自己释放（V2）
+                    if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.PARTY_ANIMAL)) {
+                        AbilityPlayerComponent abilityComp = AbilityPlayerComponent.KEY.get(MinecraftClient.getInstance().player);
+                        if (abilityComp.getCooldown() <= 0) {
+                            PartyAnimalPlayerComponent partyComp = PartyAnimalPlayerComponent.KEY.get(MinecraftClient.getInstance().player);
+                            if (partyComp.hasMarkedTarget()) {
+                                ClientPlayNetworking.send(new PartyAnimalBuzzC2SPacket(partyComp.getMarkedTargetUuid()));
+                            } else if (crosshairTarget != null && crosshairTargetDistance <= 3.0) {
+                                ClientPlayNetworking.send(new PartyAnimalBuzzC2SPacket(crosshairTarget.getUuid()));
+                            } else {
+                                // 无目标 → 自我释放（服务端处理，无奖励）
+                                ClientPlayNetworking.send(new PartyAnimalBuzzC2SPacket(MinecraftClient.getInstance().player.getUuid()));
                             }
                         }
                         return;

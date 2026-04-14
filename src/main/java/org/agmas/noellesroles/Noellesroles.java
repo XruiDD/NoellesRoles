@@ -79,6 +79,9 @@ import org.agmas.noellesroles.taotie.TaotiePlayerComponent;
 import org.agmas.noellesroles.taotie.SwallowedPlayerComponent;
 import org.agmas.noellesroles.packet.TaotieSwallowC2SPacket;
 import org.agmas.noellesroles.packet.SilencerSilenceC2SPacket;
+import org.agmas.noellesroles.packet.PartyAnimalBuzzC2SPacket;
+import org.agmas.noellesroles.partyanimal.PartyAnimalPlayerComponent;
+import org.agmas.noellesroles.voice.HeliumBuzzPlayerComponent;
 import org.agmas.noellesroles.packet.SpiritProjectC2SPacket;
 import org.agmas.noellesroles.spiritualist.SpiritPlayerComponent;
 import org.agmas.noellesroles.silencer.SilencedPlayerComponent;
@@ -146,6 +149,7 @@ public class Noellesroles implements ModInitializer {
     public static Identifier ATTENDANT_ID = Identifier.of(MOD_ID, "attendant");
     public static Identifier TAOTIE_ID = Identifier.of(MOD_ID, "taotie");
     public static Identifier SILENCER_ID = Identifier.of(MOD_ID, "silencer");
+    public static Identifier PARTY_ANIMAL_ID = Identifier.of(MOD_ID, "party_animal");
     public static Identifier BODYGUARD_ID = Identifier.of(MOD_ID, "bodyguard");
     public static Identifier POISONER_ID = Identifier.of(MOD_ID, "poisoner");
     public static Identifier BANDIT_ID = Identifier.of(MOD_ID, "bandit");
@@ -191,6 +195,8 @@ public class Noellesroles implements ModInitializer {
     public static Role SERIAL_KILLER = WatheRoles.registerRole(new Role(SERIAL_KILLER_ID, new Color(102, 34, 34).getRGB(), false, true, Role.MoodType.FAKE, Integer.MAX_VALUE, true));
     // 静语者角色 - 杀手阵营，可以让目标无法使用voicechat说话，且无法听到他人说话，持续60秒，冷却45秒
     public static Role SILENCER = WatheRoles.registerRole(new Role(SILENCER_ID, new Color(80, 70, 110).getRGB(), false, true, Role.MoodType.FAKE, Integer.MAX_VALUE, true));
+    // 派对狂角色 - 杀手阵营，标记目标后释放变声效果（10分钟），重复释放提升变声等级 0/1/2
+    public static Role PARTY_ANIMAL = WatheRoles.registerRole(new Role(PARTY_ANIMAL_ID, new Color(255, 90, 200).getRGB(), false, true, Role.MoodType.FAKE, Integer.MAX_VALUE, true));
     // 毒师角色 - 杀手阵营，使用毒针和毒气弹
     public static Role POISONER = WatheRoles.registerRole(new Role(POISONER_ID, new Color(30, 80, 20).getRGB(), false, true, Role.MoodType.FAKE, Integer.MAX_VALUE, true));
     // 强盗角色 - 杀手阵营，使用投掷斧远程贯穿击杀
@@ -252,6 +258,7 @@ public class Noellesroles implements ModInitializer {
     public static final CustomPayload.Id<DetectiveInvestigateC2SPacket> DETECTIVE_INVESTIGATE_PACKET = DetectiveInvestigateC2SPacket.ID;
     public static final CustomPayload.Id<TaotieSwallowC2SPacket> TAOTIE_SWALLOW_PACKET = TaotieSwallowC2SPacket.ID;
     public static final CustomPayload.Id<SilencerSilenceC2SPacket> SILENCER_SILENCE_PACKET = SilencerSilenceC2SPacket.ID;
+    public static final CustomPayload.Id<PartyAnimalBuzzC2SPacket> PARTY_ANIMAL_BUZZ_PACKET = PartyAnimalBuzzC2SPacket.ID;
     public static final CustomPayload.Id<SpiritProjectC2SPacket> SPIRIT_PROJECT_PACKET = SpiritProjectC2SPacket.ID;
     public static final CustomPayload.Id<DemonHunterShootC2SPacket> DEMON_HUNTER_SHOOT_PACKET = DemonHunterShootC2SPacket.ID;
     public static final ArrayList<Role> VANNILA_ROLES = new ArrayList<>();
@@ -356,6 +363,7 @@ public class Noellesroles implements ModInitializer {
         PayloadTypeRegistry.playC2S().register(DetectiveInvestigateC2SPacket.ID, DetectiveInvestigateC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(TaotieSwallowC2SPacket.ID, TaotieSwallowC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(SilencerSilenceC2SPacket.ID, SilencerSilenceC2SPacket.CODEC);
+        PayloadTypeRegistry.playC2S().register(PartyAnimalBuzzC2SPacket.ID, PartyAnimalBuzzC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(SpiritProjectC2SPacket.ID, SpiritProjectC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(DemonHunterShootC2SPacket.ID, DemonHunterShootC2SPacket.CODEC);
         PayloadTypeRegistry.playS2C().register(EngineerDoorHighlightS2CPacket.ID, EngineerDoorHighlightS2CPacket.CODEC);
@@ -806,6 +814,8 @@ public class Noellesroles implements ModInitializer {
             SwallowedPlayerComponent.KEY.get(player).reset();
             SilencedPlayerComponent.KEY.get(player).reset();
             SilencerPlayerComponent.KEY.get(player).reset();
+            PartyAnimalPlayerComponent.KEY.get(player).reset();
+            HeliumBuzzPlayerComponent.KEY.get(player).clear();
             BodyguardPlayerComponent.KEY.get(player).reset();
             NoisemakerPlayerComponent.KEY.get(player).reset();
             SurvivalMasterPlayerComponent.KEY.get(player).reset();
@@ -1974,6 +1984,121 @@ public class Noellesroles implements ModInitializer {
                     .formatted(net.minecraft.util.Formatting.GRAY),
                 true
             );
+        });
+
+        // 派对狂标记 / 释放变声（V2）
+        ServerPlayNetworking.registerGlobalReceiver(Noellesroles.PARTY_ANIMAL_BUZZ_PACKET, (payload, context) -> {
+            ServerPlayerEntity partier = context.player();
+            GameWorldComponent gameWorld = GameWorldComponent.KEY.get(partier.getWorld());
+            AbilityPlayerComponent abilityComp = AbilityPlayerComponent.KEY.get(partier);
+            PartyAnimalPlayerComponent partyComp = PartyAnimalPlayerComponent.KEY.get(partier);
+
+            if (!gameWorld.isRole(partier, PARTY_ANIMAL)) return;
+            if (!GameFunctions.isPlayerPlayingAndAlive(partier)) return;
+            if (SwallowedPlayerComponent.isPlayerSwallowed(partier)) return;
+            if (abilityComp.cooldown > 0) return;
+
+            final int BUZZ_TICKS = GameConstants.getInTicks(7, 30); // 7.5 分钟
+            final int COOLDOWN_TICKS = GameConstants.getInTicks(0, 45);
+
+            // 已有标记 → 执行释放（提升目标变声等级 +1，最高 3 级）
+            if (partyComp.hasMarkedTarget()) {
+                ServerPlayerEntity target = (ServerPlayerEntity) partier.getWorld().getPlayerByUuid(partyComp.getMarkedTargetUuid());
+                partyComp.clearMark();
+
+                if (target == null) return;
+                if (!GameFunctions.isPlayerPlayingAndAlive(target)) return;
+                if (SwallowedPlayerComponent.isPlayerSwallowed(target)) return;
+
+                HeliumBuzzPlayerComponent buzz = HeliumBuzzPlayerComponent.KEY.get(target);
+                int currentLevel = buzz.isActive() ? buzz.getAmplifier() + 1 : 0; // 0=无
+                if (currentLevel >= 3) return; // 保险
+                int newLevel = currentLevel + 1; // 1..3
+                buzz.apply(BUZZ_TICKS, newLevel - 1);
+
+                // 同一目标每局每级只奖励一次；对杀手阵营/卧底释放无奖励
+                int reward = 0;
+                boolean targetIsKiller = gameWorld.canUseKillerFeatures(target);
+                boolean targetIsUndercover = gameWorld.isRole(target, UNDERCOVER);
+                if (!targetIsKiller && !targetIsUndercover && partyComp.getRewardedLevel(target.getUuid()) < newLevel) {
+                    reward = switch (newLevel) {
+                        case 1 -> 50;
+                        case 2 -> 75;
+                        default -> 100;
+                    };
+                    PlayerShopComponent.KEY.get(partier).addToBalance(reward);
+                    partyComp.recordRewarded(target.getUuid(), newLevel);
+                }
+
+                abilityComp.setCooldown(COOLDOWN_TICKS);
+                partyComp.setLastReleasedTargetUuid(target.getUuid());
+
+                Text msg = reward > 0
+                        ? Text.translatable("tip.partyanimal.success", target.getName(), newLevel, reward)
+                        : Text.translatable("tip.partyanimal.success_no_reward", target.getName(), newLevel);
+                partier.sendMessage(msg.copy().formatted(net.minecraft.util.Formatting.LIGHT_PURPLE), true);
+
+                NbtCompound extra = new NbtCompound();
+                extra.putString("action", "buzz");
+                extra.putInt("level", newLevel);
+                extra.putInt("reward", reward);
+                GameRecordManager.recordSkillUse(partier, PARTY_ANIMAL_ID, target, extra);
+                return;
+            }
+
+            // 无标记 → 尝试标记 或 自我释放（无奖励）
+            ServerPlayerEntity target = payload.targetPlayer() != null
+                    ? (ServerPlayerEntity) partier.getWorld().getPlayerByUuid(payload.targetPlayer()) : null;
+
+            boolean canMarkTarget = target != null
+                    && !target.equals(partier)
+                    && GameFunctions.isPlayerPlayingAndAlive(target)
+                    && !SwallowedPlayerComponent.isPlayerSwallowed(target)
+                    && partier.squaredDistanceTo(target) <= 9.0
+                    && partier.canSee(target);
+
+            if (canMarkTarget) {
+                HeliumBuzzPlayerComponent buzz = HeliumBuzzPlayerComponent.KEY.get(target);
+                int lvl = buzz.isActive() ? buzz.getAmplifier() + 1 : 0;
+                if (lvl >= 3) {
+                    partier.sendMessage(
+                            Text.translatable("tip.partyanimal.maxed", target.getName())
+                                    .formatted(net.minecraft.util.Formatting.LIGHT_PURPLE),
+                            true);
+                    return;
+                }
+                // 不能连续对同一人释放：上次释放目标需先标记他人才能再次被标记
+                if (target.getUuid().equals(partyComp.getLastReleasedTargetUuid())) {
+                    partier.sendMessage(
+                            Text.translatable("tip.partyanimal.repeat_blocked", target.getName())
+                                    .formatted(net.minecraft.util.Formatting.LIGHT_PURPLE),
+                            true);
+                    return;
+                }
+                partyComp.setLastReleasedTargetUuid(null);
+                partyComp.markTarget(target.getUuid(), target.getName().getString());
+                partier.sendMessage(
+                        Text.translatable("tip.partyanimal.marked", target.getName())
+                                .formatted(net.minecraft.util.Formatting.LIGHT_PURPLE),
+                        true);
+                return;
+            }
+
+            // 自我释放：无奖励，同样进入冷却
+            HeliumBuzzPlayerComponent selfBuzz = HeliumBuzzPlayerComponent.KEY.get(partier);
+            int selfCurrent = selfBuzz.isActive() ? selfBuzz.getAmplifier() + 1 : 0;
+            int selfNew = Math.min(3, selfCurrent + 1);
+            selfBuzz.apply(BUZZ_TICKS, selfNew - 1);
+            abilityComp.setCooldown(COOLDOWN_TICKS);
+            partier.sendMessage(
+                    Text.translatable("tip.partyanimal.self", selfNew)
+                            .formatted(net.minecraft.util.Formatting.LIGHT_PURPLE),
+                    true);
+
+            NbtCompound extra = new NbtCompound();
+            extra.putString("action", "self_buzz");
+            extra.putInt("level", selfNew);
+            GameRecordManager.recordSkillUse(partier, PARTY_ANIMAL_ID, null, extra);
         });
 
         // 通灵者灵魂出窍切换

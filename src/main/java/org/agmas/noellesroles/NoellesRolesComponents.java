@@ -20,6 +20,7 @@ import org.agmas.noellesroles.taotie.TaotiePlayerComponent;
 import org.agmas.noellesroles.taotie.SwallowedPlayerComponent;
 import org.agmas.noellesroles.silencer.SilencedPlayerComponent;
 import org.agmas.noellesroles.silencer.SilencerPlayerComponent;
+import org.agmas.noellesroles.partyanimal.PartyAnimalPlayerComponent;
 import org.agmas.noellesroles.bodyguard.BodyguardPlayerComponent;
 import org.agmas.noellesroles.engineer.EngineerPlayerComponent;
 import org.agmas.noellesroles.noisemaker.NoisemakerPlayerComponent;
@@ -64,6 +65,7 @@ public class NoellesRolesComponents implements EntityComponentInitializer, World
         registry.beginRegistration(PlayerEntity.class, SwallowedPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(SwallowedPlayerComponent::new);
         registry.beginRegistration(PlayerEntity.class, SilencedPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(SilencedPlayerComponent::new);
         registry.beginRegistration(PlayerEntity.class, SilencerPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(SilencerPlayerComponent::new);
+        registry.beginRegistration(PlayerEntity.class, PartyAnimalPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(PartyAnimalPlayerComponent::new);
         registry.beginRegistration(PlayerEntity.class, BodyguardPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(BodyguardPlayerComponent::new);
         registry.beginRegistration(PlayerEntity.class, NoisemakerPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(NoisemakerPlayerComponent::new);
         registry.beginRegistration(PlayerEntity.class, SurvivalMasterPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(SurvivalMasterPlayerComponent::new);

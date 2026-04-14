@@ -31,6 +31,7 @@
     "voodoo.VoodoScreenMixin",
     "vulture.VultureHudMixin",
     "silencer.SilencerHudMixin",
+    "partyanimal.PartyAnimalHudMixin",
     "spiritualist.SpiritHudMixin",
     "spiritualist.SpiritSkinMixin",
     "spiritualist.SpiritNameMixin",
