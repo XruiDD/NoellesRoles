@@ -334,7 +334,6 @@ public class TaotiePlayerComponent implements AutoSyncedComponent, ServerTicking
      */
     public void removeSwallowedPlayer(ServerPlayerEntity player) {
         swallowedPlayers.remove(player.getUuid());
-        NoellesrolesVoiceChatPlugin.removeFromVoiceChat(player.getUuid());
         this.sync();
     }
 
