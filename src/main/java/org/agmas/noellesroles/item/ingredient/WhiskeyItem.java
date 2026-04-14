@@ -24,6 +24,6 @@ public class WhiskeyItem extends IngredientItem {
 
     @Override
     public int getShopPrice() {
-        return 172;
+        return 175;
     }
 }
