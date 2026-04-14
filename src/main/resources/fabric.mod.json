@@ -23,7 +23,11 @@
       "org.agmas.noellesroles.NoellesRolesComponents"
     ],
     "voicechat": [
-      "org.agmas.noellesroles.voice.NoellesrolesVoiceChatPlugin"
+      "org.agmas.noellesroles.voice.NoellesrolesVoiceChatPlugin",
+      {
+        "value": "org.agmas.noellesroles.client.voice.HeliumBuzzVoicechatPlugin",
+        "environment": "client"
+      }
     ]
   },
 
@@ -53,6 +57,7 @@
       "noellesroles:silencer",
       "noellesroles:bodyguard",
       "noellesroles:noisemaker",
+      "noellesroles:helium_buzz",
       "noellesroles:survival_master",
       "noellesroles:engineer",
       "noellesroles:spirit",

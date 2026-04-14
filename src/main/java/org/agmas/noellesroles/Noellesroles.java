@@ -4,6 +4,7 @@ import dev.doctor4t.wathe.api.Role;
 import dev.doctor4t.wathe.api.RoleAppearanceCondition;
 import dev.doctor4t.wathe.api.WatheRoles;
 import org.agmas.noellesroles.bartender.CocktailRegistry;
+import org.agmas.noellesroles.command.NoellesRolesCommands;
 import dev.doctor4t.wathe.api.event.*;
 import dev.doctor4t.wathe.block.SmallDoorBlock;
 import dev.doctor4t.wathe.block_entity.DoorBlockEntity;
@@ -327,6 +328,7 @@ public class Noellesroles implements ModInitializer {
         ModItems.init();
         ModSounds.init();
         ModEffects.init();
+        NoellesRolesCommands.init();
 
         // 鲛人水中氧气消耗减少75%：maxAir × 4
         MaxAir.EVENT.register((player, maxAir) -> {
