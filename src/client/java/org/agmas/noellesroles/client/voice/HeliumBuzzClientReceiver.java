@@ -1,37 +1,33 @@
 package org.agmas.noellesroles.client.voice;
 
-import de.maxhenkel.voicechat.api.VoicechatPlugin;
 import de.maxhenkel.voicechat.api.events.ClientReceiveSoundEvent;
 import de.maxhenkel.voicechat.api.events.EventRegistration;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerEntity;
 import org.agmas.noellesroles.voice.HeliumBuzzPlayerComponent;
+import org.agmas.noellesroles.voice.HeliumPitchShifter;
 
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 接收端客户端变调插件：根据 {@link HeliumBuzzPlayerComponent}（CCA 自动同步到所有
- * 追踪者）判断说话人是否该变调，在 SVC 解码 PCM 后、SPR 的 OpenAL 空间化之前处理。
+ * 接收端客户端变调实际处理类（仅 client sourceSet）：
+ * 在 SVC 解码 PCM 后、SPR 的 OpenAL 空间化之前对说话人音频做变调处理。
  */
-public class HeliumBuzzVoicechatPlugin implements VoicechatPlugin {
+public final class HeliumBuzzClientReceiver {
 
     private static final float RAMP_OUT_TICKS = 10f;
 
-    private final Map<UUID, HeliumPitchShifter> shifters = new ConcurrentHashMap<>();
+    private static final Map<UUID, HeliumPitchShifter> SHIFTERS = new ConcurrentHashMap<>();
 
-    @Override
-    public String getPluginId() {
-        return "noellesroles_helium_buzz";
+    private HeliumBuzzClientReceiver() {}
+
+    public static void register(EventRegistration r) {
+        r.registerEvent(ClientReceiveSoundEvent.EntitySound.class, HeliumBuzzClientReceiver::onReceiveEntity);
     }
 
-    @Override
-    public void registerEvents(EventRegistration r) {
-        r.registerEvent(ClientReceiveSoundEvent.EntitySound.class, this::onReceiveEntity);
-    }
-
-    private void onReceiveEntity(ClientReceiveSoundEvent.EntitySound event) {
+    private static void onReceiveEntity(ClientReceiveSoundEvent.EntitySound event) {
         if (event.isCancelled()) return;
 
         short[] pcm = event.getRawAudio();
@@ -45,18 +41,18 @@ public class HeliumBuzzVoicechatPlugin implements VoicechatPlugin {
 
         PlayerEntity p = mc.world.getPlayerByUuid(speaker);
         if (p == null) {
-            shifters.remove(speaker);
+            SHIFTERS.remove(speaker);
             return;
         }
 
         HeliumBuzzPlayerComponent comp = HeliumBuzzPlayerComponent.KEY.getNullable(p);
         if (comp == null || !comp.isActive()) {
-            shifters.remove(speaker);
+            SHIFTERS.remove(speaker);
             return;
         }
 
         float ratio = pitchRatioFor(comp);
-        HeliumPitchShifter shifter = shifters.computeIfAbsent(speaker, k -> new HeliumPitchShifter());
+        HeliumPitchShifter shifter = SHIFTERS.computeIfAbsent(speaker, k -> new HeliumPitchShifter());
         short[] shifted = shifter.process(pcm, ratio);
         event.setRawAudio(shifted);
     }

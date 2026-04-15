@@ -24,10 +24,7 @@
     ],
     "voicechat": [
       "org.agmas.noellesroles.voice.NoellesrolesVoiceChatPlugin",
-      {
-        "value": "org.agmas.noellesroles.client.voice.HeliumBuzzVoicechatPlugin",
-        "environment": "client"
-      }
+      "org.agmas.noellesroles.voice.HeliumBuzzVoicechatPlugin"
     ]
   },
 
