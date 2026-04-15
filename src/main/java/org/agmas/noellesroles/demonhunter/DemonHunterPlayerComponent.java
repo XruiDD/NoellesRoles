@@ -2,6 +2,7 @@ package org.agmas.noellesroles.demonhunter;
 
 import dev.doctor4t.wathe.Wathe;
 import dev.doctor4t.wathe.cca.GameWorldComponent;
+import dev.doctor4t.wathe.cca.PlayerPsychoComponent;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
@@ -73,13 +74,23 @@ public class DemonHunterPlayerComponent implements AutoSyncedComponent, ServerTi
 
     @Override
     public void serverTick() {
-        // 当没有公开疯魔进行中时，移除猎魔枪
+        // 当追踪列表中所有疯魔玩家都已退出疯魔状态时，移除猎魔枪
         if (!(this.player instanceof ServerPlayerEntity)) return;
         GameWorldComponent game = GameWorldComponent.KEY.get(this.player.getWorld());
         if (!game.isRole(this.player, Noellesroles.DEMON_HUNTER)) return;
+        if (frenzyPlayerUuids.isEmpty()) return;
 
-        if (!frenzyPlayerUuids.isEmpty() && !game.isPsychoActive()) {
-            // psychosActive 已归零但列表还有残留 → 清理
+        // 逐个检查追踪的玩家是否仍在疯魔（psychoTicks > 0）
+        // 不再依赖 GameWorldComponent.isPsychoActive()，因为 VISIBLE_QUIET 类型（如小丑疯魔）不计入该计数器
+        boolean anyStillFrenzied = false;
+        for (UUID uuid : frenzyPlayerUuids) {
+            PlayerEntity tracked = this.player.getWorld().getPlayerByUuid(uuid);
+            if (tracked != null && PlayerPsychoComponent.KEY.get(tracked).psychoTicks > 0) {
+                anyStillFrenzied = true;
+                break;
+            }
+        }
+        if (!anyStillFrenzied) {
             frenzyPlayerUuids.clear();
             DemonHunterPistolItem.removePistol(this.player);
             sync();
