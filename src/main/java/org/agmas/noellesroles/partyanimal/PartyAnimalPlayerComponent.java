@@ -29,7 +29,7 @@ public class PartyAnimalPlayerComponent implements AutoSyncedComponent, ServerTi
             PartyAnimalPlayerComponent.class
     );
 
-    public static final int MARK_DURATION_TICKS = GameConstants.getInTicks(1, 0); // 60 秒
+    public static final int MARK_DURATION_TICKS = GameConstants.getInTicks(0, 30); // 30 秒
 
     private final PlayerEntity player;
     private UUID markedTargetUuid = null;

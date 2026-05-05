@@ -128,7 +128,7 @@
   "tip.partyanimal.mark": "Press %s to mark %s (within 3 blocks)",
   "tip.partyanimal.confirm": "Press %s to buzz %s (%ss)",
   "tip.partyanimal.ready_or_self": "Press [%s] to mark a target, or release on yourself (no reward)",
-  "tip.partyanimal.marked": "Marked %s, press again within 60s to release",
+  "tip.partyanimal.marked": "Marked %s, press again within 30s to release",
   "tip.partyanimal.maxed": "%s is already at max buzz level",
   "tip.partyanimal.repeat_blocked": "Cannot mark %s consecutively; mark someone else first",
   "tip.partyanimal.success": "You pitched %s to level %s, earned %s coins",

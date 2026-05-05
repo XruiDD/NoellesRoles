@@ -1999,7 +1999,7 @@ public class Noellesroles implements ModInitializer {
             if (abilityComp.cooldown > 0) return;
 
             final int BUZZ_TICKS = GameConstants.getInTicks(7, 30); // 7.5 分钟
-            final int COOLDOWN_TICKS = GameConstants.getInTicks(0, 45);
+            final int COOLDOWN_TICKS = GameConstants.getInTicks(1, 0);
 
             // 已有标记 → 执行释放（提升目标变声等级 +1，最高 3 级）
             if (partyComp.hasMarkedTarget()) {

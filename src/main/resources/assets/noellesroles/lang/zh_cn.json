@@ -266,7 +266,7 @@
   "tip.partyanimal.mark": "按 %s 标记 %s（3格内）",
   "tip.partyanimal.confirm": "按 %s 释放变声 %s（%s秒）",
   "tip.partyanimal.ready_or_self": "按 [%s] 标记瞄准的玩家，或对自己释放（无奖励）",
-  "tip.partyanimal.marked": "已标记 %s，60秒内再次按下释放",
+  "tip.partyanimal.marked": "已标记 %s，30秒内再次按下释放",
   "tip.partyanimal.maxed": "%s 的变声已达最高等级",
   "tip.partyanimal.repeat_blocked": "无法连续对 %s 标记，需要先标记其他玩家",
   "tip.partyanimal.success": "你把 %s 变调到 %s 级，获得 %s 金币",
