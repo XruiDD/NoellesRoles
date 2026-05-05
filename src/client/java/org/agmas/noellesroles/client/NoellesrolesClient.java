@@ -221,10 +221,14 @@ public class NoellesrolesClient implements ClientModInitializer {
                 }
             }
 
+            // 生存大师被障碍物遮挡时免疫杀手阵营的本能透视
+            boolean hiddenSurvivalMaster = gameWorldComponent.isRole(player, Noellesroles.SURVIVAL_MASTER)
+                    && !localPlayer.canSee(player);
+
             // BOMBER: 本能透视 - 无需按键即可看到携带定时炸弹的玩家
             if (gameWorldComponent.isRole(localPlayer, Noellesroles.BOMBER)) {
                 BomberPlayerComponent comp = BomberPlayerComponent.KEY.get(player);
-                if (comp.hasBomb()) {
+                if (comp.hasBomb() && !hiddenSurvivalMaster) {
                     return GetInstinctHighlight.HighlightResult.always(Noellesroles.BOMBER.color());
                 }
             }
@@ -232,7 +236,7 @@ public class NoellesrolesClient implements ClientModInitializer {
             // PARTY_ANIMAL: 按变声等级持久高亮已变声玩家（1=粉，2=品红，3=深紫红）
             if (gameWorldComponent.isRole(localPlayer, Noellesroles.PARTY_ANIMAL)) {
                 HeliumBuzzPlayerComponent buzz = HeliumBuzzPlayerComponent.KEY.get(player);
-                if (buzz.isActive()) {
+                if (buzz.isActive() && !hiddenSurvivalMaster) {
                     int level = buzz.getAmplifier() + 1;
                     int color = switch (level) {
                         case 1 -> 0xFFB3D9; // 浅粉
@@ -300,7 +304,7 @@ public class NoellesrolesClient implements ClientModInitializer {
             }
             if (gameWorldComponent.isRole(localPlayer, Noellesroles.POISONER)) {
                 PlayerPoisonComponent comp = PlayerPoisonComponent.KEY.get(player);
-                if (comp.poisonTicks > 0) return  GetInstinctHighlight.HighlightResult.always(Noellesroles.POISONER.color());
+                if (comp.poisonTicks > 0 && !hiddenSurvivalMaster) return  GetInstinctHighlight.HighlightResult.always(Noellesroles.POISONER.color());
             }
 
             // PATHOGEN: 只有已感染的玩家显示绿色高亮（不再透视未感染玩家）
