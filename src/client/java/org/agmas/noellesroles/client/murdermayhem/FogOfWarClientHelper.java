@@ -137,7 +137,7 @@ public final class FogOfWarClientHelper {
     }
 
     public static boolean isWithinKillerInstinctLimit(PlayerEntity viewer, PlayerEntity target) {
-        double maxDistance = getFogRadius(viewer.getWorld()) + FogOfWarMurderMayhemEvent.INSTINCT_EXTRA_DISTANCE;
+        double maxDistance = getEffectiveKillerInstinctFogRadius(viewer.getWorld()) + FogOfWarMurderMayhemEvent.INSTINCT_EXTRA_DISTANCE;
         return viewer.squaredDistanceTo(target) <= maxDistance * maxDistance;
     }
 
@@ -154,8 +154,12 @@ public final class FogOfWarClientHelper {
         if (!GameWorldComponent.KEY.get(viewer.getWorld()).canUseKillerFeatures(viewer)) {
             return false;
         }
-        double maxDistance = getFogRadius(viewer.getWorld()) + FogOfWarMurderMayhemEvent.INSTINCT_EXTRA_DISTANCE;
+        double maxDistance = getEffectiveKillerInstinctFogRadius(viewer.getWorld()) + FogOfWarMurderMayhemEvent.INSTINCT_EXTRA_DISTANCE;
         return viewer.squaredDistanceTo(target) > maxDistance * maxDistance;
+    }
+
+    private static float getEffectiveKillerInstinctFogRadius(World world) {
+        return getVisualFogRadius(getFogRadius(world));
     }
 
     public static float getFogBlendProgress(PlayerEntity viewer, PlayerEntity target) {

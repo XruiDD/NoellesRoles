@@ -2,6 +2,7 @@ package org.agmas.noellesroles.mixin.scavenger;
 
 import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.api.WatheRoles;
+import dev.doctor4t.wathe.game.GameFunctions;
 import dev.doctor4t.wathe.util.KnifeStabPayload;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.Entity;
@@ -29,6 +30,11 @@ public abstract class ScavengerKnifeStabSoundMixin {
         }
 
         Entity target = attacker.getServerWorld().getEntityById(payload.target());
+        if (target instanceof ServerPlayerEntity targetPlayer && !GameFunctions.isPlayerPlayingAndAlive(targetPlayer)) {
+            ci.cancel();
+            return;
+        }
+
         if (SwallowedInteractionHelper.blocksTargetForViewer(attacker, target)) {
             ci.cancel();
         }

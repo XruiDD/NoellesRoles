@@ -149,7 +149,7 @@ public class DoubleBarrelShotgunItem extends Item {
         return true;
     }
 
-    private PlayerEntity findTarget(PlayerEntity user) {
+    public static PlayerEntity findTarget(PlayerEntity user) {
         Vec3d eyePos = user.getEyePos();
         Vec3d look = user.getRotationVec(1.0F);
         Vec3d end = eyePos.add(look.multiply(RANGE));

@@ -48,7 +48,20 @@ public class ConfigScreenState {
         );
     }
 
-    public void apply() {
+    public void apply(boolean includeRestrictedSettings) {
+        if (!includeRestrictedSettings) {
+            NoellesRolesConfig savedConfig = NoellesRolesConfig.HANDLER.instance();
+            noellesRolesConfig.insanePlayersSeeMorphs = savedConfig.insanePlayersSeeMorphs;
+            noellesRolesConfig.generalCooldownTicks = savedConfig.generalCooldownTicks;
+            noellesRolesConfig.voodooNonKillerDeaths = savedConfig.voodooNonKillerDeaths;
+            noellesRolesConfig.showFogRadiusHud = savedConfig.showFogRadiusHud;
+            noellesRolesConfig.showHallucinationHud = savedConfig.showHallucinationHud;
+            noellesRolesConfig.lockSoundPhysicsRemasteredConfig = savedConfig.lockSoundPhysicsRemasteredConfig;
+            noellesRolesConfig.soundPhysicsRemasteredLockedValues = savedConfig.soundPhysicsRemasteredLockedValues;
+            noellesRolesConfig.lockTalkBubblesConfig = savedConfig.lockTalkBubblesConfig;
+            noellesRolesConfig.talkBubblesLockedValues = savedConfig.talkBubblesLockedValues;
+        }
+
         NoellesRolesConfig.HANDLER.instance().copyFrom(noellesRolesConfig);
         NoellesRolesConfig.HANDLER.save();
 

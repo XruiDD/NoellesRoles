@@ -9,6 +9,7 @@ import dev.doctor4t.wathe.config.datapack.MapRegistry;
 import dev.doctor4t.wathe.config.datapack.MapRegistryEntry;
 import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.index.WatheItems;
+import dev.doctor4t.wathe.util.ShopUtils;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.MinecraftServer;
@@ -148,8 +149,9 @@ public final class DeathArenaStateHelper {
         player.giveItemStack(WatheItems.KNIFE.getDefaultStack());
 
         PlayerShopComponent shop = PlayerShopComponent.KEY.get(player);
+        shop.initializeShop(ShopUtils.getShopEntriesForPlayer(player));
         shop.balance = 0;
-        shop.addToBalance(50);
+        shop.addToBalance(100);
         shop.sync();
 
         player.clearStatusEffects();

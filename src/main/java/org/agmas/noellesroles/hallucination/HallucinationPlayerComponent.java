@@ -1037,7 +1037,7 @@ public class HallucinationPlayerComponent implements AutoSyncedComponent {
     }
 
     private static boolean tickArtifactTimerMap(Map<UUID, Integer> pendingMap,
-                                                Map<UUID, Integer> artifacts,
+                                                Map<UUID, ?> artifacts,
                                                 Map<UUID, ?> metadata) {
         List<UUID> expired = new ArrayList<>();
         for (Map.Entry<UUID, Integer> entry : pendingMap.entrySet()) {
@@ -1055,29 +1055,6 @@ public class HallucinationPlayerComponent implements AutoSyncedComponent {
             pendingMap.remove(uuid);
             artifacts.remove(uuid);
             metadata.remove(uuid);
-        });
-        return true;
-    }
-
-    private static boolean tickArtifactTimerMap(Map<UUID, Integer> pendingMap,
-                                                Map<UUID, HallucinationDummyState> artifacts,
-                                                Map<UUID, HallucinationDummyRewardReference> rewards) {
-        List<UUID> expired = new ArrayList<>();
-        for (Map.Entry<UUID, Integer> entry : pendingMap.entrySet()) {
-            int next = entry.getValue() - 1;
-            if (next <= 0) {
-                expired.add(entry.getKey());
-            } else {
-                entry.setValue(next);
-            }
-        }
-        if (expired.isEmpty()) {
-            return false;
-        }
-        expired.forEach(uuid -> {
-            pendingMap.remove(uuid);
-            artifacts.remove(uuid);
-            rewards.remove(uuid);
         });
         return true;
     }

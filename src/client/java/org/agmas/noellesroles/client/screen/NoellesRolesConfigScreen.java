@@ -105,6 +105,9 @@ public class NoellesRolesConfigScreen extends Screen {
             ConfigCategoryDefinition category = categories.get(i);
             int categoryIndex = i;
             ButtonWidget button = this.addDrawableChild(ButtonWidget.builder(category.title(), widget -> {
+                        if (!canAccessCategory(category)) {
+                            return;
+                        }
                         selectedCategoryIndex = categoryIndex;
                         scrollOffset = 0;
                         refreshVisibleRows();
@@ -141,6 +144,7 @@ public class NoellesRolesConfigScreen extends Screen {
     }
 
     private void refreshCategoryButtons() {
+        ensureAccessibleCategorySelected();
         for (int i = 0; i < categoryButtons.size(); i++) {
             ButtonWidget button = categoryButtons.get(i);
             ConfigCategoryDefinition category = categories.get(i);
@@ -209,7 +213,7 @@ public class NoellesRolesConfigScreen extends Screen {
             return;
         }
         restoreRestrictedValuesFromSnapshot();
-        this.workingCopy.apply();
+        this.workingCopy.apply(canEditRestrictedSettings());
         this.savedSnapshot = this.workingCopy.copy();
     }
 
@@ -372,7 +376,14 @@ public class NoellesRolesConfigScreen extends Screen {
         if (this.client == null || this.client.world == null || this.client.player == null) {
             return true;
         }
-        return this.client.player.hasPermissionLevel(2);
+        if (this.client.isInSingleplayer()) {
+            return true;
+        }
+        if (this.client.getNetworkHandler() == null) {
+            return false;
+        }
+        return this.client.getNetworkHandler().getCommandDispatcher().getRoot().getChild("fogradius") != null
+                || this.client.getNetworkHandler().getCommandDispatcher().getRoot().getChild("hallucination") != null;
     }
 
     private Text getCategoryTooltip(ConfigCategoryDefinition category) {

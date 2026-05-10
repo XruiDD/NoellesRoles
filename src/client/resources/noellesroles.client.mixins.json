@@ -69,6 +69,7 @@
     "reporter.ReporterHudMixin",
     "roleinfo.RoleInfoHudMixin",
     "saint.SaintHudMixin",
+    "hunter.DoubleBarrelShotgunCrosshairMixin",
     "hunter.HunterClientTrapCullMixin",
     "riotpatrol.BuiltinModelItemRendererMixin",
     "riotpatrol.ItemRendererInvoker",

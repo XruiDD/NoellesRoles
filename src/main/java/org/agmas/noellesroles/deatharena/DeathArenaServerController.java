@@ -14,6 +14,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
+import org.agmas.noellesroles.entity.HunterTrapEntity;
 import org.agmas.noellesroles.looseend.LooseEndPlayerComponent;
 import org.agmas.noellesroles.looseend.LooseEndsRadarWorldComponent;
 import org.agmas.noellesroles.mixin.wathe.GameWorldComponentAccessor;
@@ -144,7 +145,7 @@ public final class DeathArenaServerController {
             }
         }
 
-        cleanupArenaBodies(world);
+        cleanupArenaArtifacts(world.getServer());
         arenaWorld.reset();
         resetArenaDimension(world.getServer());
     }
@@ -167,8 +168,8 @@ public final class DeathArenaServerController {
             }
         }
 
+        cleanupArenaArtifacts(server);
         for (ServerWorld serverWorld : server.getWorlds()) {
-            cleanupArenaBodies(serverWorld);
             DeathArenaWorldComponent.KEY.get(serverWorld).reset();
         }
         resetArenaDimension(server);
@@ -179,8 +180,8 @@ public final class DeathArenaServerController {
             return;
         }
 
+        cleanupArenaArtifacts(server);
         for (ServerWorld world : server.getWorlds()) {
-            cleanupArenaBodies(world);
             DeathArenaWorldComponent.KEY.get(world).reset();
         }
 
@@ -220,6 +221,25 @@ public final class DeathArenaServerController {
         }
         arenaWorld.getArenaBodies().clear();
         arenaWorld.sync();
+    }
+
+    public static void cleanupArenaArtifacts(MinecraftServer server) {
+        if (server == null) {
+            return;
+        }
+        for (ServerWorld world : server.getWorlds()) {
+            cleanupArenaBodies(world);
+            cleanupHunterTraps(world);
+        }
+    }
+
+    public static void cleanupHunterTraps(ServerWorld world) {
+        if (world == null) {
+            return;
+        }
+        for (HunterTrapEntity trap : world.getEntitiesByType(net.minecraft.util.TypeFilter.equals(HunterTrapEntity.class), entity -> true)) {
+            trap.discard();
+        }
     }
 
     public static void leaveArena(ServerPlayerEntity player, boolean autoExit) {
