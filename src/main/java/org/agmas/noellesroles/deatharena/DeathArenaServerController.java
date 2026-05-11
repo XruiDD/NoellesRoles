@@ -123,6 +123,7 @@ public final class DeathArenaServerController {
 
         if (!arenaWorld.hasParticipants()) {
             arenaWorld.setActive(false);
+            cleanupArenaResetEntities(world.getServer());
         }
     }
 
@@ -141,7 +142,6 @@ public final class DeathArenaServerController {
             }
         }
 
-        cleanupArenaBodies(world);
         arenaWorld.reset();
         resetArenaDimensionAndStartMapReset(world.getServer());
     }
@@ -165,7 +165,6 @@ public final class DeathArenaServerController {
         }
 
         for (ServerWorld serverWorld : server.getWorlds()) {
-            cleanupArenaBodies(serverWorld);
             DeathArenaWorldComponent.KEY.get(serverWorld).reset();
         }
         resetArenaDimensionAndStartMapReset(server);
@@ -177,7 +176,6 @@ public final class DeathArenaServerController {
         }
 
         for (ServerWorld world : server.getWorlds()) {
-            cleanupArenaBodies(world);
             DeathArenaWorldComponent.KEY.get(world).reset();
         }
 
@@ -187,50 +185,6 @@ public final class DeathArenaServerController {
         }
 
         resetArenaDimensionAndStartMapReset(server);
-    }
-
-    public static void rememberArenaBody(ServerWorld world, UUID bodyUuid) {
-        if (world == null || bodyUuid == null) {
-            return;
-        }
-        ServerWorld trackingWorld = world;
-        if (DeathArenaStateHelper.isDeathArenaDimension(world)) {
-            ServerWorld originWorld = DeathArenaStateHelper.getArenaOriginWorld(world.getServer());
-            if (originWorld != null) {
-                trackingWorld = originWorld;
-            }
-        }
-        DeathArenaWorldComponent.KEY.get(trackingWorld).addArenaBody(bodyUuid);
-    }
-
-    public static void cleanupArenaBodies(ServerWorld world) {
-        if (world == null) {
-            return;
-        }
-        DeathArenaWorldComponent arenaWorld = DeathArenaWorldComponent.KEY.get(world);
-        Set<UUID> bodyUuids = new HashSet<>(arenaWorld.getArenaBodies());
-        ServerWorld arenaDimension = DeathArenaStateHelper.getArenaWorld(world.getServer());
-        DeathArenaWorldComponent arenaDimensionComponent = null;
-        if (arenaDimension != null && arenaDimension != world) {
-            arenaDimensionComponent = DeathArenaWorldComponent.KEY.get(arenaDimension);
-            bodyUuids.addAll(arenaDimensionComponent.getArenaBodies());
-        }
-
-        for (UUID bodyUuid : bodyUuids) {
-            for (ServerWorld serverWorld : world.getServer().getWorlds()) {
-                Entity entity = serverWorld.getEntity(bodyUuid);
-                if (entity != null) {
-                    entity.discard();
-                    break;
-                }
-            }
-        }
-        arenaWorld.getArenaBodies().clear();
-        arenaWorld.sync();
-        if (arenaDimensionComponent != null) {
-            arenaDimensionComponent.getArenaBodies().clear();
-            arenaDimensionComponent.sync();
-        }
     }
 
     public static void leaveArena(ServerPlayerEntity player, boolean autoExit) {
@@ -260,6 +214,7 @@ public final class DeathArenaServerController {
         originArenaWorld.removeParticipant(player.getUuid());
         if (!originArenaWorld.hasParticipants()) {
             originArenaWorld.setActive(false);
+            cleanupArenaResetEntities(server);
         }
 
         arenaPlayer.leave(autoExit);
@@ -407,7 +362,7 @@ public final class DeathArenaServerController {
         }
 
         resetArenaDimension(server);
-        cleanupArenaResetEntities(arenaWorld);
+        DeathArenaWorldComponent.KEY.get(arenaWorld).reset();
         return startArenaMapReset(arenaWorld);
     }
 
@@ -419,9 +374,17 @@ public final class DeathArenaServerController {
 
         arenaGame.startGradualReset(new MapResetTask(arenaWorld, () -> {
             cleanupArenaResetEntities(arenaWorld);
+            DeathArenaWorldComponent.KEY.get(arenaWorld).reset();
             resetArenaDimension(arenaWorld.getServer());
         }));
         return true;
+    }
+
+    private static void cleanupArenaResetEntities(MinecraftServer server) {
+        ServerWorld arenaWorld = DeathArenaStateHelper.getArenaWorld(server);
+        if (arenaWorld != null) {
+            cleanupArenaResetEntities(arenaWorld);
+        }
     }
 
     private static void cleanupArenaResetEntities(ServerWorld arenaWorld) {

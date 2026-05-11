@@ -1,13 +1,18 @@
 package org.agmas.noellesroles.deatharena;
 
+import dev.doctor4t.wathe.index.WatheEntities;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityType;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import org.agmas.noellesroles.NoellesRolesEntities;
 import org.agmas.noellesroles.Noellesroles;
 import org.jetbrains.annotations.NotNull;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
@@ -29,7 +34,6 @@ public class DeathArenaWorldComponent implements AutoSyncedComponent {
     private final World world;
     private boolean active = false;
     private final Set<UUID> participants = new LinkedHashSet<>();
-    private final Set<UUID> arenaBodies = new LinkedHashSet<>();
     private final List<SpawnLocation> spawnLocations = new ArrayList<>();
     private Identifier mapId = DeathArenaStateHelper.getConfiguredMapId();
 
@@ -38,9 +42,9 @@ public class DeathArenaWorldComponent implements AutoSyncedComponent {
     }
 
     public void reset() {
+        cleanupArenaResetEntities();
         this.active = false;
         this.participants.clear();
-        this.arenaBodies.clear();
         this.spawnLocations.clear();
         this.mapId = DeathArenaStateHelper.getConfiguredMapId();
         sync();
@@ -100,17 +104,29 @@ public class DeathArenaWorldComponent implements AutoSyncedComponent {
         return !spawnLocations.isEmpty();
     }
 
-    public void addArenaBody(UUID bodyUuid) {
-        arenaBodies.add(bodyUuid);
-        sync();
-    }
-
-    public Set<UUID> getArenaBodies() {
-        return arenaBodies;
-    }
-
     public void sync() {
         KEY.sync(world);
+    }
+
+    private void cleanupArenaResetEntities() {
+        if (!(world instanceof ServerWorld serverWorld) || !DeathArenaStateHelper.isDeathArenaDimension(serverWorld)) {
+            return;
+        }
+
+        cleanupArenaEntitiesByType(serverWorld, NoellesRolesEntities.ROLE_MINE_ENTITY_ENTITY_TYPE);
+        cleanupArenaEntitiesByType(serverWorld, NoellesRolesEntities.POISON_GAS_BOMB_ENTITY);
+        cleanupArenaEntitiesByType(serverWorld, NoellesRolesEntities.POISON_GAS_CLOUD_ENTITY);
+        cleanupArenaEntitiesByType(serverWorld, NoellesRolesEntities.THROWING_AXE_ENTITY);
+        cleanupArenaEntitiesByType(serverWorld, NoellesRolesEntities.HUNTER_TRAP_ENTITY);
+        cleanupArenaEntitiesByType(serverWorld, WatheEntities.GRENADE);
+        cleanupArenaEntitiesByType(serverWorld, WatheEntities.PLAYER_BODY);
+        cleanupArenaEntitiesByType(serverWorld, WatheEntities.NOTE);
+    }
+
+    private static void cleanupArenaEntitiesByType(ServerWorld arenaWorld, EntityType<?> entityType) {
+        for (Entity entity : arenaWorld.getEntitiesByType(entityType, entity -> true)) {
+            entity.discard();
+        }
     }
 
     @Override
@@ -141,14 +157,6 @@ public class DeathArenaWorldComponent implements AutoSyncedComponent {
         }
         tag.put("participants", participantList);
 
-        NbtList bodyList = new NbtList();
-        for (UUID uuid : arenaBodies) {
-            NbtCompound entry = new NbtCompound();
-            entry.putUuid("uuid", uuid);
-            bodyList.add(entry);
-        }
-        tag.put("arenaBodies", bodyList);
-
         NbtList spawnList = new NbtList();
         for (SpawnLocation spawnLocation : spawnLocations) {
             NbtCompound entry = new NbtCompound();
@@ -177,17 +185,6 @@ public class DeathArenaWorldComponent implements AutoSyncedComponent {
                 NbtCompound entry = participantList.getCompound(i);
                 if (entry.containsUuid("uuid")) {
                     participants.add(entry.getUuid("uuid"));
-                }
-            }
-        }
-
-        this.arenaBodies.clear();
-        if (tag.contains("arenaBodies")) {
-            NbtList bodyList = tag.getList("arenaBodies", NbtCompound.COMPOUND_TYPE);
-            for (int i = 0; i < bodyList.size(); i++) {
-                NbtCompound entry = bodyList.getCompound(i);
-                if (entry.containsUuid("uuid")) {
-                    arenaBodies.add(entry.getUuid("uuid"));
                 }
             }
         }
