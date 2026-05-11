@@ -922,5 +922,9 @@
   "command.noellesroles.hallucination.clear.success": "Cleared %s hallucination effects.",
   "event.noellesroles.murder_mayhem.unknown": "Unknown Event",
   "event_description.noellesroles.murder_mayhem.unknown": "Unknown event details",
-  "game.win.survival_master": "The Survival Master managed to stay alive in some forgotten corner..."
+  "game.win.survival_master": "The Survival Master managed to stay alive in some forgotten corner...",
+  "tip.noellesroles.death_arena.enter": "Press [%s] to enter Death Arena",
+  "tip.noellesroles.death_arena.exit": "Press [%s] to exit Death Arena",
+  "message.noellesroles.death_arena_unavailable": "Death Arena is currently unavailable",
+  "message.noellesroles.death_arena_map_missing": "Death Arena map spawn points are unavailable"
 }

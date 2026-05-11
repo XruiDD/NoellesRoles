@@ -4,8 +4,9 @@ import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.cca.MapVariablesWorldComponent;
 import dev.doctor4t.wathe.api.WatheGameModes;
 import dev.doctor4t.wathe.game.MapResetTask;
+import dev.doctor4t.wathe.index.WatheEntities;
 import net.minecraft.entity.Entity;
-import net.minecraft.registry.RegistryKey;
+import net.minecraft.entity.EntityType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -14,21 +15,18 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
-import org.agmas.noellesroles.entity.HunterTrapEntity;
+import org.agmas.noellesroles.NoellesRolesEntities;
 import org.agmas.noellesroles.looseend.LooseEndPlayerComponent;
 import org.agmas.noellesroles.looseend.LooseEndsRadarWorldComponent;
 import org.agmas.noellesroles.mixin.wathe.GameWorldComponentAccessor;
 import org.agmas.noellesroles.util.SpectatorStateHelper;
 
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 public final class DeathArenaServerController {
     private static final int RESPAWN_DELAY_TICKS = 2;
-    private static final Map<RegistryKey<World>, MapResetTask> MAP_RESET_TASKS = new ConcurrentHashMap<>();
 
     private DeathArenaServerController() {
     }
@@ -110,7 +108,6 @@ public final class DeathArenaServerController {
             return;
         }
 
-        tickMapResetTask(world);
         processPendingRespawns(world.getServer());
 
         DeathArenaWorldComponent arenaWorld = DeathArenaWorldComponent.KEY.get(world);
@@ -126,7 +123,7 @@ public final class DeathArenaServerController {
 
         if (!arenaWorld.hasParticipants()) {
             arenaWorld.setActive(false);
-            resetArenaDimension(world.getServer());
+            resetArenaDimensionAndStartMapReset(world.getServer());
         }
     }
 
@@ -145,9 +142,9 @@ public final class DeathArenaServerController {
             }
         }
 
-        cleanupArenaArtifacts(world.getServer());
+        cleanupArenaBodies(world);
         arenaWorld.reset();
-        resetArenaDimension(world.getServer());
+        resetArenaDimensionAndStartMapReset(world.getServer());
     }
 
     public static void forceShutdownFromAnyContext(ServerWorld world, boolean autoExit) {
@@ -168,11 +165,11 @@ public final class DeathArenaServerController {
             }
         }
 
-        cleanupArenaArtifacts(server);
         for (ServerWorld serverWorld : server.getWorlds()) {
+            cleanupArenaBodies(serverWorld);
             DeathArenaWorldComponent.KEY.get(serverWorld).reset();
         }
-        resetArenaDimension(server);
+        resetArenaDimensionAndStartMapReset(server);
     }
 
     public static void resetForNewRound(MinecraftServer server) {
@@ -180,8 +177,8 @@ public final class DeathArenaServerController {
             return;
         }
 
-        cleanupArenaArtifacts(server);
         for (ServerWorld world : server.getWorlds()) {
+            cleanupArenaBodies(world);
             DeathArenaWorldComponent.KEY.get(world).reset();
         }
 
@@ -190,19 +187,21 @@ public final class DeathArenaServerController {
             return;
         }
 
-        MAP_RESET_TASKS.remove(arenaWorld.getRegistryKey());
-        resetArenaDimension(server);
-        MAP_RESET_TASKS.put(
-                arenaWorld.getRegistryKey(),
-                new MapResetTask(arenaWorld, () -> resetArenaDimension(server))
-        );
+        resetArenaDimensionAndStartMapReset(server);
     }
 
     public static void rememberArenaBody(ServerWorld world, UUID bodyUuid) {
         if (world == null || bodyUuid == null) {
             return;
         }
-        DeathArenaWorldComponent.KEY.get(world).addArenaBody(bodyUuid);
+        ServerWorld trackingWorld = world;
+        if (DeathArenaStateHelper.isDeathArenaDimension(world)) {
+            ServerWorld originWorld = DeathArenaStateHelper.getArenaOriginWorld(world.getServer());
+            if (originWorld != null) {
+                trackingWorld = originWorld;
+            }
+        }
+        DeathArenaWorldComponent.KEY.get(trackingWorld).addArenaBody(bodyUuid);
     }
 
     public static void cleanupArenaBodies(ServerWorld world) {
@@ -210,7 +209,15 @@ public final class DeathArenaServerController {
             return;
         }
         DeathArenaWorldComponent arenaWorld = DeathArenaWorldComponent.KEY.get(world);
-        for (UUID bodyUuid : new HashSet<>(arenaWorld.getArenaBodies())) {
+        Set<UUID> bodyUuids = new HashSet<>(arenaWorld.getArenaBodies());
+        ServerWorld arenaDimension = DeathArenaStateHelper.getArenaWorld(world.getServer());
+        DeathArenaWorldComponent arenaDimensionComponent = null;
+        if (arenaDimension != null && arenaDimension != world) {
+            arenaDimensionComponent = DeathArenaWorldComponent.KEY.get(arenaDimension);
+            bodyUuids.addAll(arenaDimensionComponent.getArenaBodies());
+        }
+
+        for (UUID bodyUuid : bodyUuids) {
             for (ServerWorld serverWorld : world.getServer().getWorlds()) {
                 Entity entity = serverWorld.getEntity(bodyUuid);
                 if (entity != null) {
@@ -221,24 +228,9 @@ public final class DeathArenaServerController {
         }
         arenaWorld.getArenaBodies().clear();
         arenaWorld.sync();
-    }
-
-    public static void cleanupArenaArtifacts(MinecraftServer server) {
-        if (server == null) {
-            return;
-        }
-        for (ServerWorld world : server.getWorlds()) {
-            cleanupArenaBodies(world);
-            cleanupHunterTraps(world);
-        }
-    }
-
-    public static void cleanupHunterTraps(ServerWorld world) {
-        if (world == null) {
-            return;
-        }
-        for (HunterTrapEntity trap : world.getEntitiesByType(net.minecraft.util.TypeFilter.equals(HunterTrapEntity.class), entity -> true)) {
-            trap.discard();
+        if (arenaDimensionComponent != null) {
+            arenaDimensionComponent.getArenaBodies().clear();
+            arenaDimensionComponent.sync();
         }
     }
 
@@ -267,9 +259,9 @@ public final class DeathArenaServerController {
 
         DeathArenaWorldComponent originArenaWorld = DeathArenaWorldComponent.KEY.get(returnWorld);
         originArenaWorld.removeParticipant(player.getUuid());
-        if (!originArenaWorld.hasParticipants()) {
+        boolean resetArenaAfterLeave = !originArenaWorld.hasParticipants();
+        if (resetArenaAfterLeave) {
             originArenaWorld.setActive(false);
-            resetArenaDimension(server);
         }
 
         arenaPlayer.leave(autoExit);
@@ -296,6 +288,10 @@ public final class DeathArenaServerController {
             player.requestTeleport(returnPos.x, returnPos.y, returnPos.z);
             player.setYaw(arenaPlayer.getReturnYaw());
             player.setPitch(arenaPlayer.getReturnPitch());
+        }
+
+        if (resetArenaAfterLeave) {
+            resetArenaDimensionAndStartMapReset(server);
         }
     }
 
@@ -409,18 +405,48 @@ public final class DeathArenaServerController {
         LooseEndsRadarWorldComponent.KEY.sync(arenaWorld);
     }
 
-    private static void tickMapResetTask(ServerWorld world) {
-        MapResetTask task = MAP_RESET_TASKS.get(world.getRegistryKey());
-        if (task == null) {
-            return;
+    private static boolean resetArenaDimensionAndStartMapReset(MinecraftServer server) {
+        ServerWorld arenaWorld = DeathArenaStateHelper.getArenaWorld(server);
+        if (arenaWorld == null) {
+            return false;
         }
-        if (task.tick()) {
-            MAP_RESET_TASKS.remove(world.getRegistryKey());
+
+        resetArenaDimension(server);
+        cleanupArenaResetEntities(arenaWorld);
+        return startArenaMapReset(arenaWorld);
+    }
+
+    private static boolean startArenaMapReset(ServerWorld arenaWorld) {
+        GameWorldComponent arenaGame = GameWorldComponent.KEY.get(arenaWorld);
+        if (arenaGame.isGradualResetInProgress()) {
+            return false;
+        }
+
+        arenaGame.startGradualReset(new MapResetTask(arenaWorld, () -> {
+            cleanupArenaResetEntities(arenaWorld);
+            resetArenaDimension(arenaWorld.getServer());
+        }));
+        return true;
+    }
+
+    private static void cleanupArenaResetEntities(ServerWorld arenaWorld) {
+        cleanupArenaEntitiesByType(arenaWorld, NoellesRolesEntities.ROLE_MINE_ENTITY_ENTITY_TYPE);
+        cleanupArenaEntitiesByType(arenaWorld, NoellesRolesEntities.POISON_GAS_BOMB_ENTITY);
+        cleanupArenaEntitiesByType(arenaWorld, NoellesRolesEntities.POISON_GAS_CLOUD_ENTITY);
+        cleanupArenaEntitiesByType(arenaWorld, NoellesRolesEntities.THROWING_AXE_ENTITY);
+        cleanupArenaEntitiesByType(arenaWorld, NoellesRolesEntities.HUNTER_TRAP_ENTITY);
+        cleanupArenaEntitiesByType(arenaWorld, WatheEntities.GRENADE);
+        cleanupArenaEntitiesByType(arenaWorld, WatheEntities.PLAYER_BODY);
+        cleanupArenaEntitiesByType(arenaWorld, WatheEntities.NOTE);
+    }
+
+    private static void cleanupArenaEntitiesByType(ServerWorld arenaWorld, EntityType<?> entityType) {
+        for (Entity entity : arenaWorld.getEntitiesByType(entityType, entity -> true)) {
+            entity.discard();
         }
     }
 
     private static boolean isArenaMapResetting(ServerWorld world) {
-        MapResetTask task = MAP_RESET_TASKS.get(world.getRegistryKey());
-        return task != null && !task.isFinished();
+        return GameWorldComponent.KEY.get(world).isGradualResetInProgress();
     }
 }
