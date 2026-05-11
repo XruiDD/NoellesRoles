@@ -72,11 +72,11 @@ public final class DeathArenaStateHelper {
         if (server == null) {
             return null;
         }
-        MapRegistryEntry entry = getArenaMapEntry();
-        if (entry == null) {
+        Identifier arenaDimensionId = getArenaDimensionId();
+        if (arenaDimensionId == null) {
             return null;
         }
-        RegistryKey<net.minecraft.world.World> worldKey = RegistryKey.of(RegistryKeys.WORLD, entry.dimensionId());
+        RegistryKey<net.minecraft.world.World> worldKey = RegistryKey.of(RegistryKeys.WORLD, arenaDimensionId);
         return server.getWorld(worldKey);
     }
 

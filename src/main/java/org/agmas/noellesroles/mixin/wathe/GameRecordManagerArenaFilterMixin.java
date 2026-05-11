@@ -13,6 +13,25 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(GameRecordManager.class)
 public class GameRecordManagerArenaFilterMixin {
+    @Inject(
+            method = "addEvent(Lnet/minecraft/server/world/ServerWorld;Ljava/lang/String;Lnet/minecraft/server/network/ServerPlayerEntity;Lnet/minecraft/server/network/ServerPlayerEntity;Lnet/minecraft/nbt/NbtCompound;)V",
+            at = @At("HEAD"),
+            cancellable = true
+    )
+    private static void noellesroles$skipArenaEventAtFinalRecordPoint(
+            ServerWorld world,
+            String type,
+            ServerPlayerEntity actor,
+            ServerPlayerEntity target,
+            NbtCompound data,
+            CallbackInfo ci) {
+        if (DeathArenaStateHelper.isDeathArenaDimension(world)
+                || DeathArenaStateHelper.isDeathArenaParticipant(actor)
+                || DeathArenaStateHelper.isDeathArenaParticipant(target)) {
+            ci.cancel();
+        }
+    }
+
     @Inject(method = "recordDeath", at = @At("HEAD"), cancellable = true)
     private static void noellesroles$skipArenaDeathRecord(
             ServerPlayerEntity victim,
