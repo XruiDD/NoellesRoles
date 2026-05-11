@@ -123,7 +123,6 @@ public final class DeathArenaServerController {
 
         if (!arenaWorld.hasParticipants()) {
             arenaWorld.setActive(false);
-            resetArenaDimensionAndStartMapReset(world.getServer());
         }
     }
 
@@ -259,8 +258,7 @@ public final class DeathArenaServerController {
 
         DeathArenaWorldComponent originArenaWorld = DeathArenaWorldComponent.KEY.get(returnWorld);
         originArenaWorld.removeParticipant(player.getUuid());
-        boolean resetArenaAfterLeave = !originArenaWorld.hasParticipants();
-        if (resetArenaAfterLeave) {
+        if (!originArenaWorld.hasParticipants()) {
             originArenaWorld.setActive(false);
         }
 
@@ -290,9 +288,6 @@ public final class DeathArenaServerController {
             player.setPitch(arenaPlayer.getReturnPitch());
         }
 
-        if (resetArenaAfterLeave) {
-            resetArenaDimensionAndStartMapReset(server);
-        }
     }
 
     private static void processPendingRespawns(MinecraftServer server) {
