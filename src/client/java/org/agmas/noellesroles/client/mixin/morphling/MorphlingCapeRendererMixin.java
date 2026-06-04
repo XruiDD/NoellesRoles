@@ -38,7 +38,7 @@ public class MorphlingCapeRendererMixin {
     private SkinTextures morphling_wrapCapeTexture(AbstractClientPlayerEntity instance, Operation<SkinTextures> original) {
 
 
-        // 优先处理疯狂模式
+        // 优先处理疯魔模式
         if (WatheClient.moodComponent != null) {
             ConfigWorldComponent config = ConfigWorldComponent.KEY.get(instance.getWorld());
             if (config.insaneSeesMorphs &&
