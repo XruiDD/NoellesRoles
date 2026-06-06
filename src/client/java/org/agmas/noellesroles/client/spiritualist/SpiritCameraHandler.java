@@ -5,6 +5,7 @@ import net.minecraft.client.input.Input;
 import net.minecraft.client.input.KeyboardInput;
 import net.minecraft.client.option.Perspective;
 import org.agmas.noellesroles.spiritualist.SpiritPlayerComponent;
+import org.agmas.noellesroles.taotie.SwallowedPlayerComponent;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -64,7 +65,11 @@ public class SpiritCameraHandler {
         // --- onDisable ---
         MC.chunkCullingEnabled = true;
         MC.gameRenderer.setRenderHand(true);
-        MC.setCameraEntity(MC.player);
+        // 被吞时相机归属交给被吞系统（锁定在饕餮上），出窍关闭不抢回本体，
+        // 否则被吞的灵界行者会恢复成可自由飞行的旁观者
+        if (MC.player != null && !SwallowedPlayerComponent.isPlayerSwallowed(MC.player)) {
+            MC.setCameraEntity(MC.player);
+        }
 
         if (spiritCamera != null) {
             spiritCamera.despawn();
