@@ -47,8 +47,6 @@ import org.agmas.noellesroles.util.HiddenEquipmentHelper;
 import dev.doctor4t.wathe.index.WatheItems;
 import org.agmas.noellesroles.client.screen.AssassinScreen;
 import org.agmas.noellesroles.corruptcop.CorruptCopPlayerComponent;
-import org.agmas.noellesroles.jester.JesterPlayerComponent;
-import org.agmas.noellesroles.morphling.MorphlingPlayerComponent;
 import org.agmas.noellesroles.client.render.EngineerDoorHighlightRenderer;
 import org.agmas.noellesroles.packet.AbilityC2SPacket;
 import org.agmas.noellesroles.packet.EngineerDoorHighlightS2CPacket;
@@ -76,9 +74,9 @@ import org.agmas.noellesroles.reporter.ReporterPlayerComponent;
 import org.agmas.noellesroles.bodyguard.BodyguardPlayerComponent;
 import org.agmas.noellesroles.serialkiller.SerialKillerPlayerComponent;
 import org.agmas.noellesroles.bomber.BomberPlayerComponent;
-import org.agmas.noellesroles.survivalmaster.SurvivalMasterPlayerComponent;
 import org.agmas.noellesroles.demonhunter.DemonHunterPlayerComponent;
 import org.agmas.noellesroles.client.demonhunter.DemonHunterClientHelper;
+import org.agmas.noellesroles.client.jester.JesterMomentClient;
 import org.agmas.noellesroles.NoellesRolesEntities;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.client.render.entity.FlyingItemEntityRenderer;
@@ -214,6 +212,16 @@ public class NoellesrolesClient implements ClientModInitializer {
 
             PlayerEntity localPlayer = MinecraftClient.getInstance().player;
 
+            // 小丑时刻：其他玩家无法本能透视小丑（skip 优先级最高，压过猎魔人/秃鹫等高亮）；小丑本人视角不受影响
+            if (JesterMomentClient.isActive()) {
+                var activeJester = JesterMomentClient.getActiveJester(localPlayer.getWorld());
+                if (activeJester != null
+                        && player.getUuid().equals(activeJester.getUuid())
+                        && !localPlayer.getUuid().equals(activeJester.getUuid())) {
+                    return GetInstinctHighlight.HighlightResult.skip();
+                }
+            }
+
             if (gameWorldComponent.isRole(localPlayer, Noellesroles.CORRUPT_COP)) {
                 var comp = CorruptCopPlayerComponent.KEY.get(localPlayer);
                 if (comp.canSeePlayersThroughWalls()){
@@ -259,22 +267,6 @@ public class NoellesrolesClient implements ClientModInitializer {
             if (PlayerPsychoComponent.KEY.get(localPlayer).getPsychoTicks() > 0
                     && gameWorldComponent.isRole(player, Noellesroles.DEMON_HUNTER)) {
                 return GetInstinctHighlight.HighlightResult.always(Noellesroles.DEMON_HUNTER.color());
-            }
-
-            if (gameWorldComponent.isRole(localPlayer, Noellesroles.JESTER)) {
-                JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(localPlayer);
-                if (jesterComponent.inPsychoMode && player.getUuid().equals(jesterComponent.targetKiller))
-                {
-                    return GetInstinctHighlight.HighlightResult.always(Noellesroles.JESTER.color());
-                }
-            }
-
-            // 疯魔模式：所有人自动全局高亮小丑（判断目标是小丑角色+处于疯魔模式）
-            if (gameWorldComponent.isRole(player, Noellesroles.JESTER)) {
-                JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(player);
-                if (jesterComponent.inPsychoMode) {
-                    return GetInstinctHighlight.HighlightResult.always(Noellesroles.JESTER.color());
-                }
             }
 
             // BARTENDER: 看到喝酒者发绿光（需要视线）
@@ -427,6 +419,8 @@ public class NoellesrolesClient implements ClientModInitializer {
 
             return null; // 不处理，使用默认逻辑
         });
+
+        ClientTickEvents.END_CLIENT_TICK.register(JesterMomentClient::clientTick);
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             // 更新世界BGM管理器

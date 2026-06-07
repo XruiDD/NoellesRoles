@@ -370,9 +370,7 @@
 
   "replay.global.noellesroles.survival_moment_start": "%s triggered §dSurvival Moment§r",
   "replay.global.noellesroles.survival_moment_end": "%s's §dSurvival Moment§r ended",
-  "replay.global.noellesroles.jester_stasis_start": "%s was killed by %s, entering §dJester Stasis§r",
   "replay.global.noellesroles.jester_moment_start": "%s was killed by %s, triggering §dJester Moment§r",
-  "replay.global.noellesroles.jester_moment_end": "%s's §dJester Moment§r ended",
   "replay.global.noellesroles.corrupt_cop_moment_start": "%s triggered §dCorrupt Cop Moment§r",
   "replay.global.noellesroles.corrupt_cop_moment_end": "%s's §dCorrupt Cop Moment§r ended",
   "replay.global.noellesroles.taotie_moment_start": "%s triggered §dTaotie Moment§r",

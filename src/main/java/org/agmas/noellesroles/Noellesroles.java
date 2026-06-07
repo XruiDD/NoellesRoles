@@ -167,6 +167,8 @@ public class Noellesroles implements ModInitializer {
     public static Identifier DEATH_REASON_ASSASSINATED = Identifier.of(MOD_ID, "assassinated");  // 被刺客猜中身份
     public static Identifier DEATH_REASON_ASSASSIN_MISFIRE = Identifier.of(MOD_ID, "assassin_misfire");  // 刺客猜错自己死亡
     public static Identifier DEATH_REASON_JESTER_TIMEOUT = Identifier.of(MOD_ID, "jester_timeout");
+    // 新增：好人枪杀小丑 → 开枪者死于"小脑"死因（显示同 shot_innocent，标识符/回放模板独立）
+    public static Identifier DEATH_REASON_SHOT_JESTER = Identifier.of(MOD_ID, "shot_jester");
     // 饕餮吞噬死亡原因（游戏结束时被消化）
     public static Identifier DEATH_REASON_DIGESTED = Identifier.of(MOD_ID, "digested");
     // 保镖牺牲死亡原因
@@ -516,16 +518,22 @@ public class Noellesroles implements ModInitializer {
             if (gameWorldComponent.isRole(victim, JESTER) &&
                 (deathReason == GameConstants.DeathReasons.GUN || deathReason == DEATH_REASON_DEMON_HUNTER) &&
                 killer != null) {
-                // 猎魔人击杀小丑不触发小丑盛宴（无论用什么枪）
+                // 猎魔人是小丑的硬克制：直接杀死，不触发小丑时刻
                 if (gameWorldComponent.isRole(killer, DEMON_HUNTER)) {
-                    return null; // 放行击杀，不进入 stasis
+                    return null;
                 }
+                // 其余好人阵营（isInnocent）枪杀小丑 → 触发小丑时刻
                 Role killerRole = gameWorldComponent.getRole(killer);
-                if (killerRole != null && killerRole.isInnocent()) {
+                if (killerRole != null && killerRole.isInnocent()
+                        && victim instanceof ServerPlayerEntity serverJester
+                        && killer instanceof ServerPlayerEntity serverKiller) {
                     JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(victim);
-                    if(!jesterComponent.inPsychoMode){
-                        jesterComponent.targetKiller = killer.getUuid();
-                        jesterComponent.enterStasis(GameConstants.getInTicks(0, 5));
+                    if (!jesterComponent.inPsychoMode && !jesterComponent.isTransitioning()) {
+                        // 开枪者死于"小脑"死因（SHOT_JESTER）。
+                        // 重入安全：serverKiller 非小丑，内层 killPlayer 不会再进本分支（且不存在两个小丑）。
+                        GameFunctions.killPlayer(serverKiller, true, null, DEATH_REASON_SHOT_JESTER);
+                        // 小丑假死：取消真死亡 + 假尸体(枪杀) + 旁观锁定 5 秒
+                        jesterComponent.beginFakeDeath(serverKiller.getUuid());
                         return KillPlayer.KillResult.cancel();
                     }
                 }
@@ -651,8 +659,7 @@ public class Noellesroles implements ModInitializer {
             if (role.equals(JESTER)) {
                 JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(player);
                 jesterComponent.reset();
-                int totalPlayers = gameWorldComponent.getAllPlayers().size();
-                jesterComponent.psychoArmour = Math.max(1, totalPlayers / 5);
+                // 护盾不再按人数初始化：进入小丑时刻时置 1，按击杀增长（见 startJesterPsychoMode / registerKill）
             }
             if (role.equals(CORRUPT_COP)) {
                 player.giveItemStack(WatheItems.REVOLVER.getDefaultStack());
@@ -931,8 +938,21 @@ public class Noellesroles implements ModInitializer {
                 PlayerEntity jester = world.getPlayerByUuid(uuid);
                 if (GameFunctions.isPlayerPlayingAndAlive(jester)) {
                     JesterPlayerComponent component = JesterPlayerComponent.KEY.get(jester);
-                    if (component.won) {
-                        return CheckWinCondition.WinResult.neutralWin((ServerPlayerEntity) jester);
+                    if (component.inPsychoMode) {
+                        // 小丑时刻：场上除小丑外无存活玩家 → 杀光全场，胜利
+                        boolean othersAlive = false;
+                        for (ServerPlayerEntity p : world.getPlayers()) {
+                            if (p.getUuid().equals(uuid)) continue;
+                            if (!GameFunctions.isPlayerPlayingAndAlive(p)) continue;
+                            // 被饕餮吞下的玩家不计入存活（与黑警胜利判定一致）
+                            if (SwallowedPlayerComponent.KEY.get(p).isSwallowed()) continue;
+                            othersAlive = true;
+                            break;
+                        }
+                        if (!othersAlive) {
+                            component.won = true;
+                            return CheckWinCondition.WinResult.neutralWin((ServerPlayerEntity) jester);
+                        }
                     }
                 }
             }
@@ -961,15 +981,15 @@ public class Noellesroles implements ModInitializer {
                 }
             }
 
-            // 小丑疯魔阻止胜利
+            // 小丑时刻 / 过渡态（假死旁观、禁锢）阻止他人阵营胜利
             for (UUID uuid : gameComponent.getAllWithRole(JESTER)) {
                 PlayerEntity jester = world.getPlayerByUuid(uuid);
-                if (GameFunctions.isPlayerPlayingAndAlive(jester)) {
-                    JesterPlayerComponent component = JesterPlayerComponent.KEY.get(jester);
-                    if (component.inPsychoMode && (currentStatus == GameFunctions.WinStatus.KILLERS
+                if (jester == null) continue;
+                JesterPlayerComponent component = JesterPlayerComponent.KEY.get(jester);
+                if ((component.inPsychoMode || component.isTransitioning())
+                        && (currentStatus == GameFunctions.WinStatus.KILLERS
                             || currentStatus == GameFunctions.WinStatus.PASSENGERS)) {
-                        return CheckWinCondition.WinResult.block();
-                    }
+                    return CheckWinCondition.WinResult.block();
                 }
             }
 
@@ -1119,22 +1139,19 @@ public class Noellesroles implements ModInitializer {
             }
 
 
-            for (UUID uuid : gameComponent.getAllWithRole(JESTER)) {
-                PlayerEntity jester = victim.getWorld().getPlayerByUuid(uuid);
-                if (jester != null) {
-                    JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(jester);
-                    if (jesterComponent.targetKiller != null &&
-                            victim.getUuid().equals(jesterComponent.targetKiller)) {
-                        jesterComponent.won = true;
-                        break;
-                    }
+            // 小丑亲手击杀：延长时间 + 护盾增长（胜利由 CheckWinCondition 按"唯一存活者"判定）
+            if (killer != null && gameComponent.isRole(killer, JESTER)
+                    && !victim.getUuid().equals(killer.getUuid())) {
+                JesterPlayerComponent killerJester = JesterPlayerComponent.KEY.get(killer);
+                if (killerJester.inPsychoMode) {
+                    killerJester.registerKill();
                 }
             }
 
-            // 如果小丑在疯魔模式中被杀，重置状态（停止BGM等）
+            // 如果小丑在疯魔模式或过渡态中被杀，重置状态（停止BGM、还原覆盖层、清过渡态防死锁）
             if (gameComponent.isRole(victim, JESTER)) {
                 JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(victim);
-                if (jesterComponent.inPsychoMode) {
+                if (jesterComponent.inPsychoMode || jesterComponent.isTransitioning()) {
                     jesterComponent.reset();
                 }
             }
@@ -2157,7 +2174,21 @@ public class Noellesroles implements ModInitializer {
             return Text.translatable(translationKey, actorText);
         };
         ReplayRegistry.registerGlobalEventFormatter(Identifier.of(MOD_ID, "jester_moment_start"), jesterTriggerFormatter);
-        ReplayRegistry.registerGlobalEventFormatter(Identifier.of(MOD_ID, "jester_stasis_start"), jesterTriggerFormatter);
+        // 小丑时刻结束：按 reason（killed/timeout）选择文案
+        ReplayRegistry.registerGlobalEventFormatter(Identifier.of(MOD_ID, "jester_moment_end"), (event, match, world) -> {
+            var cache = ReplayGenerator.getPlayerInfoCache(match);
+            NbtCompound data = event.data();
+            UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+            if (actorUuid == null) return null;
+            Text actorText = ReplayGenerator.formatPlayerName(actorUuid, cache);
+            String reason = data.getString("reason");
+            String key = switch (reason) {
+                case "timeout" -> "replay.global.noellesroles.jester_moment_end.timeout";
+                case "killed" -> "replay.global.noellesroles.jester_moment_end.killed";
+                default -> "replay.global.noellesroles.jester_moment_end.killed";
+            };
+            return Text.translatable(key, actorText);
+        });
 
         // death_blocked 格式化器
         ReplayRegistry.registerFormatter("death_blocked", (event, match, world) -> {

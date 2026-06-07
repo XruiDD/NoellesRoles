@@ -1,19 +1,21 @@
 package org.agmas.noellesroles.jester;
 
-import dev.doctor4t.wathe.Wathe;
+import dev.doctor4t.wathe.api.event.PsychoType;
 import dev.doctor4t.wathe.cca.GameWorldComponent;
-import dev.doctor4t.wathe.cca.MapEnhancementsWorldComponent;
+import dev.doctor4t.wathe.cca.PlayerMoodComponent;
 import dev.doctor4t.wathe.cca.PlayerPsychoComponent;
 import dev.doctor4t.wathe.cca.PlayerStaminaComponent;
-import dev.doctor4t.wathe.api.event.PsychoType;
+import dev.doctor4t.wathe.entity.PlayerBodyEntity;
+import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.game.GameFunctions;
 import dev.doctor4t.wathe.index.WatheAttributes;
+import dev.doctor4t.wathe.index.WatheEntities;
 import dev.doctor4t.wathe.record.GameRecordManager;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.packet.s2c.play.PlaySoundS2CPacket;
 import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
 import net.minecraft.network.packet.s2c.play.TitleFadeS2CPacket;
@@ -24,9 +26,13 @@ import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvent;
+import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import org.agmas.noellesroles.ModSounds;
 import org.agmas.noellesroles.Noellesroles;
@@ -44,22 +50,28 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
         ComponentRegistry.getOrCreate(Identifier.of(Noellesroles.MOD_ID, "jester"), JesterPlayerComponent.class);
     private static final Identifier EVENT_MOMENT_START = Identifier.of(Noellesroles.MOD_ID, "jester_moment_start");
     private static final Identifier EVENT_MOMENT_END = Identifier.of(Noellesroles.MOD_ID, "jester_moment_end");
-    private static final Identifier EVENT_STASIS_START = Identifier.of(Noellesroles.MOD_ID, "jester_stasis_start");
     private static final Identifier PSYCHO_SPRINT_MODIFIER_ID = Identifier.of(Noellesroles.MOD_ID, "jester_psycho_sprint");
 
     private final PlayerEntity player;
     public boolean won = false;
-    public boolean inStasis = false;  // 禁锢状态
-    public int stasisTicks = 0;  // 禁锢倒计时
-    public int psychoArmour = 0;  // 疯魔模式盾数量
-    public boolean inPsychoMode = false;  // 是否在疯魔模式中
-    public int psychoModeTicks = 0;  // 疯魔模式剩余时间（3分钟 = 3600 ticks）
-    public UUID targetKiller = null;  // 目标击杀者（小丑需要复仇的对象）
 
-    // 禁锢位置记录
-    private double stasisX = 0;
-    private double stasisY = 0;
-    private double stasisZ = 0;
+    public int spectatorTicks = 0;
+    private UUID fakeBodyUuid = null;
+
+    public boolean inStasis = false;
+    public int stasisTicks = 0;
+    private double stasisX = 0, stasisY = 0, stasisZ = 0;
+
+    public boolean inPsychoMode = false;
+    public int psychoModeTicks = 0;
+    public int psychoArmour = 0;
+    public int baseArmour = 1;
+    public int killCount = 0;
+    public UUID targetKiller = null;
+
+    private double deathX = 0, deathY = 0, deathZ = 0;
+
+    private final Map<UUID, Float> savedMoods = new HashMap<>();
 
     public JesterPlayerComponent(PlayerEntity player) {
         this.player = player;
@@ -67,35 +79,56 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
 
     @Override
     public boolean shouldSyncWith(ServerPlayerEntity player) {
-        // 疯魔模式下同步给所有玩家，以便客户端判断高亮；否则只同步给自己
         if (this.inPsychoMode) {
             return true;
         }
         return player == this.player;
     }
 
+    public boolean isTransitioning() {
+        return this.spectatorTicks > 0 || this.inStasis;
+    }
+
     public void reset() {
+        // 若在假死旁观阶段被重置，恢复游戏模式与视角，避免卡在旁观
+        if (this.spectatorTicks > 0 && player instanceof ServerPlayerEntity specPlayer) {
+            specPlayer.setCameraEntity(specPlayer);
+            specPlayer.changeGameMode(net.minecraft.world.GameMode.ADVENTURE);
+        }
         this.won = false;
         this.inStasis = false;
         this.stasisTicks = 0;
+        this.spectatorTicks = 0;
+        this.killCount = 0;
         this.psychoArmour = 0;
         this.targetKiller = null;
-        // 如果正在疯魔模式中，停止疯魔模式和BGM
+
+        if (this.fakeBodyUuid != null && player.getWorld() instanceof ServerWorld sw) {
+            Entity body = sw.getEntity(this.fakeBodyUuid);
+            if (body instanceof PlayerBodyEntity) body.discard();
+        }
+        this.fakeBodyUuid = null;
+
+        if (!this.savedMoods.isEmpty() && player.getWorld() instanceof ServerWorld sw2) {
+            for (Map.Entry<UUID, Float> e : this.savedMoods.entrySet()) {
+                ServerPlayerEntity p = sw2.getServer().getPlayerManager().getPlayer(e.getKey());
+                if (p != null) PlayerMoodComponent.KEY.get(p).setMood(e.getValue());
+            }
+        }
+        this.savedMoods.clear();
+
         if (this.inPsychoMode) {
-            // 停止小丑时刻BGM
             if (player.getWorld() != null) {
                 WorldMusicComponent worldMusic = WorldMusicComponent.KEY.get(player.getWorld());
                 worldMusic.stopMusic();
             }
             if (player instanceof ServerPlayerEntity serverPlayer) {
-                // 记录疯魔模式被中断（被杀死），排除超时情况（超时时 psychoModeTicks <= 0，已单独记录）
                 if (this.psychoModeTicks > 0 && player.getWorld() instanceof ServerWorld serverWorld) {
                     NbtCompound extra = new NbtCompound();
                     extra.putString("reason", "killed");
                     extra.putInt("remaining_ticks", this.psychoModeTicks);
                     GameRecordManager.recordGlobalEvent(serverWorld, EVENT_MOMENT_END, serverPlayer, extra);
                 }
-                // 移除体力上限修改器
                 EntityAttributeInstance sprintAttr = serverPlayer.getAttributeInstance(WatheAttributes.MAX_SPRINT_TIME);
                 if (sprintAttr != null && sprintAttr.hasModifier(PSYCHO_SPRINT_MODIFIER_ID)) {
                     sprintAttr.removeModifier(PSYCHO_SPRINT_MODIFIER_ID);
@@ -109,65 +142,85 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
         this.sync();
     }
 
+    public void beginFakeDeath(UUID killerUuid) {
+        if (!(player instanceof ServerPlayerEntity serverJester)) return;
+        if (!(player.getWorld() instanceof ServerWorld serverWorld)) return;
+
+        this.targetKiller = killerUuid;
+        this.deathX = player.getX();
+        this.deathY = player.getY();
+        this.deathZ = player.getZ();
+        float yaw = serverJester.getHeadYaw();
+
+        PlayerBodyEntity body = WatheEntities.PLAYER_BODY.create(serverWorld);
+        if (body != null) {
+            body.setPlayerUuid(serverJester.getUuid());
+            body.setDeathReason(GameConstants.DeathReasons.GUN);
+            body.setDeathGameTime(serverWorld.getTime());
+            body.refreshPositionAndAngles(this.deathX, this.deathY, this.deathZ, yaw, 0f);
+            body.setYaw(yaw);
+            body.setHeadYaw(yaw);
+            serverWorld.spawnEntity(body);
+            this.fakeBodyUuid = body.getUuid();
+        }
+
+        serverJester.changeGameMode(net.minecraft.world.GameMode.SPECTATOR);
+        if (body != null) serverJester.setCameraEntity(body);
+        this.spectatorTicks = GameConstants.getInTicks(0, 5);
+
+        this.sync();
+    }
+
+    private void revive() {
+        if (!(player instanceof ServerPlayerEntity serverJester)) return;
+        if (!(player.getWorld() instanceof ServerWorld serverWorld)) return;
+
+        if (this.fakeBodyUuid != null) {
+            Entity body = serverWorld.getEntity(this.fakeBodyUuid);
+            if (body instanceof PlayerBodyEntity) body.discard();
+            this.fakeBodyUuid = null;
+        }
+
+        serverJester.setCameraEntity(serverJester);
+        serverJester.changeGameMode(net.minecraft.world.GameMode.ADVENTURE);
+        serverJester.teleport(serverWorld, this.deathX, this.deathY, this.deathZ,
+                serverJester.getYaw(), serverJester.getPitch());
+
+        this.enterStasis(GameConstants.getInTicks(0, 3));
+    }
 
     public void enterStasis(int ticks) {
         this.inStasis = true;
         this.stasisTicks = ticks;
-
-        // 记录禁锢位置
         this.stasisX = player.getX();
         this.stasisY = player.getY();
         this.stasisZ = player.getZ();
-
         this.sync();
 
-        // 播放全服声音
         if (player.getWorld() instanceof ServerWorld serverWorld) {
-            // 记录禁锢开始事件
-            if (player instanceof ServerPlayerEntity serverJester) {
-                ServerPlayerEntity killerPlayer = this.targetKiller != null
-                    ? serverWorld.getServer().getPlayerManager().getPlayer(this.targetKiller)
-                    : null;
-                NbtCompound extra = new NbtCompound();
-                extra.putInt("stasis_ticks", ticks);
-                extra.putInt("psycho_armour", this.psychoArmour);
-                if (this.targetKiller != null) {
-                    extra.putUuid("trigger", this.targetKiller);
-                }
-                GameRecordManager.recordGlobalEvent(serverWorld, EVENT_STASIS_START, serverJester, extra);
-            }
-
-            RegistryEntry<net.minecraft.sound.SoundEvent> soundEntry = RegistryEntry.of(ModSounds.JESTER_LAUGH);
-
-            var seed = serverWorld.random.nextLong();
-
-            for (ServerPlayerEntity serverPlayer : serverWorld.getServer().getPlayerManager().getPlayerList()) {
-                serverPlayer.networkHandler.sendPacket(new PlaySoundS2CPacket(
-                        soundEntry,
-                        SoundCategory.MASTER,
-                        serverPlayer.getX(),
-                        serverPlayer.getY(),
-                        serverPlayer.getZ(),
-                        2.0F,
-                        1.0F,
-                        seed
-                ));
+            RegistryEntry<SoundEvent> soundEntry = RegistryEntry.of(ModSounds.JESTER_LAUGH);
+            long seed = serverWorld.random.nextLong();
+            for (ServerPlayerEntity sp : serverWorld.getServer().getPlayerManager().getPlayerList()) {
+                sp.networkHandler.sendPacket(new PlaySoundS2CPacket(
+                        soundEntry, SoundCategory.MASTER,
+                        sp.getX(), sp.getY(), sp.getZ(), 2.0F, 1.0F, seed));
             }
         }
     }
 
     private void startJesterPsychoMode() {
-        if (this.psychoArmour <= 0) return;
-
         PlayerPsychoComponent psychoComponent = PlayerPsychoComponent.KEY.get(this.player);
         if (psychoComponent.startPsycho(PsychoType.VISIBLE_QUIET)) {
-            // 设置疯魔模式持续3分钟（3 * 60 * 20 = 3600 ticks）
-            this.psychoModeTicks = 3600;
+            this.psychoModeTicks = GameConstants.getInTicks(0, 60);
+            this.killCount = 0;
+            // 初始护盾 = 当局总人数/6（上限 3）
+            int totalPlayers = GameWorldComponent.KEY.get(player.getWorld()).getAllPlayers().size();
+            this.baseArmour = Math.min(3, totalPlayers / 6);
+            this.psychoArmour = this.baseArmour;
             psychoComponent.setPsychoTicks(Integer.MAX_VALUE);
             psychoComponent.setArmour(this.psychoArmour);
             this.inPsychoMode = true;
 
-            // 疯魔模式：体力上限 ×3，恢复满体力，清除疲惫
             if (player instanceof ServerPlayerEntity serverPlayer) {
                 EntityAttributeInstance sprintAttr = serverPlayer.getAttributeInstance(WatheAttributes.MAX_SPRINT_TIME);
                 if (sprintAttr != null && !sprintAttr.hasModifier(PSYCHO_SPRINT_MODIFIER_ID)) {
@@ -184,55 +237,34 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
                 staminaComp.sync();
             }
 
-            // 传送小丑至当局游戏分配的房间
-            if (player instanceof ServerPlayerEntity serverJester && serverJester.getWorld() instanceof ServerWorld serverWorld) {
-                GameWorldComponent gameComponent = GameWorldComponent.KEY.get(serverWorld);
-                int roomIndex = gameComponent.getPlayerRoomIndex(serverJester.getUuid());
-                if (roomIndex >= 0) {
-                    MapEnhancementsWorldComponent enhancements = MapEnhancementsWorldComponent.KEY.get(serverWorld);
-                    enhancements.getSpawnPointForPlayer(roomIndex, 0).ifPresent(spawnPoint -> {
-                        serverJester.teleport(serverWorld,
-                                spawnPoint.x(), spawnPoint.y(), spawnPoint.z(),
-                                spawnPoint.yaw(), spawnPoint.pitch());
-                    });
+            if (player.getWorld() instanceof ServerWorld serverWorld) {
+                this.savedMoods.clear();
+                for (ServerPlayerEntity p : serverWorld.getPlayers()) {
+                    PlayerMoodComponent moodComp = PlayerMoodComponent.KEY.get(p);
+                    this.savedMoods.put(p.getUuid(), moodComp.getMood());
+                    moodComp.setMood(0);
                 }
             }
 
-            // 播放小丑时刻BGM
             WorldMusicComponent worldMusic = WorldMusicComponent.KEY.get(this.player.getWorld());
             worldMusic.startMusic(MusicMomentType.JESTER_MOMENT, 1);
 
-            // Broadcast Jester Psycho Mode to all players with Title
-            if (player.getWorld() instanceof ServerWorld serverWorld) {
-                if (player instanceof ServerPlayerEntity serverPlayer) {
-                    NbtCompound extra = new NbtCompound();
-                    extra.putInt("armour", this.psychoArmour);
-                    if (this.targetKiller != null) {
-                        extra.putUuid("trigger", this.targetKiller);
-                    }
-                    GameRecordManager.recordGlobalEvent(serverWorld, EVENT_MOMENT_START, serverPlayer, extra);
-                }
+            if (player.getWorld() instanceof ServerWorld serverWorld && player instanceof ServerPlayerEntity serverPlayer) {
+                NbtCompound extra = new NbtCompound();
+                extra.putInt("armour", this.psychoArmour);
+                if (this.targetKiller != null) extra.putUuid("trigger", this.targetKiller);
+                GameRecordManager.recordGlobalEvent(serverWorld, EVENT_MOMENT_START, serverPlayer, extra);
+
                 for (ServerPlayerEntity p : serverWorld.getPlayers()) {
-                    // Send Title (主标题)
-                    p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.TitleS2CPacket(
-                        net.minecraft.text.Text.translatable("title.noellesroles.jester_moment")
-                            .formatted(net.minecraft.util.Formatting.LIGHT_PURPLE, net.minecraft.util.Formatting.BOLD)
-                    ));
-
-                    // Send Subtitle (副标题)
-                    p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.SubtitleS2CPacket(
-                        net.minecraft.text.Text.translatable("subtitle.noellesroles.jester_moment")
-                            .formatted(Formatting.LIGHT_PURPLE)
-                    ));
-
-                    // Set Title times (fadeIn, stay, fadeOut in ticks)
-                    p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.TitleFadeS2CPacket(
-                        10, 100, 10
-                    ));
-
-                    // Also send chat message
-                    p.sendMessage(net.minecraft.text.Text.translatable("title.noellesroles.jester_moment")
-                            .formatted(net.minecraft.util.Formatting.LIGHT_PURPLE, net.minecraft.util.Formatting.BOLD), false);
+                    p.networkHandler.sendPacket(new TitleS2CPacket(
+                        Text.translatable("title.noellesroles.jester_moment")
+                            .formatted(Formatting.LIGHT_PURPLE, Formatting.BOLD)));
+                    p.networkHandler.sendPacket(new SubtitleS2CPacket(
+                        Text.translatable("subtitle.noellesroles.jester_moment")
+                            .formatted(Formatting.LIGHT_PURPLE)));
+                    p.networkHandler.sendPacket(new TitleFadeS2CPacket(10, 100, 10));
+                    p.sendMessage(Text.translatable("title.noellesroles.jester_moment")
+                            .formatted(Formatting.LIGHT_PURPLE, Formatting.BOLD), false);
                 }
             }
 
@@ -240,57 +272,65 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
         }
     }
 
+    public void registerKill() {
+        this.killCount++;
+        this.psychoModeTicks += GameConstants.getInTicks(0, 30);
+        // 每累计击杀奇数人次(第1、3、5…杀)各 +1 层，上限 3
+        this.psychoArmour = Math.min(3, this.baseArmour + (this.killCount + 1) / 2);
+        PlayerPsychoComponent psychoComponent = PlayerPsychoComponent.KEY.get(this.player);
+        psychoComponent.setArmour(this.psychoArmour);
+        this.sync();
+    }
+
     public void sync() {
         KEY.sync(this.player);
     }
+
     @Override
     public void clientTick() {
         if (this.inPsychoMode && this.psychoModeTicks > 0) {
             this.psychoModeTicks--;
-
         }
     }
 
     @Override
     public void serverTick() {
+        if (this.spectatorTicks > 0) {
+            this.spectatorTicks--;
+            if (this.spectatorTicks == 0) {
+                this.revive();
+            }
+            return;
+        }
+
         if (this.stasisTicks > 0) {
             this.stasisTicks--;
-
-            if (this.player instanceof ServerPlayerEntity serverPlayer) {
-                if (serverPlayer.getWorld() instanceof ServerWorld serverWorld) {
-                    // 位置锁定
-                    serverPlayer.teleport(this.stasisX, this.stasisY, this.stasisZ, false);
-                    serverPlayer.setVelocity(0, 0, 0);
-                    serverPlayer.velocityModified = true;
-
-                    // 粒子特效
-                    serverWorld.spawnParticles(ParticleTypes.GLOW,
-                        serverPlayer.getX(),
-                        serverPlayer.getY() + 1.0,
-                        serverPlayer.getZ(),
-                        5, 0.5, 0.5, 0.5, 0.02);
-                }
+            if (this.player instanceof ServerPlayerEntity serverPlayer
+                    && serverPlayer.getWorld() instanceof ServerWorld serverWorld) {
+                serverPlayer.teleport(this.stasisX, this.stasisY, this.stasisZ, false);
+                serverPlayer.setVelocity(0, 0, 0);
+                serverPlayer.velocityModified = true;
+                serverWorld.spawnParticles(ParticleTypes.GLOW,
+                    serverPlayer.getX(), serverPlayer.getY() + 1.0, serverPlayer.getZ(),
+                    5, 0.5, 0.5, 0.5, 0.02);
             }
-
             if (this.stasisTicks == 0) {
                 this.inStasis = false;
                 this.startJesterPsychoMode();
                 this.sync();
             }
+            return;
         }
 
-        // 疯魔模式计时
         if (this.inPsychoMode && this.psychoModeTicks > 0) {
             this.psychoModeTicks--;
             if (this.psychoModeTicks <= 0) {
-                // 记录疯魔模式超时结束
                 if (player instanceof ServerPlayerEntity serverPlayer && player.getWorld() instanceof ServerWorld serverWorld) {
                     NbtCompound extra = new NbtCompound();
                     extra.putString("reason", "timeout");
                     GameRecordManager.recordGlobalEvent(serverWorld, EVENT_MOMENT_END, serverPlayer, extra);
                 }
                 GameFunctions.killPlayer((ServerPlayerEntity) this.player, true, null, Noellesroles.DEATH_REASON_JESTER_TIMEOUT, true);
-                // reset() 已由 KillPlayer.AFTER 回调触发，无需再次调用
             } else if (this.psychoModeTicks % 20 == 0) {
                 this.sync();
             }
@@ -300,35 +340,42 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
     @Override
     public void writeToNbt(@NotNull NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
         tag.putBoolean("won", this.won);
+        tag.putInt("spectatorTicks", this.spectatorTicks);
         tag.putBoolean("inStasis", this.inStasis);
         tag.putInt("stasisTicks", this.stasisTicks);
-        tag.putInt("psychoArmour", this.psychoArmour);
         tag.putBoolean("inPsychoMode", this.inPsychoMode);
         tag.putInt("psychoModeTicks", this.psychoModeTicks);
+        tag.putInt("psychoArmour", this.psychoArmour);
+        tag.putInt("baseArmour", this.baseArmour);
+        tag.putInt("killCount", this.killCount);
         tag.putDouble("stasisX", this.stasisX);
         tag.putDouble("stasisY", this.stasisY);
         tag.putDouble("stasisZ", this.stasisZ);
-        if (this.targetKiller != null) {
-            tag.putUuid("targetKiller", this.targetKiller);
-        }
+        tag.putDouble("deathX", this.deathX);
+        tag.putDouble("deathY", this.deathY);
+        tag.putDouble("deathZ", this.deathZ);
+        if (this.targetKiller != null) tag.putUuid("targetKiller", this.targetKiller);
+        if (this.fakeBodyUuid != null) tag.putUuid("fakeBodyUuid", this.fakeBodyUuid);
     }
 
     @Override
     public void readFromNbt(@NotNull NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
         this.won = tag.getBoolean("won");
+        this.spectatorTicks = tag.getInt("spectatorTicks");
         this.inStasis = tag.getBoolean("inStasis");
         this.stasisTicks = tag.getInt("stasisTicks");
-        this.psychoArmour = tag.getInt("psychoArmour");
         this.inPsychoMode = tag.getBoolean("inPsychoMode");
         this.psychoModeTicks = tag.getInt("psychoModeTicks");
+        this.psychoArmour = tag.getInt("psychoArmour");
+        this.baseArmour = tag.contains("baseArmour") ? tag.getInt("baseArmour") : 1;
+        this.killCount = tag.getInt("killCount");
         this.stasisX = tag.getDouble("stasisX");
         this.stasisY = tag.getDouble("stasisY");
         this.stasisZ = tag.getDouble("stasisZ");
-        if (tag.containsUuid("targetKiller")) {
-            this.targetKiller = tag.getUuid("targetKiller");
-        }else {
-            this.targetKiller = null;
-        }
+        this.deathX = tag.getDouble("deathX");
+        this.deathY = tag.getDouble("deathY");
+        this.deathZ = tag.getDouble("deathZ");
+        this.targetKiller = tag.containsUuid("targetKiller") ? tag.getUuid("targetKiller") : null;
+        this.fakeBodyUuid = tag.containsUuid("fakeBodyUuid") ? tag.getUuid("fakeBodyUuid") : null;
     }
-
 }

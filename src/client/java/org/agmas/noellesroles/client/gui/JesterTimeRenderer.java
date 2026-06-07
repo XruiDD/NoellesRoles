@@ -1,6 +1,5 @@
 package org.agmas.noellesroles.client.gui;
 
-import dev.doctor4t.wathe.Wathe;
 import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.client.gui.TimeRenderer;
 import net.minecraft.client.font.TextRenderer;
@@ -47,7 +46,6 @@ public class JesterTimeRenderer {
         } else {
             offsetDelta = MathHelper.lerp(delta / 16, offsetDelta, 0f);
         }
-        Wathe.LOGGER.info("time: {}",time);
         view.setTarget(time);
 
         // 小丑粉红色 RGB(248, 200, 220) = 0.973, 0.784, 0.863
