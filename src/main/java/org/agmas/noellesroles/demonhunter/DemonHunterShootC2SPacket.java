@@ -7,6 +7,7 @@ import dev.doctor4t.wathe.game.GameFunctions;
 import dev.doctor4t.wathe.index.WatheItems;
 import dev.doctor4t.wathe.index.WatheSounds;
 import dev.doctor4t.wathe.record.GameRecordManager;
+import dev.doctor4t.wathe.record.GameRecordTypes;
 import dev.doctor4t.wathe.util.ShootMuzzleS2CPayload;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -74,11 +75,12 @@ public record DemonHunterShootC2SPacket(int target) implements CustomPayload {
 
             boolean shouldKill = false;
             boolean isJesterTarget = false;
+            boolean targetInFrenzy = false;
 
             if (target != null) {
                 // 检查目标是否处于疯魔
                 PlayerPsychoComponent psycho = PlayerPsychoComponent.KEY.get(target);
-                boolean targetInFrenzy = psycho.getPsychoTicks() > 0;
+                targetInFrenzy = psycho.getPsychoTicks() > 0;
 
                 // 检查目标是否为小丑（任何非禁锢状态都可命中）
                 if (game.isRole(target, Noellesroles.JESTER)) {
@@ -105,6 +107,24 @@ public record DemonHunterShootC2SPacket(int target) implements CustomPayload {
             }
 
             if (shouldKill && target != null) {
+                // 疯魔状态下双倍伤害：开杀前先手动扣一层疯魔护盾，本发 killPlayer 再扣一层/致死 → 等效双倍。
+                // 只触发一次 KillPlayer.BEFORE，避免二次击杀重复消耗铁人药水/威士忌护盾等保护。
+                if (targetInFrenzy) {
+                    PlayerPsychoComponent armourComp = PlayerPsychoComponent.KEY.get(target);
+                    if (armourComp.getArmour() > 0) {
+                        armourComp.setArmour(armourComp.getArmour() - 1);
+                        armourComp.sync();
+                        target.playSoundToPlayer(WatheSounds.ITEM_PSYCHO_ARMOUR, SoundCategory.MASTER, 5F, 1F);
+                        // 记入回放：复用 SHIELD_BLOCKED 事件 + 独立 source → 专属"猎魔枪洞穿疯魔护盾"文案
+                        var pierceEvent = GameRecordManager.event(GameRecordTypes.SHIELD_BLOCKED)
+                                .actor(target)
+                                .put("source", "noellesroles:demon_hunter_double")
+                                .put("death_reason", Noellesroles.DEATH_REASON_DEMON_HUNTER.toString())
+                                .putInt("armour_remaining", armourComp.getArmour());
+                        pierceEvent.target(player);
+                        pierceEvent.record();
+                    }
+                }
                 // 用猎魔人专属死因，避免触发小丑禁锢（GUN 死因会进入 Jester stasis 分支）
                 GameFunctions.killPlayer(target, true, player, Noellesroles.DEATH_REASON_DEMON_HUNTER);
 

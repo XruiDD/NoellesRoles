@@ -527,6 +527,8 @@
   "tip.noellesroles.demon_hunter_pistol.bullets": "\u00a77\u25cf 弹药 \u00a76\u00a7l%d \u00a7r\u00a77发",
 
   "death_reason.noellesroles.demon_hunter_shot": "被猎魔人的银弹终结",
+  "replay.shield_blocked.noellesroles.demon_hunter_double.by": "%s 的一层§d疯魔护盾§r被 %s 的§4猎魔枪§r击碎",
+  "replay.shield_blocked.noellesroles.demon_hunter_double": "%s 的一层§d疯魔护盾§r被§4猎魔枪§r击碎",
   "replay.death.noellesroles.demon_hunter_shot.killed": "%s 被 %s 的\u00a74猎魔枪\u00a7r击杀",
   "replay.death.noellesroles.demon_hunter_shot.died": "%s 被\u00a74猎魔枪\u00a7r击杀"
 }
