@@ -153,7 +153,6 @@
   "death_reason.noellesroles.assassinated": "身份被刺客识破",
   "death_reason.noellesroles.assassin_misfire": "刺客的误判",
   "death_reason.noellesroles.jester_timeout": "小丑疯魔时间耗尽",
-  "death_reason.noellesroles.shot_jester": "小脑",
 
   "tip.bomber.bomb_warning": "你的身上有一个炸弹！%s秒后会爆炸！你必须将他传递给别人！",
   "tip.item.invisible_in_hand": "此物品对其他玩家不可见",
@@ -290,8 +289,6 @@
   "replay.death_blocked.taotie_moment": "%s 在§d饕餮时刻§r中免疫死亡",
   "replay.death_blocked.jester_stasis": "%s 进入§d小丑禁锢§r，免疫死亡",
   "replay.global.noellesroles.jester_moment_start": "%s 被 %s 击杀，触发§d小丑时刻§r",
-  "replay.death.noellesroles.shot_jester.died": "%s 朝§d小丑§r开枪，自食恶果",
-  "replay.death.noellesroles.shot_jester.killed": "%s 中了 %s 的§d小丑诡计§r",
   "replay.global.noellesroles.jester_moment_end.killed": "%s 的§d小丑时刻§r被终结",
   "replay.global.noellesroles.jester_moment_end.timeout": "%s 的§d小丑时刻§r因超时终结",
   "replay.global.noellesroles.corrupt_cop_moment_start": "%s 触发§d黑警时刻§r",

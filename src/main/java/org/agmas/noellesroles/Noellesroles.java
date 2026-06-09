@@ -167,8 +167,6 @@ public class Noellesroles implements ModInitializer {
     public static Identifier DEATH_REASON_ASSASSINATED = Identifier.of(MOD_ID, "assassinated");  // 被刺客猜中身份
     public static Identifier DEATH_REASON_ASSASSIN_MISFIRE = Identifier.of(MOD_ID, "assassin_misfire");  // 刺客猜错自己死亡
     public static Identifier DEATH_REASON_JESTER_TIMEOUT = Identifier.of(MOD_ID, "jester_timeout");
-    // 新增：好人枪杀小丑 → 开枪者死于"小脑"死因（显示同 shot_innocent，标识符/回放模板独立）
-    public static Identifier DEATH_REASON_SHOT_JESTER = Identifier.of(MOD_ID, "shot_jester");
     // 饕餮吞噬死亡原因（游戏结束时被消化）
     public static Identifier DEATH_REASON_DIGESTED = Identifier.of(MOD_ID, "digested");
     // 保镖牺牲死亡原因
@@ -529,10 +527,7 @@ public class Noellesroles implements ModInitializer {
                         && killer instanceof ServerPlayerEntity serverKiller) {
                     JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(victim);
                     if (!jesterComponent.inPsychoMode && !jesterComponent.isTransitioning()) {
-                        // 开枪者死于"小脑"死因（SHOT_JESTER）。
-                        // 重入安全：serverKiller 非小丑，内层 killPlayer 不会再进本分支（且不存在两个小丑）。
-                        GameFunctions.killPlayer(serverKiller, true, null, DEATH_REASON_SHOT_JESTER);
-                        // 小丑假死：取消真死亡 + 假尸体(枪杀) + 旁观锁定 5 秒
+                        // 开枪者不再受罚、继续存活；小丑假死：取消真死亡 + 假尸体(枪杀) + 旁观锁定 5 秒
                         jesterComponent.beginFakeDeath(serverKiller.getUuid());
                         return KillPlayer.KillResult.cancel();
                     }
