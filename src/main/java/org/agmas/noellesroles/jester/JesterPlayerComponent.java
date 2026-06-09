@@ -332,6 +332,13 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
                 }
                 GameFunctions.killPlayer((ServerPlayerEntity) this.player, true, null, Noellesroles.DEATH_REASON_JESTER_TIMEOUT, true);
             } else if (this.psychoModeTicks % 20 == 0) {
+                // 无限体力：每 20 tick 把小丑冲刺体力回满（配合 startJesterPsychoMode 的较高上限，20 tick 内不会耗尽）
+                if (this.player instanceof ServerPlayerEntity) {
+                    PlayerStaminaComponent staminaComp = PlayerStaminaComponent.KEY.get(this.player);
+                    staminaComp.setSprintingTicks(staminaComp.getMaxSprintTime());
+                    staminaComp.setExhausted(false);
+                    staminaComp.sync();
+                }
                 this.sync();
             }
         }
