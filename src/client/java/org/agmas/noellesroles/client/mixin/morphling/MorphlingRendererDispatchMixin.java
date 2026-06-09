@@ -10,6 +10,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import org.agmas.noellesroles.ConfigWorldComponent;
 import org.agmas.noellesroles.client.NoellesrolesClient;
+import org.agmas.noellesroles.client.jester.JesterMomentClient;
 import org.agmas.noellesroles.morphling.MorphlingPlayerComponent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -29,6 +30,9 @@ public class MorphlingRendererDispatchMixin {
     @Inject(method = "getRenderer", at = @At("HEAD"), cancellable = true)
     public <T extends Entity> void noellesroles$morphlingModelSwap(T entity, CallbackInfoReturnable<EntityRenderer<? super T>> cir) {
         if (!(entity instanceof AbstractClientPlayerEntity player)) return;
+
+        // 小丑时刻：变形者模型交换失效，使用玩家自身模型（与小丑皮肤按各自模型选 thin/wide 一致）
+        if (JesterMomentClient.isActive()) return;
 
         SkinTextures.Model targetModel = null;
 

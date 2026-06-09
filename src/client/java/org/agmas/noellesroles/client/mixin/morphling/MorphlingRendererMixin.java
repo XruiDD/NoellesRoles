@@ -11,6 +11,7 @@ import net.minecraft.client.util.SkinTextures;
 import net.minecraft.util.Identifier;
 import org.agmas.noellesroles.ConfigWorldComponent;
 import org.agmas.noellesroles.client.NoellesrolesClient;
+import org.agmas.noellesroles.client.jester.JesterMomentClient;
 import org.agmas.noellesroles.morphling.MorphlingPlayerComponent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -27,6 +28,8 @@ public abstract class MorphlingRendererMixin {
 
     @Inject(method = "getTexture(Lnet/minecraft/client/network/AbstractClientPlayerEntity;)Lnet/minecraft/util/Identifier;", at = @At("HEAD"), cancellable = true)
     void b(AbstractClientPlayerEntity abstractClientPlayerEntity, CallbackInfoReturnable<Identifier> cir) {
+        // 小丑时刻：变形者外观（含"疯子看错人"幻觉与真实变身）全部失效，让位给小丑皮肤
+        if (JesterMomentClient.isActive()) return;
         if (WatheClient.moodComponent != null) {
             if ((ConfigWorldComponent.KEY.get(abstractClientPlayerEntity.getWorld())).insaneSeesMorphs
                     && WatheClient.moodComponent.isLowerThanDepressed()
@@ -74,6 +77,8 @@ public abstract class MorphlingRendererMixin {
 
     @WrapOperation(method = "renderArm", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/AbstractClientPlayerEntity;getSkinTextures()Lnet/minecraft/client/util/SkinTextures;"))
     SkinTextures b(AbstractClientPlayerEntity instance, Operation<SkinTextures> original) {
+        // 小丑时刻：变形者外观失效，让位给小丑皮肤
+        if (JesterMomentClient.isActive()) return original.call(instance);
         if (WatheClient.moodComponent != null) {
             if ((ConfigWorldComponent.KEY.get(instance.getWorld())).insaneSeesMorphs
                     && WatheClient.moodComponent.isLowerThanDepressed()

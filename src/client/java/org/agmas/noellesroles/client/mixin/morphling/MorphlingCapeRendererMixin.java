@@ -11,6 +11,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerEntity;
 import org.agmas.noellesroles.ConfigWorldComponent;
 import org.agmas.noellesroles.client.NoellesrolesClient;
+import org.agmas.noellesroles.client.jester.JesterMomentClient;
 import org.agmas.noellesroles.morphling.MorphlingPlayerComponent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -36,6 +37,8 @@ public class MorphlingCapeRendererMixin {
             at = @At(value = "INVOKE",
                     target = "Lnet/minecraft/client/network/AbstractClientPlayerEntity;getSkinTextures()Lnet/minecraft/client/util/SkinTextures;"))
     private SkinTextures morphling_wrapCapeTexture(AbstractClientPlayerEntity instance, Operation<SkinTextures> original) {
+        // 小丑时刻：变形者披风失效，让位给小丑披风
+        if (JesterMomentClient.isActive()) return original.call(instance);
 
 
         // 优先处理疯魔模式

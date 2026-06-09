@@ -17,7 +17,8 @@ import java.util.UUID;
  * 每客户端 tick 刷新一次，供渲染 mixin / 高亮短路使用，避免渲染热路径重复扫描。
  */
 public final class JesterMomentClient {
-    private static UUID activeJesterUuid = null;
+    // volatile：小丑时刻状态除主线程外，还会被 SVC 音频线程读取（全员变声）
+    private static volatile UUID activeJesterUuid = null;
 
     private JesterMomentClient() {}
 

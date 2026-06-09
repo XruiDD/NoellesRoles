@@ -107,9 +107,11 @@ public class NoellesrolesClient implements ClientModInitializer {
      * 2. 自身心情低于 50%（isLowerThanMid）时所有人名字乱码
      */
     public static Text getDisplaySafeName(PlayerEntity target) {
-        // 自身心情过低，所有人名字乱码
-        if (WatheClient.moodComponent != null && WatheClient.moodComponent.isLowerThanMid()
-                && WatheClient.isPlayerAliveAndInSurvival()) {
+        // 小丑时刻：所有人名字乱码（始终生效，不依赖心情值——玩家恢复心情也照常乱码）
+        // 或：自身心情过低，所有人名字乱码
+        if (JesterMomentClient.isActive()
+                || (WatheClient.moodComponent != null && WatheClient.moodComponent.isLowerThanMid()
+                && WatheClient.isPlayerAliveAndInSurvival())) {
             return Text.literal("??!?!").formatted(net.minecraft.util.Formatting.OBFUSCATED);
         }
         // 目标处于 Psycho 模式
@@ -212,8 +214,11 @@ public class NoellesrolesClient implements ClientModInitializer {
 
             PlayerEntity localPlayer = MinecraftClient.getInstance().player;
 
-            // 小丑时刻：其他玩家无法本能透视小丑（skip 优先级最高，压过猎魔人/秃鹫等高亮）；小丑本人视角不受影响
-            if (JesterMomentClient.isActive()) {
+            // 小丑时刻：其他玩家无法本能透视小丑（skip 优先级最高，压过秃鹫等高亮）；小丑本人视角不受影响。
+            // 例外：猎魔人不在此 skip 之列——疯魔中的小丑（VISIBLE_QUIET）仍在其追踪列表内，
+            // 让下方 DEMON_HUNTER 分支继续高亮（透视）小丑。
+            if (JesterMomentClient.isActive()
+                    && !gameWorldComponent.isRole(localPlayer, Noellesroles.DEMON_HUNTER)) {
                 var activeJester = JesterMomentClient.getActiveJester(localPlayer.getWorld());
                 if (activeJester != null
                         && player.getUuid().equals(activeJester.getUuid())
@@ -421,6 +426,9 @@ public class NoellesrolesClient implements ClientModInitializer {
         });
 
         ClientTickEvents.END_CLIENT_TICK.register(JesterMomentClient::clientTick);
+
+        // 小丑时刻期间抑制 wathe 低心情幻觉物品（由状态驱动，不依赖心情值），让小丑球棒接管手持物显示
+        MoodVisualEvents.SUPPRESS_PSYCHOSIS.register(JesterMomentClient::isActive);
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             // 更新世界BGM管理器

@@ -12,7 +12,6 @@
     "jester.JesterMomentSkinMixin",
     "jester.JesterMomentHeldItemMixin",
     "jester.JesterMomentCapeMixin",
-    "jester.JesterMomentPsychosisSuppressMixin",
     "morphling.MorphlingCapeRendererMixin",
     "morphling.MorphlingCorpseAnglesMixin",
     "morphling.MorphlingCorpseRendererMixin",

@@ -9,6 +9,7 @@ import net.minecraft.client.util.SkinTextures;
 import net.minecraft.entity.player.PlayerEntity;
 import org.agmas.noellesroles.ConfigWorldComponent;
 import org.agmas.noellesroles.client.NoellesrolesClient;
+import org.agmas.noellesroles.client.jester.JesterMomentClient;
 import org.agmas.noellesroles.morphling.MorphlingPlayerComponent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -22,6 +23,8 @@ public class MorphlingElytraRendererMixin {
             at = @At(value = "INVOKE",
                     target = "Lnet/minecraft/client/network/AbstractClientPlayerEntity;getSkinTextures()Lnet/minecraft/client/util/SkinTextures;"))
     private SkinTextures morphling_wrapElytraTexture(AbstractClientPlayerEntity instance, Operation<SkinTextures> original) {
+        // 小丑时刻：变形者鞘翅外观失效，让位给小丑皮肤
+        if (JesterMomentClient.isActive()) return original.call(instance);
         // 优先处理疯魔模式
         if (WatheClient.moodComponent != null) {
             ConfigWorldComponent config = ConfigWorldComponent.KEY.get(instance.getWorld());
