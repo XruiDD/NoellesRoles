@@ -32,7 +32,8 @@ public class SilencerShopHandler {
                 }
                 if (psychoIndex < 0) psychoIndex = 0;
 
-                // 原位替换为静默疯魔模式（SILENT：不计数器、不派发事件，也不触发猎魔者）
+                // 原位替换为静默疯魔模式（SILENT：不计数器、不触发全服BGM、不被猎魔人透视高亮；
+                // 但仍会让猎魔人拿到猎魔枪——隐身而非免疫）
                 entries.remove(psychoIndex);
                 context.addEntry(psychoIndex, new ShopEntry.Builder("psycho_mode", WatheItems.PSYCHO_MODE.getDefaultStack(), 350, ShopEntry.Type.WEAPON)
                     .cooldown(getInTicks(5, 0))

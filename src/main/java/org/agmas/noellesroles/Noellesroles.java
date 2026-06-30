@@ -831,8 +831,8 @@ public class Noellesroles implements ModInitializer {
         // ── 猎魔人：疯魔模式事件 ──
 
         // 疯魔开始 → 给猎魔人发枪 / 加子弹，追踪疯魔玩家
+        // 含静语者（SILENT）：同样发枪。其「隐身」仅体现在客户端透视——见 NoellesrolesClient 中对静语者的高亮跳过
         PsychoModeEvents.ON_PSYCHO_START.register((frenziedPlayer, type) -> {
-            if (type == PsychoType.SILENT) return; // 静语者等隐身疯魔：猎魔者无感知
             GameWorldComponent game = GameWorldComponent.KEY.get(frenziedPlayer.getWorld());
             for (UUID hunterUuid : game.getAllWithRole(DEMON_HUNTER)) {
                 PlayerEntity hunter = frenziedPlayer.getWorld().getPlayerByUuid(hunterUuid);
@@ -858,9 +858,8 @@ public class Noellesroles implements ModInitializer {
             }
         });
 
-        // 疯魔结束 → 移除追踪，全部结束时回收猎魔枪
+        // 疯魔结束 → 移除追踪，全部结束时回收猎魔枪（含静语者）
         PsychoModeEvents.ON_PSYCHO_END.register((frenziedPlayer, type) -> {
-            if (type == PsychoType.SILENT) return;
             GameWorldComponent game = GameWorldComponent.KEY.get(frenziedPlayer.getWorld());
             for (UUID hunterUuid : game.getAllWithRole(DEMON_HUNTER)) {
                 PlayerEntity hunter = frenziedPlayer.getWorld().getPlayerByUuid(hunterUuid);

@@ -262,10 +262,12 @@ public class NoellesrolesClient implements ClientModInitializer {
                 }
             }
 
-            // DEMON_HUNTER: 高亮公开疯魔中的玩家（由服务端同步的 UUID 列表判断）
+            // DEMON_HUNTER: 高亮疯魔中的玩家（由服务端同步的 UUID 列表判断）
+            // 例外：静语者（SILENT 静默疯魔）保持隐身——猎魔人照常拿枪、可击杀，但不透视高亮其位置
             if (gameWorldComponent.isRole(localPlayer, Noellesroles.DEMON_HUNTER)) {
                 DemonHunterPlayerComponent hunterComp = DemonHunterPlayerComponent.KEY.get(localPlayer);
-                if (hunterComp.isPlayerFrenzied(player.getUuid())) {
+                if (hunterComp.isPlayerFrenzied(player.getUuid())
+                        && !gameWorldComponent.isRole(player, Noellesroles.SILENCER)) {
                     return GetInstinctHighlight.HighlightResult.always(Noellesroles.DEMON_HUNTER.color());
                 }
             }
