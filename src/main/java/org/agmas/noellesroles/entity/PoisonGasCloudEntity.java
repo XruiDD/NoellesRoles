@@ -114,17 +114,7 @@ public class PoisonGasCloudEntity extends Entity {
             if (!GameFunctions.isPlayerAliveAndSurvival(player)) continue;
             if (gameWorld.isRole(player, Noellesroles.POISONER)) continue;
 
-            Box box = player.getBoundingBox();
-            boolean inGas = false;
-            for (int x = MathHelper.floor(box.minX); x <= MathHelper.floor(box.maxX) && !inGas; x++) {
-                for (int y = MathHelper.floor(box.minY); y <= MathHelper.floor(box.maxY) && !inGas; y++) {
-                    for (int z = MathHelper.floor(box.minZ); z <= MathHelper.floor(box.maxZ) && !inGas; z++) {
-                        if (gasBlocks.contains(new BlockPos(x, y, z))) {
-                            inGas = true;
-                        }
-                    }
-                }
-            }
+            boolean inGas = isInGas(player);
             if (inGas) {
                 int ticks = exposureTicks.getOrDefault(player.getUuid(), 0) + 1;
                 exposureTicks.put(player.getUuid(), ticks);
@@ -176,6 +166,43 @@ public class PoisonGasCloudEntity extends Entity {
                 );
             }
         }
+    }
+
+    /**
+     * 判断玩家是否暴露在毒气中。
+     *
+     * 普通站立玩家：检测碰撞箱覆盖的方块是否为毒气方块。
+     *
+     * 躺床（睡眠）玩家：原版睡眠姿态碰撞箱极小(0.2³)且完全位于床方块内部，
+     * 而床方块碰撞体积达到 0.5 会被扩散逻辑的 isBlockTooSolid 判为"过于实心"，
+     * 毒气无法扩散进入床方块，碰撞箱检测因此永远失效。改为额外检测玩家躺卧
+     * 位置周围实际暴露的开放空间（正上方与四个水平相邻方块），使弥漫到床边的
+     * 毒气能正常作用于躺床玩家。
+     */
+    private boolean isInGas(ServerPlayerEntity player) {
+        Box box = player.getBoundingBox();
+        for (int x = MathHelper.floor(box.minX); x <= MathHelper.floor(box.maxX); x++) {
+            for (int y = MathHelper.floor(box.minY); y <= MathHelper.floor(box.maxY); y++) {
+                for (int z = MathHelper.floor(box.minZ); z <= MathHelper.floor(box.maxZ); z++) {
+                    if (gasBlocks.contains(new BlockPos(x, y, z))) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        if (player.isSleeping()) {
+            BlockPos bedPos = player.getBlockPos();
+            if (gasBlocks.contains(bedPos.up())) {
+                return true;
+            }
+            for (Direction direction : Direction.Type.HORIZONTAL) {
+                if (gasBlocks.contains(bedPos.offset(direction))) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
