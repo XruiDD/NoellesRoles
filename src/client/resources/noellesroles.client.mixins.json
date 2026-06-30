@@ -26,6 +26,7 @@
     "phantom.PhantomHudMixin",
     "recaller.RecallerHudMixin",
     "reporter.ReporterHudMixin",
+    "shadowjester.ShadowJesterHudMixin",
     "scavenger.ScavengerBodyHideMixin",
     "scavenger.ScavengerInstantKnifeMixin",
     "swapper.SwapperScreenMixin",

@@ -15,6 +15,7 @@
     "scavenger.ScavengerKnifeSoundMixin",
     "scavenger.ScavengerBodyCanHitMixin",
     "scavenger.ScavengerKnifeStabSoundMixin",
+    "shadowjester.ShadowJesterKnifeMixin",
     "corruptcop.CorruptCopGunCooldownMixin",
     "bomber.BomberGrenadeCooldownMixin",
     "equipment.EntityTrackerEntryMixin",

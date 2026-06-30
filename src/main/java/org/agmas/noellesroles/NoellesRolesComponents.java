@@ -5,6 +5,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import org.agmas.noellesroles.assassin.AssassinPlayerComponent;
 import org.agmas.noellesroles.bartender.BartenderPlayerComponent;
 import org.agmas.noellesroles.jester.JesterPlayerComponent;
+import org.agmas.noellesroles.shadowjester.ShadowJesterPlayerComponent;
 import org.agmas.noellesroles.pathogen.InfectedPlayerComponent;
 import org.agmas.noellesroles.pathogen.PathogenPlayerComponent;
 import org.agmas.noellesroles.bomber.BomberPlayerComponent;
@@ -53,6 +54,7 @@ public class NoellesRolesComponents implements EntityComponentInitializer, World
         registry.beginRegistration(PlayerEntity.class, RecallerPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(RecallerPlayerComponent::new);
         registry.beginRegistration(PlayerEntity.class, VulturePlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(VulturePlayerComponent::new);
         registry.beginRegistration(PlayerEntity.class, JesterPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(JesterPlayerComponent::new);
+        registry.beginRegistration(PlayerEntity.class, ShadowJesterPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(ShadowJesterPlayerComponent::new);
         registry.beginRegistration(PlayerEntity.class, InfectedPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(InfectedPlayerComponent::new);
         registry.beginRegistration(PlayerEntity.class, PathogenPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(PathogenPlayerComponent::new);
         registry.beginRegistration(PlayerEntity.class, BomberPlayerComponent.KEY).respawnStrategy(RespawnCopyStrategy.NEVER_COPY).end(BomberPlayerComponent::new);

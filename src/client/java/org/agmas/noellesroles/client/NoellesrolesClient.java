@@ -56,6 +56,8 @@ import org.agmas.noellesroles.packet.MorphCorpseToggleC2SPacket;
 import org.agmas.noellesroles.packet.VultureEatC2SPacket;
 import org.agmas.noellesroles.vulture.VulturePlayerComponent;
 import org.agmas.noellesroles.detective.DetectivePlayerComponent;
+import org.agmas.noellesroles.shadowjester.ShadowJesterPlayerComponent;
+import org.agmas.noellesroles.packet.ShadowAllyRequestC2SPacket;
 import org.agmas.noellesroles.packet.DetectiveInvestigateC2SPacket;
 import org.agmas.noellesroles.packet.ReporterMarkC2SPacket;
 import org.agmas.noellesroles.pathogen.InfectedPlayerComponent;
@@ -355,6 +357,21 @@ public class NoellesrolesClient implements ClientModInitializer {
                 if (serialKillerComp.isCurrentTarget(player.getUuid())) {
                     // 当前目标 - 使用连环杀手颜色透视
                     return GetInstinctHighlight.HighlightResult.always(Noellesroles.SERIAL_KILLER.color());
+                }
+            }
+
+            // SHADOW_JESTER 本能高亮
+            if (gameWorldComponent.isRole(localPlayer, Noellesroles.SHADOW_JESTER)) {
+                ShadowJesterPlayerComponent shadowComp = ShadowJesterPlayerComponent.KEY.get(localPlayer);
+                UUID partnerUuid = shadowComp.getPartnerUuid();
+                // 常驻高亮你的对决搭档（不点明身份）
+                if (partnerUuid != null && partnerUuid.equals(player.getUuid())) {
+                    return GetInstinctHighlight.HighlightResult.always(Noellesroles.SHADOW_JESTER.color());
+                }
+                // 透视位 / 终局对决：按本能键(Alt)透视所有存活玩家
+                if (shadowComp.hasInstinctVision() && player != localPlayer
+                        && GameFunctions.isPlayerPlayingAndAlive(player)) {
+                    return GetInstinctHighlight.HighlightResult.withKeybind(Noellesroles.SHADOW_JESTER.color());
                 }
             }
             return null;
@@ -678,6 +695,16 @@ public class NoellesrolesClient implements ClientModInitializer {
                         AbilityPlayerComponent abilityComp = AbilityPlayerComponent.KEY.get(MinecraftClient.getInstance().player);
                         if (spiritComp.isProjecting() || abilityComp.getCooldown() <= 0) {
                             ClientPlayNetworking.send(new SpiritProjectC2SPacket());
+                        }
+                        return;
+                    }
+
+                    // 影子小丑按G：瞄准搭档发起/同意「影誓」结盟（四任务后可用，单次）
+                    if (gameWorldComponent.isRole(MinecraftClient.getInstance().player, Noellesroles.SHADOW_JESTER)) {
+                        ShadowJesterPlayerComponent shadowComp = ShadowJesterPlayerComponent.KEY.get(MinecraftClient.getInstance().player);
+                        if (shadowComp.isKnifeGiven() && !shadowComp.isAllyProposed() && !shadowComp.isAllied()
+                                && crosshairTarget != null && crosshairTargetDistance <= 3.0) {
+                            ClientPlayNetworking.send(new ShadowAllyRequestC2SPacket(crosshairTarget.getUuid()));
                         }
                         return;
                     }

@@ -50,6 +50,7 @@ import org.agmas.noellesroles.bartender.BartenderShopHandler;
 import org.agmas.noellesroles.config.NoellesRolesConfig;
 import org.agmas.noellesroles.morphling.MorphlingPlayerComponent;
 import org.agmas.noellesroles.packet.AbilityC2SPacket;
+import org.agmas.noellesroles.packet.ShadowAllyRequestC2SPacket;
 import org.agmas.noellesroles.packet.AssassinGuessRoleC2SPacket;
 import org.agmas.noellesroles.packet.EngineerDoorHighlightS2CPacket;
 import org.agmas.noellesroles.packet.MorphC2SPacket;
@@ -60,6 +61,8 @@ import org.agmas.noellesroles.recaller.RecallerPlayerComponent;
 import org.agmas.noellesroles.voodoo.VoodooPlayerComponent;
 import org.agmas.noellesroles.vulture.VulturePlayerComponent;
 import org.agmas.noellesroles.jester.JesterPlayerComponent;
+import org.agmas.noellesroles.shadowjester.ShadowJesterPlayerComponent;
+import dev.doctor4t.wathe.cca.PlayerMoodComponent;
 import org.agmas.noellesroles.pathogen.InfectedPlayerComponent;
 import org.agmas.noellesroles.pathogen.PathogenPlayerComponent;
 import org.agmas.noellesroles.noisemaker.NoisemakerPlayerComponent;
@@ -160,6 +163,7 @@ public class Noellesroles implements ModInitializer {
     public static Identifier WAITER_ID = Identifier.of(MOD_ID, "waiter");
     public static Identifier MERMAID_ID = Identifier.of(MOD_ID, "mermaid");
     public static Identifier DEMON_HUNTER_ID = Identifier.of(MOD_ID, "demon_hunter");
+    public static Identifier SHADOW_JESTER_ID = Identifier.of(MOD_ID, "shadow_jester");
 
     // 炸弹死亡原因
     public static Identifier DEATH_REASON_BOMB = Identifier.of(MOD_ID, "bomb");
@@ -167,6 +171,8 @@ public class Noellesroles implements ModInitializer {
     public static Identifier DEATH_REASON_ASSASSINATED = Identifier.of(MOD_ID, "assassinated");  // 被刺客猜中身份
     public static Identifier DEATH_REASON_ASSASSIN_MISFIRE = Identifier.of(MOD_ID, "assassin_misfire");  // 刺客猜错自己死亡
     public static Identifier DEATH_REASON_JESTER_TIMEOUT = Identifier.of(MOD_ID, "jester_timeout");
+    // 影子小丑命运绑定同尽
+    public static Identifier DEATH_REASON_SHADOW_BOND = Identifier.of(MOD_ID, "shadow_bond");
     // 饕餮吞噬死亡原因（游戏结束时被消化）
     public static Identifier DEATH_REASON_DIGESTED = Identifier.of(MOD_ID, "digested");
     // 保镖牺牲死亡原因
@@ -239,8 +245,8 @@ public class Noellesroles implements ModInitializer {
     public static Role DEMON_HUNTER = WatheRoles.registerRole(new Role(DEMON_HUNTER_ID, new Color(140, 155, 180).getRGB(), true, false, Role.MoodType.REAL, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
 
 
-    // 小丑角色 - 中立阵营，被无辜者杀死时获胜
-    public static Role JESTER = WatheRoles.registerRole(new Role(JESTER_ID, new Color(248, 200, 220).getRGB(), false, false, Role.MoodType.FAKE, WatheRoles.CIVILIAN.getMaxSprintTime(), false));
+    // 小丑角色 - 中立阵营，被无辜者杀死时获胜。仅在 18 人以下的对局出现（12-17 人时与影子小丑互斥，18+ 由影子小丑取代）
+    public static Role JESTER = WatheRoles.registerRole(new Role(JESTER_ID, new Color(248, 200, 220).getRGB(), false, false, Role.MoodType.FAKE, WatheRoles.CIVILIAN.getMaxSprintTime(), false, RoleAppearanceCondition.maxPlayers(17)));
     public static Role VULTURE =WatheRoles.registerRole(new Role(VULTURE_ID, new Color(181, 103, 0).getRGB(),false,false,Role.MoodType.FAKE,-1,false));
     // 黑警角色 - 中立阵营，杀光所有人获胜，阻止其他阵营获胜
     public static Role CORRUPT_COP = WatheRoles.registerRole(new Role(CORRUPT_COP_ID, new Color(25, 50, 100).getRGB(), false, false, Role.MoodType.FAKE, WatheRoles.CIVILIAN.getMaxSprintTime(), true));
@@ -248,6 +254,11 @@ public class Noellesroles implements ModInitializer {
     public static Role PATHOGEN = WatheRoles.registerRole(new Role(PATHOGEN_ID, 0x7FFF00, false, false, Role.MoodType.FAKE, Integer.MAX_VALUE , false));
     // 饕餮角色 - 中立阵营，吞噬玩家获胜
     public static Role TAOTIE = WatheRoles.registerRole(new Role(TAOTIE_ID, new Color(139, 69, 19).getRGB(), false, false, Role.MoodType.FAKE, Integer.MAX_VALUE, false));
+    // 影子小丑角色 - 中立阵营，12 人以上的对局成对生成两个、只占一个中立名额；12-17 人时与原版小丑互斥（同局只出其一），18+ 人取代原版小丑。
+    // 做完四个任务获得短刀，短刀只对另一个影子小丑生效；可与搭档「影誓」结盟命运与共，或捅死搭档独自化身真正的小丑
+    public static Role SHADOW_JESTER = WatheRoles.registerRole(new Role(SHADOW_JESTER_ID, new Color(190, 30, 90).getRGB(), false, false, Role.MoodType.FAKE, WatheRoles.CIVILIAN.getMaxSprintTime(), false, RoleAppearanceCondition.minPlayers(12)))
+            .setSpawnGroupSize(2)
+            .addMutualExclusion(JESTER);
 
     public static final CustomPayload.Id<MorphC2SPacket> MORPH_PACKET = MorphC2SPacket.ID;
     public static final CustomPayload.Id<SwapperC2SPacket> SWAP_PACKET = SwapperC2SPacket.ID;
@@ -261,6 +272,7 @@ public class Noellesroles implements ModInitializer {
     public static final CustomPayload.Id<PartyAnimalBuzzC2SPacket> PARTY_ANIMAL_BUZZ_PACKET = PartyAnimalBuzzC2SPacket.ID;
     public static final CustomPayload.Id<SpiritProjectC2SPacket> SPIRIT_PROJECT_PACKET = SpiritProjectC2SPacket.ID;
     public static final CustomPayload.Id<DemonHunterShootC2SPacket> DEMON_HUNTER_SHOOT_PACKET = DemonHunterShootC2SPacket.ID;
+    public static final CustomPayload.Id<ShadowAllyRequestC2SPacket> SHADOW_ALLY_PACKET = ShadowAllyRequestC2SPacket.ID;
     public static final ArrayList<Role> VANNILA_ROLES = new ArrayList<>();
     public static final ArrayList<Identifier> VANNILA_ROLE_IDS = new ArrayList<>();
     // 中立万能钥匙可用角色集合
@@ -366,6 +378,7 @@ public class Noellesroles implements ModInitializer {
         PayloadTypeRegistry.playC2S().register(PartyAnimalBuzzC2SPacket.ID, PartyAnimalBuzzC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(SpiritProjectC2SPacket.ID, SpiritProjectC2SPacket.CODEC);
         PayloadTypeRegistry.playC2S().register(DemonHunterShootC2SPacket.ID, DemonHunterShootC2SPacket.CODEC);
+        PayloadTypeRegistry.playC2S().register(ShadowAllyRequestC2SPacket.ID, ShadowAllyRequestC2SPacket.CODEC);
         PayloadTypeRegistry.playS2C().register(EngineerDoorHighlightS2CPacket.ID, EngineerDoorHighlightS2CPacket.CODEC);
 
         registerEvents();
@@ -490,6 +503,9 @@ public class Noellesroles implements ModInitializer {
                     return KillPlayer.KillResult.cancel();
                 }
             }
+
+            // 影子小丑的刀判定改由 ShadowJesterKnifeMixin 在 KnifeStabPayload.receive 处拦截，
+            // 这样无效目标连音效/冷却/KillPlayer 事件都不触发（见该 mixin）。
 
             if (gameWorldComponent.isRole(victim, JESTER)) {
                 JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(victim);
@@ -659,6 +675,19 @@ public class Noellesroles implements ModInitializer {
                 JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(player);
                 jesterComponent.reset();
                 // 护盾不再按人数初始化：进入小丑时刻时置 1，按击杀增长（见 startJesterPsychoMode / registerKill）
+            }
+            if (role.equals(SHADOW_JESTER)) {
+                ShadowJesterPlayerComponent shadowComp = ShadowJesterPlayerComponent.KEY.get(player);
+                shadowComp.reset();
+                // 找到成对生成的另一个影子小丑，互设为对决搭档（用于本能高亮 / 限刀 / 变身）
+                for (UUID uuid : gameWorldComponent.getAllWithRole(SHADOW_JESTER)) {
+                    if (!uuid.equals(player.getUuid())) {
+                        shadowComp.setPartner(uuid);
+                        break;
+                    }
+                }
+                // 开局立即刷三个不同的无心情任务
+                ShadowJesterPlayerComponent.injectInitialTasks(player);
             }
             if (role.equals(CORRUPT_COP)) {
                 player.giveItemStack(WatheItems.REVOLVER.getDefaultStack());
@@ -830,6 +859,7 @@ public class Noellesroles implements ModInitializer {
             DemonHunterPlayerComponent.KEY.get(player).reset();
             DemonHunterPistolItem.removePistol(player);
             DetectivePlayerComponent.KEY.get(player).reset();
+            ShadowJesterPlayerComponent.KEY.get(player).reset();
         });
 
         // ── 猎魔人：疯魔模式事件 ──
@@ -890,6 +920,17 @@ public class Noellesroles implements ModInitializer {
             if (role != null && (role.equals(BARTENDER) || role.equals(RECALLER) || role.equals(TIMEKEEPER) || role.equals(REPORTER) || role.equals(WAITER))) {
                 PlayerShopComponent playerShopComponent = PlayerShopComponent.KEY.get(player);
                 playerShopComponent.addToBalance(50);
+            }
+            // 影子小丑完成四个任务后获得短刀（只对另一个影子小丑生效）
+            if (role != null && role.equals(SHADOW_JESTER)) {
+                ShadowJesterPlayerComponent shadowComp = ShadowJesterPlayerComponent.KEY.get(player);
+                if (!shadowComp.isKnifeGiven()
+                        && shadowComp.incrementTasksCompleted() >= ShadowJesterPlayerComponent.TASKS_REQUIRED) {
+                    shadowComp.setKnifeGiven(true);
+                    player.giveItemStack(new ItemStack(WatheItems.KNIFE));
+                    player.getItemCooldownManager().set(WatheItems.KNIFE, GameConstants.getInTicks(0, 3));
+                    player.sendMessage(Text.translatable("tip.shadow_jester.knife"), true);
+                }
             }
         });
         CheckWinCondition.EVENT.register((world, gameComponent, currentStatus) -> {
@@ -1028,6 +1069,53 @@ public class Noellesroles implements ModInitializer {
                 }
             }
 
+            // 影子小丑「影誓」结盟 → 终局对决「双影谢幕」
+            // 优先级最低：放在所有"会阻止胜利的中立"(饕餮/小丑/黑警)之后——它们存活时先由它们顶住；
+            // 不阻止胜利的中立(如秃鹫只在自己达成时返回)不会拦截到这里，也就不会妨碍影子小丑获胜。
+            List<ServerPlayerEntity> boundShadowJesters = new ArrayList<>();
+            for (UUID uuid : gameComponent.getAllWithRole(SHADOW_JESTER)) {
+                PlayerEntity p = world.getPlayerByUuid(uuid);
+                if (p instanceof ServerPlayerEntity sp
+                        && GameFunctions.isPlayerPlayingAndAlive(p)
+                        && ShadowJesterPlayerComponent.KEY.get(p).isAllied()) {
+                    boundShadowJesters.add(sp);
+                }
+            }
+            if (!boundShadowJesters.isEmpty()) {
+                boolean killersAlive = false;
+                for (UUID kuuid : gameComponent.getAllKillerTeamPlayers()) {
+                    PlayerEntity k = world.getPlayerByUuid(kuuid);
+                    if (GameFunctions.isPlayerPlayingAndAlive(k)) {
+                        killersAlive = true;
+                        break;
+                    }
+                }
+                boolean inShowdown = false;
+                for (ServerPlayerEntity sp : boundShadowJesters) {
+                    if (ShadowJesterPlayerComponent.KEY.get(sp).isShowdownActive()) {
+                        inShowdown = true;
+                        break;
+                    }
+                }
+                // 已处于终局对决：每 tick 持续阻止杀手胜利；杀手全灭 → 影子小丑组胜
+                if (inShowdown) {
+                    if (!killersAlive) {
+                        // 命运绑定的二人组共同获胜（都计入赢家，修复中立胜利只记一人的缺陷）
+                        List<ServerPlayerEntity> coWinners = boundShadowJesters.size() > 1
+                                ? new ArrayList<>(boundShadowJesters.subList(1, boundShadowJesters.size()))
+                                : List.of();
+                        return CheckWinCondition.WinResult.neutralWin(boundShadowJesters.get(0), coWinners);
+                    }
+                    return CheckWinCondition.WinResult.block();
+                }
+                // 杀手杀光平民、本应判杀手胜利 → 阻止并触发终局对决（仅一次）
+                if (currentStatus == GameFunctions.WinStatus.KILLERS) {
+                    GameRecordManager.recordGlobalEvent(world, Identifier.of(MOD_ID, "shadow_showdown_start"), null, null);
+                    ShadowJesterPlayerComponent.activateShowdown(world, boundShadowJesters);
+                    return CheckWinCondition.WinResult.block();
+                }
+            }
+
             return null;
         });
 
@@ -1157,6 +1245,36 @@ public class Noellesroles implements ModInitializer {
                 JesterPlayerComponent jesterComponent = JesterPlayerComponent.KEY.get(victim);
                 if (jesterComponent.inPsychoMode || jesterComponent.isTransitioning()) {
                     jesterComponent.reset();
+                }
+            }
+
+            // 影子小丑死亡（任何原因）
+            if (gameComponent.isRole(victim, SHADOW_JESTER) && victim.getWorld() instanceof ServerWorld shadowWorld) {
+                ShadowJesterPlayerComponent victimShadow = ShadowJesterPlayerComponent.KEY.get(victim);
+                UUID partnerUuid = victimShadow.getPartnerUuid();
+                if (partnerUuid != null) {
+                    PlayerEntity partner = shadowWorld.getPlayerByUuid(partnerUuid);
+                    if (partner instanceof ServerPlayerEntity serverPartner
+                            && GameFunctions.isPlayerPlayingAndAlive(partner)
+                            && gameComponent.isRole(partner, SHADOW_JESTER)) {
+                        if (victimShadow.isAllied()) {
+                            // 已命运绑定 → 搭档同尽。killer 传 null（机制致死，不归属任何人的击杀）；
+                            // force 穿透护盾；搭档死亡再次回调时本人已死，不会无限连锁。死亡自动记入回放(影誓同尽)
+                            GameFunctions.killPlayer(serverPartner, true, null, DEATH_REASON_SHADOW_BOND, true);
+                        } else {
+                            // 未绑定 → 存活搭档化身真正的小丑，沿用原小丑能力与胜利条件
+                            gameComponent.addRole(partner, JESTER);
+                            gameComponent.sync();
+                            JesterPlayerComponent.KEY.get(partner).reset();
+                            // 恢复正常小丑的伪装任务系统（影子小丑此前由开局注入任务）
+                            PlayerMoodComponent.KEY.get(partner).reset();
+                            // 刀保留但标记为废刀，使其依旧无法造成伤害
+                            ShadowJesterPlayerComponent.KEY.get(partner).markBetrayalTrophy();
+                            serverPartner.sendMessage(Text.translatable("tip.shadow_jester.partner_fell"), true);
+                            // 回放关键节点：化身真正的小丑
+                            GameRecordManager.event("shadow_transform").actor(serverPartner).record();
+                        }
+                    }
                 }
             }
 
@@ -1929,6 +2047,47 @@ public class Noellesroles implements ModInitializer {
             }
         });
 
+        // 影子小丑「影誓」结盟握手
+        ServerPlayNetworking.registerGlobalReceiver(Noellesroles.SHADOW_ALLY_PACKET, (payload, context) -> {
+            ServerPlayerEntity me = context.player();
+            GameWorldComponent game = GameWorldComponent.KEY.get(me.getWorld());
+            if (!game.isRole(me, SHADOW_JESTER)) return;
+            if (!GameFunctions.isPlayerPlayingAndAlive(me)) return;
+
+            ShadowJesterPlayerComponent myComp = ShadowJesterPlayerComponent.KEY.get(me);
+            // 四任务后(有刀)才可用；单次：已发起或已绑定则忽略
+            if (!myComp.isKnifeGiven() || myComp.isAllyProposed() || myComp.isAllied()) return;
+
+            // 目标必须是我的对决搭档
+            if (payload.targetPlayer() == null) return;
+            if (myComp.getPartnerUuid() == null || !myComp.getPartnerUuid().equals(payload.targetPlayer())) return;
+            ServerPlayerEntity partner = (ServerPlayerEntity) me.getWorld().getPlayerByUuid(payload.targetPlayer());
+            if (partner == null || !game.isRole(partner, SHADOW_JESTER) || !GameFunctions.isPlayerPlayingAndAlive(partner)) return;
+            ShadowJesterPlayerComponent partnerComp = ShadowJesterPlayerComponent.KEY.get(partner);
+
+            if (partnerComp.isAllyProposed() && !partnerComp.isAllied()) {
+                // 对方已发起 → 双方同意，命运绑定
+                // 先发起方(partner) = 透视位「影瞳」：透视 + 没收刀
+                partnerComp.setAllied(true);
+                partnerComp.setInstinctVision(true);
+                partner.getInventory().remove(s -> s.isOf(WatheItems.KNIFE), -1, partner.getInventory());
+                // 后同意方(me) = 输出位「影刃」：真刀 + 德加林
+                myComp.setAllyProposed(true);
+                myComp.setAllied(true);
+                myComp.setRealKnife(true);
+                me.giveItemStack(WatheItems.DERRINGER.getDefaultStack());
+                partner.sendMessage(Text.translatable("tip.shadow_jester.bound_seer"), true);
+                me.sendMessage(Text.translatable("tip.shadow_jester.bound_killer"), true);
+                // 回放关键节点：缔结影誓（actor=影瞳/先发起方，target=影刃/后同意方）
+                GameRecordManager.event("shadow_oath").actor(partner).target(me).record();
+            } else {
+                // 我先发起，等待搭档按 G 同意
+                myComp.setAllyProposed(true);
+                me.sendMessage(Text.translatable("tip.shadow_jester.ally_proposed"), true);
+                partner.sendMessage(Text.translatable("tip.shadow_jester.ally_incoming"), true);
+            }
+        });
+
         // 静语者沉默目标
         ServerPlayNetworking.registerGlobalReceiver(Noellesroles.SILENCER_SILENCE_PACKET, (payload, context) -> {
             ServerPlayerEntity silencer = context.player();
@@ -2293,6 +2452,31 @@ public class Noellesroles implements ModInitializer {
 
             return Text.translatable("replay.death_in_stomach", actorText);
         });
+
+        // 影子小丑「影誓」缔结格式化器（actor=影瞳，target=影刃）
+        ReplayRegistry.registerFormatter("shadow_oath", (event, match, world) -> {
+            var cache = ReplayGenerator.getPlayerInfoCache(match);
+            NbtCompound data = event.data();
+            UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+            UUID targetUuid = data.containsUuid("target") ? data.getUuid("target") : null;
+            if (actorUuid == null || targetUuid == null) return null;
+            return Text.translatable("replay.shadow_oath",
+                    ReplayGenerator.formatPlayerName(actorUuid, cache),
+                    ReplayGenerator.formatPlayerName(targetUuid, cache));
+        });
+
+        // 影子小丑背叛化身格式化器
+        ReplayRegistry.registerFormatter("shadow_transform", (event, match, world) -> {
+            var cache = ReplayGenerator.getPlayerInfoCache(match);
+            NbtCompound data = event.data();
+            UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+            if (actorUuid == null) return null;
+            return Text.translatable("replay.shadow_transform", ReplayGenerator.formatPlayerName(actorUuid, cache));
+        });
+
+        // 双影谢幕（终局对决）触发格式化器（全场事件，无特定触发者）
+        ReplayRegistry.registerGlobalEventFormatter(Identifier.of(MOD_ID, "shadow_showdown_start"),
+                (event, match, world) -> Text.translatable("replay.global.noellesroles.shadow_showdown_start"));
 
         // 灵界行者技能格式化器（灵魂出窍 / 主动回归 / 被迫回归）
         ReplayRegistry.registerSkillFormatter(SPIRIT_WALKER_ID, (event, match, world) -> {
