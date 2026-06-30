@@ -37,6 +37,7 @@
   "announcement.role.voodoo": "Voodoo",
   "announcement.win.voodoo": "Passengers Win!",
   "hud.voodoo.natural_death_disabled": "Voodoo deaths must be triggered by another player!",
+  "hud.voodoo.cursed": "A sharp pain stabs through your heart…",
 
   "announcement.goals.swapper": "Swap places with other players.",
   "announcement.role.swapper": "Swapper",

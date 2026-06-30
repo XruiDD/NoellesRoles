@@ -33,6 +33,7 @@
   "announcement.role.voodoo": "巫毒師",
   "announcement.win.voodoo": "乘客勝利！",
   "hud.voodoo.natural_death_disabled": "巫毒死亡必須由其他玩家觸發，才可生效！",
+  "hud.voodoo.cursed": "你感到心臟傳來一陣尖銳的刺痛……",
 
   "announcement.goals.swapper": "指定任意兩名玩家交換位置。",
   "announcement.role.swapper": "交換者",

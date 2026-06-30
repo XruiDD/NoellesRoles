@@ -429,6 +429,9 @@ public class Noellesroles implements ModInitializer {
         // Master key should drop on death
         ShouldDropOnDeath.EVENT.register((stack, victim) -> stack.isOf(ModItems.MASTER_KEY));
 
+        // 巫毒诅咒穿透疯魔盾（不被其吸收）
+        ShouldPiercePsychoArmour.EVENT.register((victim, deathReason) -> VOODOO_ID.equals(deathReason));
+
         KillPlayer.BEFORE.register(((victim, killer, deathReason) -> {
             GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(victim.getWorld());
 
@@ -536,7 +539,7 @@ public class Noellesroles implements ModInitializer {
 
             // Iron Man buff protection (from Professor)
             IronManPlayerComponent ironManComp = IronManPlayerComponent.KEY.get(victim);
-            if (ironManComp.hasBuff() && deathReason != GameConstants.DeathReasons.SHOT_INNOCENT && deathReason != DEATH_REASON_ASSASSINATED) {
+            if (ironManComp.hasBuff() && deathReason != GameConstants.DeathReasons.SHOT_INNOCENT && deathReason != DEATH_REASON_ASSASSINATED && !VOODOO_ID.equals(deathReason)) {
                 victim.getWorld().playSound(null, victim.getBlockPos(), WatheSounds.ITEM_PSYCHO_ARMOUR, SoundCategory.MASTER, 5.0F, 1.0F);
                 // 记录铁人药水保护生效
                 if (victim instanceof ServerPlayerEntity serverVictim) {
@@ -565,7 +568,8 @@ public class Noellesroles implements ModInitializer {
             if (victim instanceof ServerPlayerEntity serverVictim2
                     && serverVictim2.hasStatusEffect(ModEffects.WHISKEY_SHIELD)
                     && deathReason != GameConstants.DeathReasons.SHOT_INNOCENT
-                    && deathReason != DEATH_REASON_ASSASSINATED) {
+                    && deathReason != DEATH_REASON_ASSASSINATED
+                    && !VOODOO_ID.equals(deathReason)) {
                 org.agmas.noellesroles.effect.WhiskeyShieldEffect.consumeShield(serverVictim2);
                 victim.getWorld().playSound(null, victim.getBlockPos(), WatheSounds.ITEM_PSYCHO_ARMOUR, SoundCategory.MASTER, 5.0F, 1.0F);
                 // 记录威士忌护盾保护（仿铁人药剂模式）
@@ -1129,7 +1133,9 @@ public class Noellesroles implements ModInitializer {
                                         .put("voodoo_death_reason", deathReason.toString())
                                         .record();
                                 }
-                                GameFunctions.killPlayer(voodooed, true, null, Identifier.of(Noellesroles.MOD_ID, "voodoo"));
+                                // 巫毒诅咒延迟 5 秒后才杀死目标，期间目标会在动作栏收到提示；
+                                // 实际致死在 VoodooPlayerComponent.serverTick 中以 force=true 调用，不可被任何护盾阻挡
+                                VoodooPlayerComponent.KEY.get(voodooed).startPendingDeath(GameConstants.getInTicks(0, 5));
                             }
                         }
                     }
