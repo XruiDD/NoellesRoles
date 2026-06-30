@@ -2,7 +2,6 @@ package org.agmas.noellesroles.jester;
 
 import dev.doctor4t.wathe.api.event.PsychoType;
 import dev.doctor4t.wathe.cca.GameWorldComponent;
-import dev.doctor4t.wathe.cca.PlayerMoodComponent;
 import dev.doctor4t.wathe.cca.PlayerPsychoComponent;
 import dev.doctor4t.wathe.cca.PlayerStaminaComponent;
 import dev.doctor4t.wathe.entity.PlayerBodyEntity;
@@ -31,8 +30,6 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 import org.agmas.noellesroles.ModSounds;
 import org.agmas.noellesroles.Noellesroles;
@@ -71,8 +68,6 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
 
     private double deathX = 0, deathY = 0, deathZ = 0;
 
-    private final Map<UUID, Float> savedMoods = new HashMap<>();
-
     public JesterPlayerComponent(PlayerEntity player) {
         this.player = player;
     }
@@ -108,14 +103,6 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
             if (body instanceof PlayerBodyEntity) body.discard();
         }
         this.fakeBodyUuid = null;
-
-        if (!this.savedMoods.isEmpty() && player.getWorld() instanceof ServerWorld sw2) {
-            for (Map.Entry<UUID, Float> e : this.savedMoods.entrySet()) {
-                ServerPlayerEntity p = sw2.getServer().getPlayerManager().getPlayer(e.getKey());
-                if (p != null) PlayerMoodComponent.KEY.get(p).setMood(e.getValue());
-            }
-        }
-        this.savedMoods.clear();
 
         if (this.inPsychoMode) {
             if (player.getWorld() != null) {
@@ -235,15 +222,6 @@ public class JesterPlayerComponent implements AutoSyncedComponent, ServerTicking
                 staminaComp.setMaxSprintTime(effectiveMax);
                 staminaComp.setExhausted(false);
                 staminaComp.sync();
-            }
-
-            if (player.getWorld() instanceof ServerWorld serverWorld) {
-                this.savedMoods.clear();
-                for (ServerPlayerEntity p : serverWorld.getPlayers()) {
-                    PlayerMoodComponent moodComp = PlayerMoodComponent.KEY.get(p);
-                    this.savedMoods.put(p.getUuid(), moodComp.getMood());
-                    moodComp.setMood(0);
-                }
             }
 
             WorldMusicComponent worldMusic = WorldMusicComponent.KEY.get(this.player.getWorld());

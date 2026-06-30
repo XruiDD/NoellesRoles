@@ -21,6 +21,7 @@ import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.item.ModelPredicateProviderRegistry;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
+import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.ProjectileUtil;
 import net.minecraft.text.Text;
@@ -45,6 +46,7 @@ import org.agmas.noellesroles.bartender.BartenderPlayerComponent;
 import org.agmas.noellesroles.client.gui.JesterTimeRenderer;
 import org.agmas.noellesroles.util.HiddenEquipmentHelper;
 import dev.doctor4t.wathe.index.WatheItems;
+import dev.doctor4t.wathe.index.tag.WatheItemTags;
 import org.agmas.noellesroles.client.screen.AssassinScreen;
 import org.agmas.noellesroles.corruptcop.CorruptCopPlayerComponent;
 import org.agmas.noellesroles.client.render.EngineerDoorHighlightRenderer;
@@ -354,6 +356,20 @@ public class NoellesrolesClient implements ClientModInitializer {
                 }
             }
             return null;
+        });
+        // 注册 GetInstinctHighlight 监听器：小丑时刻里好人常驻本能高亮地上的枪械
+        // 帮助好人在人人变小丑、名字乱码的混乱中快速找到枪反击（无需按本能键）
+        GetInstinctHighlight.EVENT.register(entity -> {
+            if (!JesterMomentClient.isActive()) return null;
+            if (!(entity instanceof ItemEntity itemEntity)) return null;
+            PlayerEntity localPlayer = MinecraftClient.getInstance().player;
+            if (localPlayer == null) return null;
+            if (!WatheClient.isPlayerPlayingAndAlive()) return null;
+            GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(localPlayer.getWorld());
+            if (!gameWorldComponent.isInnocent(localPlayer)) return null;
+            if (!itemEntity.getStack().isIn(WatheItemTags.GUNS)) return null;
+            // 复用 wathe 物品本能高亮的金色
+            return GetInstinctHighlight.HighlightResult.always(0xDB9D00);
         });
         // 注册 GetInstinctHighlight 监听器：秃鹫的本能高亮逻辑（尸体高亮）
         GetInstinctHighlight.EVENT.register(entity -> {
