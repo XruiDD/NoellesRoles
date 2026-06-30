@@ -854,6 +854,10 @@ public class Noellesroles implements ModInitializer {
                     ItemStack pistol = new ItemStack(ModItems.DEMON_HUNTER_PISTOL);
                     pistol.set(ModItems.BULLETS, 2);
                     dev.doctor4t.wathe.util.ShopEntry.insertStackInFreeSlot(hunter, pistol);
+                    // 发放后 5 秒冷却，避免疯魔一开始即可瞬间开枪
+                    if (!hunter.isCreative()) {
+                        hunter.getItemCooldownManager().set(ModItems.DEMON_HUNTER_PISTOL, GameConstants.getInTicks(0, 5));
+                    }
                 }
             }
         });
