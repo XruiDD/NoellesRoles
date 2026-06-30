@@ -1187,6 +1187,13 @@ public class Noellesroles implements ModInitializer {
                 taotieComp.endTaotieMoment();
             }
 
+            // 变形者被杀时清理伪装/尸体伪装状态，避免 corpseMode、morph 残留
+            // （这些状态平时只在 ResetPlayer 即开局/结算时清理，死亡时不会触发）
+            if (gameComponent.isRole(victim, MORPHLING)) {
+                MorphlingPlayerComponent morphComp = MorphlingPlayerComponent.KEY.get(victim);
+                morphComp.reset();
+            }
+
             // 被吞玩家死亡后的特殊处理（不生成尸体，播放打嗝音效）
             SwallowedPlayerComponent victimSwallowed = SwallowedPlayerComponent.KEY.get(victim);
             if (victimSwallowed.isSwallowed()) {
